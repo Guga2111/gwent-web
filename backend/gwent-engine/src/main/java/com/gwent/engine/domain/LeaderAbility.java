@@ -1,6 +1,6 @@
 package com.gwent.engine.domain;
 
-public enum LeaderAbilities {
+public enum LeaderAbility {
     // Northern Realms
     SIEGE_MASTER,          // Foltest - clears weather from siege row
     NORTH_COMMANDER,       // Foltest - +1 to siege units
