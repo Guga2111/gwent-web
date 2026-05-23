@@ -8,5 +8,7 @@ public enum Ability {
     MUSTER,
     BERSERKER,
     SCORCH,
-    AGILE
+    AGILE,
+    DUMMY,
+    COMMANDERS_HORN
 }
