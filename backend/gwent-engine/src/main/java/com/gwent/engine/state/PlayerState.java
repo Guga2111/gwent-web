@@ -2,6 +2,8 @@ package com.gwent.engine.state;
 
 import com.gwent.engine.domain.Card;
 import com.gwent.engine.domain.RowType;
+import com.gwent.engine.exception.command.LeaderAlreadyUsedException;
+import com.gwent.engine.exception.state.PlayerAlreadyEliminatedException;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -66,7 +68,7 @@ public class PlayerState {
 
     public void loseLife () {
 
-        if (lives <= 0) throw new IllegalStateException("The players life is already 0");
+        if (lives <= 0) throw new PlayerAlreadyEliminatedException();
 
         lives = lives - 1;
     }
@@ -96,7 +98,7 @@ public class PlayerState {
     }
 
     public void useLeader () {
-        if (leaderUsed) throw new IllegalStateException("Leader ability has already been used");
+        if (leaderUsed) throw new LeaderAlreadyUsedException();
         leaderUsed = true;
     }
 

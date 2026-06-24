@@ -2,6 +2,7 @@ package com.gwent.engine.state;
 
 import com.gwent.engine.domain.Card;
 import com.gwent.engine.domain.RowType;
+import com.gwent.engine.exception.command.InvalidRowException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,7 +47,7 @@ public class BoardRow {
     public void addCard (Card card) {
 
         if (card.rowType() != rowType) {
-            throw new IllegalStateException("The Card row: [" + card.rowType() + "] should be the same from the BoardRow: [" + rowType + "]");
+            throw new InvalidRowException();
         }
 
         this.cards.add(card);

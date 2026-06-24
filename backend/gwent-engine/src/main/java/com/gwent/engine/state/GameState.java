@@ -2,6 +2,9 @@ package com.gwent.engine.state;
 
 import com.gwent.engine.domain.GamePhase;
 import com.gwent.engine.domain.Turn;
+import com.gwent.engine.exception.state.InvalidPhaseTransitionException;
+import com.gwent.engine.exception.state.RoundLimitExceededException;
+import com.gwent.engine.exception.state.TurnNotSetException;
 
 public class GameState {
     private final Board board;
@@ -32,17 +35,17 @@ public class GameState {
     }
 
     public PlayerState getCurrentPlayer () {
-        if (currentTurn == null) throw new IllegalStateException("Current turn has not been set");
+        if (currentTurn == null) throw new TurnNotSetException();
         return currentTurn == Turn.PLAYER_1 ? player1 : player2;
     }
 
     public PlayerState getOpponent () {
-        if (currentTurn == null) throw new IllegalStateException("Current turn has not been set");
+        if (currentTurn == null) throw new TurnNotSetException();
         return currentTurn == Turn.PLAYER_1 ? player2 : player1;
     }
 
     public Turn getCurrentTurn () {
-        if (currentTurn == null) throw new IllegalStateException("Current turn has not been set");
+        if (currentTurn == null) throw new TurnNotSetException();
         return currentTurn;
     }
 
@@ -51,7 +54,7 @@ public class GameState {
     }
 
     public void switchTurn () {
-        if (currentTurn == null) throw new IllegalStateException("Current turn has not been set");
+        if (currentTurn == null) throw new TurnNotSetException();
         currentTurn = (currentTurn == Turn.PLAYER_1) ? Turn.PLAYER_2 : Turn.PLAYER_1;
     }
 
@@ -60,7 +63,7 @@ public class GameState {
     }
 
     public void nextRound () {
-        if (currentRound >= 3) throw new IllegalStateException("Cannot exceed 3 rounds");
+        if (currentRound >= 3) throw new RoundLimitExceededException();
         currentRound++;
     }
 
@@ -77,8 +80,7 @@ public class GameState {
             case GAME_OVER -> false;
         };
 
-        if (!valid) throw new IllegalStateException(
-                "Cannot transition from " + this.phase + " to " + phase);
+        if (!valid) throw new InvalidPhaseTransitionException(this.phase, phase);
 
         this.phase = phase;
     }

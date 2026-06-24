@@ -1,6 +1,8 @@
 package com.gwent.engine.state;
 
 import com.gwent.engine.domain.*;
+import com.gwent.engine.exception.command.LeaderAlreadyUsedException;
+import com.gwent.engine.exception.state.PlayerAlreadyEliminatedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -188,7 +190,7 @@ class PlayerStateTest {
         player.loseLife();
         player.loseLife();
 
-        assertThrows(IllegalStateException.class, () -> player.loseLife());
+        assertThrows(PlayerAlreadyEliminatedException.class, () -> player.loseLife());
     }
 
     // --- Pass ---
@@ -221,7 +223,7 @@ class PlayerStateTest {
     void shouldThrowWhenUsingLeaderTwice() {
         player.useLeader();
 
-        assertThrows(IllegalStateException.class, () -> player.useLeader());
+        assertThrows(LeaderAlreadyUsedException.class, () -> player.useLeader());
     }
 
     @Test

@@ -1,6 +1,7 @@
 package com.gwent.engine.state;
 
 import com.gwent.engine.domain.*;
+import com.gwent.engine.exception.command.InvalidRowException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -38,7 +39,7 @@ class BoardRowTest {
         Card rangedUnit = new Card("archer", "Archer", Faction.NORTHERN_REALMS, CardType.UNIT,
                 null, null, RowType.RANGED, 5);
 
-        assertThrows(IllegalStateException.class, () -> meleeRow.addCard(rangedUnit));
+        assertThrows(InvalidRowException.class, () -> meleeRow.addCard(rangedUnit));
     }
 
     @Test

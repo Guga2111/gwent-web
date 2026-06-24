@@ -1,6 +1,9 @@
 package com.gwent.engine.state;
 
 import com.gwent.engine.domain.*;
+import com.gwent.engine.exception.state.InvalidPhaseTransitionException;
+import com.gwent.engine.exception.state.RoundLimitExceededException;
+import com.gwent.engine.exception.state.TurnNotSetException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -45,22 +48,22 @@ class GameStateTest {
 
     @Test
     void shouldThrowWhenGetCurrentPlayerBeforeCoinFlip() {
-        assertThrows(IllegalStateException.class, () -> gameState.getCurrentPlayer());
+        assertThrows(TurnNotSetException.class, () -> gameState.getCurrentPlayer());
     }
 
     @Test
     void shouldThrowWhenGetOpponentBeforeCoinFlip() {
-        assertThrows(IllegalStateException.class, () -> gameState.getOpponent());
+        assertThrows(TurnNotSetException.class, () -> gameState.getOpponent());
     }
 
     @Test
     void shouldThrowWhenGetCurrentTurnBeforeCoinFlip() {
-        assertThrows(IllegalStateException.class, () -> gameState.getCurrentTurn());
+        assertThrows(TurnNotSetException.class, () -> gameState.getCurrentTurn());
     }
 
     @Test
     void shouldThrowWhenSwitchTurnBeforeCoinFlip() {
-        assertThrows(IllegalStateException.class, () -> gameState.switchTurn());
+        assertThrows(TurnNotSetException.class, () -> gameState.switchTurn());
     }
 
     // --- Turn (set and switch) ---
@@ -121,7 +124,7 @@ class GameStateTest {
         gameState.nextRound();
         gameState.nextRound();
 
-        assertThrows(IllegalStateException.class, () -> gameState.nextRound());
+        assertThrows(RoundLimitExceededException.class, () -> gameState.nextRound());
     }
 
     // --- Phase transitions (valid) ---
@@ -174,21 +177,21 @@ class GameStateTest {
 
     @Test
     void shouldThrowWhenSkippingFromCoinFlipToPlay() {
-        assertThrows(IllegalStateException.class, () -> gameState.setPhase(GamePhase.PLAY));
+        assertThrows(InvalidPhaseTransitionException.class, () -> gameState.setPhase(GamePhase.PLAY));
     }
 
     @Test
     void shouldThrowWhenGoingBackFromRedrawToCoinFlip() {
         gameState.setPhase(GamePhase.REDRAW);
 
-        assertThrows(IllegalStateException.class, () -> gameState.setPhase(GamePhase.COIN_FLIP));
+        assertThrows(InvalidPhaseTransitionException.class, () -> gameState.setPhase(GamePhase.COIN_FLIP));
     }
 
     @Test
     void shouldThrowWhenSkippingFromRedrawToRoundEnd() {
         gameState.setPhase(GamePhase.REDRAW);
 
-        assertThrows(IllegalStateException.class, () -> gameState.setPhase(GamePhase.ROUND_END));
+        assertThrows(InvalidPhaseTransitionException.class, () -> gameState.setPhase(GamePhase.ROUND_END));
     }
 
     @Test
@@ -198,7 +201,7 @@ class GameStateTest {
         gameState.setPhase(GamePhase.ROUND_END);
         gameState.setPhase(GamePhase.GAME_OVER);
 
-        assertThrows(IllegalStateException.class, () -> gameState.setPhase(GamePhase.REDRAW));
+        assertThrows(InvalidPhaseTransitionException.class, () -> gameState.setPhase(GamePhase.REDRAW));
     }
 
     @Test
@@ -206,6 +209,6 @@ class GameStateTest {
         gameState.setPhase(GamePhase.REDRAW);
         gameState.setPhase(GamePhase.PLAY);
 
-        assertThrows(IllegalStateException.class, () -> gameState.setPhase(GamePhase.REDRAW));
+        assertThrows(InvalidPhaseTransitionException.class, () -> gameState.setPhase(GamePhase.REDRAW));
     }
 }
