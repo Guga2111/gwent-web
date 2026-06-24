@@ -1,5 +1,6 @@
 package com.gwent.engine.state;
 
+import com.gwent.engine.domain.Ability;
 import com.gwent.engine.domain.Card;
 import com.gwent.engine.domain.RowType;
 import com.gwent.engine.exception.command.InvalidRowException;
@@ -46,7 +47,10 @@ public class BoardRow {
 
     public void addCard (Card card) {
 
-        if (card.rowType() != rowType) {
+        if (card.ability() == Ability.AGILE) {
+            if (rowType != RowType.MELEE && rowType != RowType.RANGED)
+                throw new InvalidRowException();
+        } else if (card.rowType() != rowType) {
             throw new InvalidRowException();
         }
 
