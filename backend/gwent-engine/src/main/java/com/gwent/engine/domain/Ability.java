@@ -10,5 +10,13 @@ public enum Ability {
     SCORCH,
     AGILE,
     DUMMY,
-    COMMANDERS_HORN
+    COMMANDERS_HORN,
+    FROST,
+    FOG,
+    RAIN,
+    CLEAR_WEATHER;
+
+    public boolean isWeather() {
+        return this == FROST || this == FOG || this == RAIN || this == CLEAR_WEATHER;
+    }
 }

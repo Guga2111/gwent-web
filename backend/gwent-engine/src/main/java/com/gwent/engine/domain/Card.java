@@ -26,5 +26,14 @@ public record Card(
         } else {
             if (rowType != null) throw new IllegalArgumentException("Non-unit cards cannot have a row type");
         }
+
+        if (cardType == CardType.WEATHER) {
+            if (ability == null) throw new IllegalArgumentException("Weather cards must have a weather ability");
+            if (!ability.isWeather()) throw new IllegalArgumentException("Weather cards must have a weather ability, not a unit ability");
+        }
+
+        if (ability != null && ability.isWeather() && cardType != CardType.WEATHER) {
+            throw new IllegalArgumentException("Weather abilities can only be assigned to weather cards");
+        }
     }
 }
