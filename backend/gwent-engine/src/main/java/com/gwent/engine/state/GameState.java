@@ -1,6 +1,8 @@
 package com.gwent.engine.state;
 
+import com.gwent.engine.domain.Ability;
 import com.gwent.engine.domain.GamePhase;
+import com.gwent.engine.domain.PendingAbility;
 import com.gwent.engine.domain.Turn;
 import com.gwent.engine.exception.state.InvalidPhaseTransitionException;
 import com.gwent.engine.exception.state.RoundLimitExceededException;
@@ -13,6 +15,7 @@ public class GameState {
     private Turn currentTurn;
     private int currentRound;
     private GamePhase phase;
+    private PendingAbility pendingAbility;
 
     public GameState (PlayerState player1, PlayerState player2) {
         this.player1 = player1;
@@ -49,6 +52,14 @@ public class GameState {
         return currentTurn;
     }
 
+    public PendingAbility getPendingAbility() {
+        return pendingAbility;
+    }
+
+    public void setPendingAbility(PendingAbility pendingAbility) {
+        this.pendingAbility = pendingAbility;
+    }
+
     public void setCurrentTurn (Turn currentTurn) {
         this.currentTurn = currentTurn;
     }
@@ -76,7 +87,7 @@ public class GameState {
             case COIN_FLIP -> phase == GamePhase.REDRAW;
             case REDRAW -> phase == GamePhase.PLAY;
             case PLAY -> phase == GamePhase.ROUND_END;
-            case ROUND_END -> phase == GamePhase.REDRAW || phase == GamePhase.GAME_OVER;
+            case ROUND_END -> phase == GamePhase.PLAY || phase == GamePhase.GAME_OVER;
             case GAME_OVER -> false;
         };
 
