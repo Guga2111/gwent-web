@@ -22,6 +22,7 @@ public class PlayerState {
     private boolean leaderUsed;
     private int lives;
     private boolean passed;
+    private int mulligansRemaining;
 
     public PlayerState (Card leader, List<Card> deck) {
         this.leader = leader;
@@ -66,6 +67,14 @@ public class PlayerState {
         graveyard.remove(card);
     }
 
+    public void removeFromDeck (Card card) {
+        deck.remove(card);
+    }
+
+    public void returnToDeck (Card card) {
+        deck.addLast(card);
+    }
+
     public void loseLife () {
 
         if (lives <= 0) throw new PlayerAlreadyEliminatedException();
@@ -93,6 +102,18 @@ public class PlayerState {
         passed = false;
     }
 
+    public int getMulligansRemaining () {
+        return mulligansRemaining;
+    }
+
+    public void setMulligansRemaining (int count) {
+        mulligansRemaining = count;
+    }
+
+    public void decrementMulligans () {
+        mulligansRemaining--;
+    }
+
     public Card getLeader () {
         return leader;
     }
@@ -116,6 +137,14 @@ public class PlayerState {
 
     public BoardRow getSiegeRow () {
         return siegeRow;
+    }
+
+    public BoardRow getRow(RowType rowType) {
+        return switch (rowType) {
+            case MELEE  -> meleeRow;
+            case RANGED -> rangedRow;
+            case SIEGE  -> siegeRow;
+        };
     }
 
     public void clearRows () {
