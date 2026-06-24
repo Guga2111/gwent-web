@@ -25,7 +25,7 @@ class BoardTest {
 
         board = new Board(player1, player2);
         weatherCard = new Card("frost", "Biting Frost", Faction.NEUTRAL, CardType.WEATHER,
-                null, null, null, null);
+                Ability.FROST, null, null, null);
     }
 
     // --- Initial state ---
@@ -54,7 +54,7 @@ class BoardTest {
     @Test
     void shouldAddMultipleWeatherCards() {
         Card fog = new Card("fog", "Impenetrable Fog", Faction.NEUTRAL, CardType.WEATHER,
-                null, null, null, null);
+                Ability.FOG, null, null, null);
 
         board.addWeatherCard(weatherCard);
         board.addWeatherCard(fog);

@@ -46,9 +46,31 @@ class CardTest {
     @Test
     void shouldCreateValidWeatherCard() {
         Card card = new Card("biting frost", "Biting Frost", Faction.NEUTRAL, CardType.WEATHER,
-                null, null, null, null);
+                Ability.FROST, null, null, null);
 
         assertEquals("BITING_FROST", card.id());
+        assertEquals(Ability.FROST, card.ability());
+    }
+
+    @Test
+    void shouldThrowWhenWeatherCardHasNoAbility() {
+        assertThrows(IllegalArgumentException.class, () ->
+                new Card("biting frost", "Biting Frost", Faction.NEUTRAL, CardType.WEATHER,
+                        null, null, null, null));
+    }
+
+    @Test
+    void shouldThrowWhenWeatherCardHasNonWeatherAbility() {
+        assertThrows(IllegalArgumentException.class, () ->
+                new Card("biting frost", "Biting Frost", Faction.NEUTRAL, CardType.WEATHER,
+                        Ability.SPY, null, null, null));
+    }
+
+    @Test
+    void shouldThrowWhenUnitHasWeatherAbility() {
+        assertThrows(IllegalArgumentException.class, () ->
+                new Card("soldier", "Soldier", Faction.NEUTRAL, CardType.UNIT,
+                        Ability.FROST, null, RowType.MELEE, 5));
     }
 
     @Test

@@ -154,13 +154,13 @@ class GameStateTest {
     }
 
     @Test
-    void shouldTransitionFromRoundEndToRedraw() {
+    void shouldTransitionFromRoundEndToPlay() {
         gameState.setPhase(GamePhase.REDRAW);
         gameState.setPhase(GamePhase.PLAY);
         gameState.setPhase(GamePhase.ROUND_END);
-        gameState.setPhase(GamePhase.REDRAW);
+        gameState.setPhase(GamePhase.PLAY);
 
-        assertEquals(GamePhase.REDRAW, gameState.getPhase());
+        assertEquals(GamePhase.PLAY, gameState.getPhase());
     }
 
     @Test
