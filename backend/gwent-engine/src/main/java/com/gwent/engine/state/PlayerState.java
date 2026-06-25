@@ -23,6 +23,7 @@ public class PlayerState {
     private int lives;
     private boolean passed;
     private int mulligansRemaining;
+    private boolean mulliganConfirmed;
 
     public PlayerState (Card leader, List<Card> deck) {
         this.leader = leader;
@@ -112,6 +113,14 @@ public class PlayerState {
 
     public void decrementMulligans () {
         mulligansRemaining--;
+    }
+
+    public void confirmMulligan () {
+        mulliganConfirmed = true;
+    }
+
+    public boolean isMulliganConfirmed () {
+        return mulliganConfirmed;
     }
 
     public Card getLeader () {

@@ -20,6 +20,7 @@ public class GwentEngine {
             case MulliganCommand c     -> handleMulligan(state, c);
             case UseLeaderCommand c    -> handleUseLeader(state, c);
             case ResolveMedicCommand c -> handleResolveMedic(state, c);
+            case ConfirmMulliganCommand c -> handleConfirmMulligan(state, c);
         }
     }
 
@@ -92,8 +93,10 @@ public class GwentEngine {
 
     private void handleMulligan(GameState state, MulliganCommand command) {
         Card card = command.cardToReturn();
-        PlayerState current = state.getCurrentPlayer();
+        PlayerState current = state.getPlayer(command.player());
 
+        if (current.isMulliganConfirmed())
+            throw new PlayerAlreadyConfirmedMulliganException();
         if (state.getPhase() != GamePhase.REDRAW)
             throw new InvalidPhaseCommandException(GamePhase.REDRAW, state.getPhase());
         if (current.getMulligansRemaining() == 0)
@@ -105,6 +108,22 @@ public class GwentEngine {
         current.returnToDeck(card);
         if (!current.isDeckEmpty()) current.drawCard();
         current.decrementMulligans();
+    }
+
+    private void handleConfirmMulligan(GameState state, ConfirmMulliganCommand command) {
+        // if both players confirmed → startPlay(state)
+        Turn oppositePlayerTurn = command.player() == Turn.PLAYER_2 ? Turn.PLAYER_1 : Turn.PLAYER_2;
+
+        PlayerState currentPlayer = state.getPlayer(command.player());
+        PlayerState oppositePlayer = state.getPlayer(oppositePlayerTurn);
+
+        if (state.getPhase() != GamePhase.REDRAW) throw new InvalidPhaseCommandException(GamePhase.REDRAW, state.getPhase());
+
+        currentPlayer.confirmMulligan();
+
+        if (oppositePlayer.isMulliganConfirmed()) {
+            startPlay(state);
+        }
     }
 
     private void handleUseLeader(GameState state, UseLeaderCommand command) {

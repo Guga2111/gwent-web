@@ -52,6 +52,10 @@ public class GameState {
         return currentTurn;
     }
 
+    public PlayerState getPlayer (Turn player) {
+        return player == Turn.PLAYER_1 ? player1 : player2;
+    }
+
     public PendingAbility getPendingAbility() {
         return pendingAbility;
     }

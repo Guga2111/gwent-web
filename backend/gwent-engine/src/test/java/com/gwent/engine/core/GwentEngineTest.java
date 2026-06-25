@@ -376,7 +376,7 @@ class GwentEngineTest {
         p1.addToHand(toReturn);
         GameState state = makeRedrawState(p1, makePlayer());
 
-        engine.execute(state, new MulliganCommand(toReturn));
+        engine.execute(state, new MulliganCommand(Turn.PLAYER_1, toReturn));
 
         assertTrue(p1.getHand().contains(inDeck));
         assertFalse(p1.getHand().contains(toReturn));
@@ -391,9 +391,28 @@ class GwentEngineTest {
         p1.addToHand(toReturn);
         GameState state = makeRedrawState(p1, makePlayer());
 
-        engine.execute(state, new MulliganCommand(toReturn));
+        engine.execute(state, new MulliganCommand(Turn.PLAYER_1, toReturn));
 
         assertTrue(p1.getHand().contains(toReturn));
+    }
+
+    @Test
+    void shouldAllowBothPlayersToMulliganIndependently() {
+        Card p1Card = makeUnit("p1c", "P1Card", 3, RowType.MELEE);
+        Card p1Deck = makeUnit("p1d", "P1Deck", 5, RowType.MELEE);
+        Card p2Card = makeUnit("p2c", "P2Card", 4, RowType.RANGED);
+        Card p2Deck = makeUnit("p2d", "P2Deck", 6, RowType.RANGED);
+        PlayerState p1 = new PlayerState(makeLeader(), List.of(p1Deck));
+        p1.addToHand(p1Card);
+        PlayerState p2 = new PlayerState(makeLeader(), List.of(p2Deck));
+        p2.addToHand(p2Card);
+        GameState state = makeRedrawState(p1, p2);
+
+        engine.execute(state, new MulliganCommand(Turn.PLAYER_1, p1Card));
+        engine.execute(state, new MulliganCommand(Turn.PLAYER_2, p2Card));
+
+        assertTrue(p1.getHand().contains(p1Deck));
+        assertTrue(p2.getHand().contains(p2Deck));
     }
 
     // =========================================================
@@ -406,7 +425,7 @@ class GwentEngineTest {
         GameState state = makePlayState(playerWithHand(card), makePlayer());
 
         assertThrows(InvalidPhaseCommandException.class, () ->
-                engine.execute(state, new MulliganCommand(card)));
+                engine.execute(state, new MulliganCommand(Turn.PLAYER_1, card)));
     }
 
     @Test
@@ -415,7 +434,7 @@ class GwentEngineTest {
         GameState state = makeRedrawState(makePlayer(), makePlayer());
 
         assertThrows(CardNotInHandException.class, () ->
-                engine.execute(state, new MulliganCommand(card)));
+                engine.execute(state, new MulliganCommand(Turn.PLAYER_1, card)));
     }
 
     @Test
@@ -432,11 +451,11 @@ class GwentEngineTest {
         p1.addToHand(c3);
         GameState state = makeRedrawState(p1, makePlayer());
 
-        engine.execute(state, new MulliganCommand(c1)); // 1st mulligan
-        engine.execute(state, new MulliganCommand(c2)); // 2nd mulligan
+        engine.execute(state, new MulliganCommand(Turn.PLAYER_1, c1)); // 1st mulligan
+        engine.execute(state, new MulliganCommand(Turn.PLAYER_1, c2)); // 2nd mulligan
         // 3rd mulligan → no mulligans remaining
         assertThrows(NoMulligansRemainingException.class, () ->
-                engine.execute(state, new MulliganCommand(c3)));
+                engine.execute(state, new MulliganCommand(Turn.PLAYER_1, c3)));
     }
 
     @Test
@@ -450,9 +469,81 @@ class GwentEngineTest {
         p1.addToHand(c2);
         GameState state = makeRedrawState(p1, makePlayer());
 
-        assertDoesNotThrow(() -> engine.execute(state, new MulliganCommand(c1)));
-        assertDoesNotThrow(() -> engine.execute(state, new MulliganCommand(c2)));
+        assertDoesNotThrow(() -> engine.execute(state, new MulliganCommand(Turn.PLAYER_1, c1)));
+        assertDoesNotThrow(() -> engine.execute(state, new MulliganCommand(Turn.PLAYER_1, c2)));
         assertEquals(0, p1.getMulligansRemaining());
+    }
+
+    @Test
+    void shouldThrowWhenMulliganAfterConfirming() {
+        Card card = makeUnit("u1", "Card", 3, RowType.MELEE);
+        PlayerState p1 = playerWithHand(card);
+        GameState state = makeRedrawState(p1, makePlayer());
+
+        engine.execute(state, new ConfirmMulliganCommand(Turn.PLAYER_1));
+
+        assertThrows(PlayerAlreadyConfirmedMulliganException.class, () ->
+                engine.execute(state, new MulliganCommand(Turn.PLAYER_1, card)));
+    }
+
+    // =========================================================
+    // handleConfirmMulligan — happy paths
+    // =========================================================
+
+    @Test
+    void shouldTransitionToPlayWhenBothPlayersConfirm() {
+        GameState state = makeRedrawState(makePlayer(), makePlayer());
+
+        engine.execute(state, new ConfirmMulliganCommand(Turn.PLAYER_1));
+        engine.execute(state, new ConfirmMulliganCommand(Turn.PLAYER_2));
+
+        assertEquals(GamePhase.PLAY, state.getPhase());
+    }
+
+    @Test
+    void shouldStayInRedrawWhenOnlyOnePlayerConfirms() {
+        GameState state = makeRedrawState(makePlayer(), makePlayer());
+
+        engine.execute(state, new ConfirmMulliganCommand(Turn.PLAYER_1));
+
+        assertEquals(GamePhase.REDRAW, state.getPhase());
+    }
+
+    @Test
+    void shouldTransitionToPlayWhenSecondPlayerConfirmsAfterMulliganing() {
+        Card card = makeUnit("u1", "Card", 3, RowType.MELEE);
+        Card deck = makeUnit("d1", "Deck", 5, RowType.MELEE);
+        PlayerState p1 = new PlayerState(makeLeader(), List.of(deck));
+        p1.addToHand(card);
+        GameState state = makeRedrawState(p1, makePlayer());
+
+        engine.execute(state, new MulliganCommand(Turn.PLAYER_1, card));
+        engine.execute(state, new ConfirmMulliganCommand(Turn.PLAYER_1));
+        engine.execute(state, new ConfirmMulliganCommand(Turn.PLAYER_2));
+
+        assertEquals(GamePhase.PLAY, state.getPhase());
+    }
+
+    @Test
+    void shouldMarkPlayerAsConfirmed() {
+        GameState state = makeRedrawState(makePlayer(), makePlayer());
+
+        engine.execute(state, new ConfirmMulliganCommand(Turn.PLAYER_2));
+
+        assertTrue(state.getPlayer2().isMulliganConfirmed());
+        assertFalse(state.getPlayer1().isMulliganConfirmed());
+    }
+
+    // =========================================================
+    // handleConfirmMulligan — sad paths
+    // =========================================================
+
+    @Test
+    void shouldThrowWhenConfirmMulliganInWrongPhase() {
+        GameState state = makePlayState(makePlayer(), makePlayer());
+
+        assertThrows(InvalidPhaseCommandException.class, () ->
+                engine.execute(state, new ConfirmMulliganCommand(Turn.PLAYER_1)));
     }
 
     // =========================================================
