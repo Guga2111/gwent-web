@@ -358,6 +358,62 @@ with env vars injected by the GitHub Actions deploy step.
 
 ---
 
+## DevOps — future improvements (not MVP)
+
+These were consciously deferred. Implement when the project matures.
+
+### Health check in deploy workflow
+
+Currently `deploy.yml` only checks `docker ps` after starting the container. A proper health
+check would hit the `/actuator/health` endpoint and fail the deploy if the app did not come up:
+
+```yaml
+- name: Health check
+  run: |
+    sleep 15
+    curl --fail https://gwent.luisgosampaio.com/actuator/health || exit 1
+```
+
+Requires adding `spring-boot-starter-actuator` to `gwent-api` and exposing the health endpoint.
+The deploy workflow step that currently does `docker logs --tail 30` should be replaced with this.
+
+### Rollback strategy
+
+The deploy has no automatic rollback if the container crashes after starting. Every image is
+already tagged with `${{ github.sha }}` in addition to `latest`, so the previous image is
+always available on ghcr.io. A rollback step would:
+
+1. Record the previous image SHA before deploying (e.g. `docker inspect gwent-api`)
+2. On health check failure, `docker stop gwent-api && docker rm gwent-api`
+3. `docker run` with the previous SHA tag instead of `latest`
+
+Not needed until there are real users who would be affected by a failed deploy.
+
+### Docker layer caching in CI
+
+Every run of `deploy.yml` re-downloads all Maven dependencies from scratch because GitHub
+Actions runners are ephemeral. Speed it up with:
+
+```yaml
+- name: Cache Maven dependencies
+  uses: actions/cache@v4
+  with:
+    path: ~/.m2/repository
+    key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+    restore-keys: ${{ runner.os }}-maven-
+```
+
+Add this step before the `mvn` calls in both `ci.yml` and `deploy.yml`. Saves ~30-60s per run.
+
+### Separate staging environment
+
+A `staging` branch that auto-deploys to `gwent-staging.luisgosampaio.com` before anything
+reaches `main`. Useful when there are real users on prod and regressions would be disruptive.
+Requires a second VPS subdomain, Nginx block, and a third GitHub Actions workflow.
+Total overkill until the project has active users.
+
+---
+
 ## Implementation order
 
 1. **DevOps first** — set up GitHub Actions CI workflow and deploy workflow before writing API code
