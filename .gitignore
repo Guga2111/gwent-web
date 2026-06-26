@@ -1,2 +1,6 @@
 # Claude
 CLAUDE.md
+
+# Secrets
+.env
+backend/.env
