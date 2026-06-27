@@ -416,10 +416,17 @@ Total overkill until the project has active users.
 
 ## Implementation order
 
-1. **DevOps first** — set up GitHub Actions CI workflow and deploy workflow before writing API code
-2. `auth/` — register, login, JWT filter
-3. `game/` — WebSocket, session creation, command dispatch, preset deck seed
-4. End-to-end test: two players complete a full match
-5. `deck/` — deck builder CRUD
-6. `collection/` — post-MVP
-7. `quest/` + `chest/` — post-MVP
+1. **DevOps** — GitHub Actions CI/CD, Dockerfile, Docker Compose ✅
+2. **`gwent-api` module** — Maven module + Spring Boot skeleton, profiles, DB config
+3. **`game/`** — WebSocket, session creation, engine command dispatch, preset deck seed
+       (players identified by hardcoded IDs at this stage — no auth yet)
+4. **End-to-end test** — two players complete a full match through the WebSocket API
+5. **`auth/`** — register, login, JWT issued; replace hardcoded player identity with JWT claim
+6. **`deck/`** — deck builder CRUD (post-MVP)
+7. **`collection/`** — post-MVP
+8. **`quest/` + `chest/`** — post-MVP
+
+> `auth/` intentionally comes after `game/` is working end-to-end. The game session does not
+> need real authentication to prove the engine integration works. Auth slots in cleanly at
+> step 5 — `GameSessionService` already expects a player identifier, swapping a hardcoded
+> string for a JWT-extracted claim is a minimal change.
