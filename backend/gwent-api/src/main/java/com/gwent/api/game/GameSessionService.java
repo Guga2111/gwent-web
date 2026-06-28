@@ -29,6 +29,8 @@ public class GameSessionService {
 
     private final GwentEngine engine = new GwentEngine();
     private final Map<UUID, GameState> sessions = new ConcurrentHashMap<>();
+    // 4 threads: sufficient for MVP. When scaling, replace with Spring TaskScheduler
+    // (container-managed, configurable) or Redis TTL + keyspace notifications (zero threads).
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
 
     private final GameRepository gameRepository;
