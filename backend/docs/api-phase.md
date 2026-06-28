@@ -358,6 +358,28 @@ with env vars injected by the GitHub Actions deploy step.
 
 ---
 
+## Architecture — future improvements (not MVP)
+
+### Redis as session store
+
+`GameSessionService` currently uses a `ConcurrentHashMap<UUID, GameState>` as the runtime
+session store. This works for a single server instance but breaks under horizontal scaling —
+each instance has its own map and a request routed to a different instance won't find the session.
+
+**When to migrate:** when a second server instance is needed or when server restarts losing
+active sessions becomes a real problem for users.
+
+**How to migrate:**
+1. Add `spring-boot-starter-data-redis` to `gwent-api/pom.xml`
+2. Write a `GameStateSerializer` that converts `GameState` ↔ JSON (or use Java serialization)
+3. Replace `ConcurrentHashMap` in `GameSessionService` with a `RedisTemplate<UUID, GameState>`
+4. Add Redis to `docker-compose-dev.yml` and to the VPS deploy
+
+The change is entirely contained in `GameSessionService` — engine, controllers, and DTOs are
+untouched.
+
+---
+
 ## DevOps — future improvements (not MVP)
 
 These were consciously deferred. Implement when the project matures.
