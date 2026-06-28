@@ -99,8 +99,19 @@ public class GameSessionService {
 
     public GameStateDto getSession(UUID gameId) {
         GameState gameState = sessions.get(gameId);
-        if (gameState == null) throw new GameNotFoundException(gameId);
-        return toDto(gameId, gameState);
+        if (gameState != null) return toDto(gameId, gameState);
+
+        // Fallback: return last persisted state from DB (handles missed broadcast / server restart)
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new GameNotFoundException(gameId));
+
+        if (game.getStateJson() == null) throw new GameNotFoundException(gameId);
+
+        try {
+            return objectMapper.readValue(game.getStateJson(), GameStateDto.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to deserialize game state", e);
+        }
     }
 
     // --- Broadcast & Timeout ---

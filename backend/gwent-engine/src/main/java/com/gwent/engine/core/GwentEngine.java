@@ -141,7 +141,9 @@ public class GwentEngine {
 
         current.useLeader();
         applyLeaderAbility(state, current.getLeader().leaderAbility());
-        state.switchTurn();
+        if (!state.getOpponent().isPassed()) {
+            state.switchTurn();
+        }
     }
 
     private void handleResolveMedic(GameState state, ResolveMedicCommand command) {
@@ -161,7 +163,7 @@ public class GwentEngine {
         state.setPendingAbility(null);
         abilityResolver.resolve(state, card, card.rowType());
 
-        if (state.getPendingAbility() == null) {
+        if (state.getPendingAbility() == null && !state.getOpponent().isPassed()) {
             state.switchTurn();
         }
     }
