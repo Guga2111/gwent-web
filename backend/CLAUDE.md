@@ -35,6 +35,14 @@ core/       → (a implementar) lógica e regras do jogo, GameEngine
 
 ---
 
+## Executando em desenvolvimento
+
+```bash
+docker compose -f docker-compose-dev.yml up --build
+```
+
+---
+
 ## Convenções
 
 - State classes são dumb containers — lógica vai no `core`
