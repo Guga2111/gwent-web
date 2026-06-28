@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { Client } from '@stomp/stompjs'
+import SockJS from 'sockjs-client'
 import { useGameStore } from '@/stores/gameStore'
 import { useAuthStore } from '@/stores/authStore'
 import type { GameStateDto, CommandRequest } from '@/types/game'
@@ -13,11 +14,8 @@ export function useWebSocket(gameId: string | null) {
   useEffect(() => {
     if (!gameId) return
 
-    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-    const wsUrl = `${wsProtocol}//${window.location.host}/ws`
-
     const stompClient = new Client({
-      brokerURL: wsUrl,
+      webSocketFactory: () => new SockJS('/ws'),
       reconnectDelay: 5000,
       onConnect: () => {
         setConnected(true)
