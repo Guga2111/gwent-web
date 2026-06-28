@@ -27,8 +27,10 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class GameSessionService {
 
+    private record SessionContext(GameState gameState, String player1Id, String player2Id) {}
+
     private final GwentEngine engine = new GwentEngine();
-    private final Map<UUID, GameState> sessions = new ConcurrentHashMap<>();
+    private final Map<UUID, SessionContext> sessions = new ConcurrentHashMap<>();
     // 4 threads: sufficient for MVP. When scaling, replace with Spring TaskScheduler
     // (container-managed, configurable) or Redis TTL + keyspace notifications (zero threads).
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
@@ -44,25 +46,27 @@ public class GameSessionService {
         this.messagingTemplate = messagingTemplate;
     }
 
-    public CreateGameDto createSession() {
+    public CreateGameDto createSession(String userId) {
         UUID gameId = UUID.randomUUID();
 
         Game game = new Game();
         game.setId(gameId);
-        game.setPlayer1Id("player1");
+        game.setPlayer1Id(userId);
         game.setStatus(GameStatus.WAITING);
         gameRepository.save(game);
 
-        return new CreateGameDto(gameId, "player1");
+        return new CreateGameDto(gameId, userId);
     }
 
-    public GameStateDto joinSession(UUID gameId) {
+    public GameStateDto joinSession(UUID gameId, String userId) {
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new GameNotFoundException(gameId));
 
         if (game.getStatus() != GameStatus.WAITING) {
             throw new IllegalArgumentException("Game is not waiting for players");
         }
+
+        game.setPlayer2Id(userId);
 
         PlayerState player1 = new PlayerState(makeLeader(), makePresetDeck());
         PlayerState player2 = new PlayerState(makeLeader(), makePresetDeck());
@@ -71,35 +75,36 @@ public class GameSessionService {
         engine.drawInitialCards(gameState, 10);
         engine.resolveCoinFlip(gameState, Turn.PLAYER_1);
 
-        sessions.put(gameId, gameState);
-        scheduleMulliganTimeout(gameId, gameState);
+        SessionContext ctx = new SessionContext(gameState, game.getPlayer1Id(), userId);
+        sessions.put(gameId, ctx);
+        scheduleMulliganTimeout(gameId, ctx);
 
-        GameStateDto dto = toDto(gameId, gameState);
+        GameStateDto dto = toDto(gameId, ctx);
         persist(gameId, dto, GameStatus.IN_PROGRESS);
 
         return dto;
     }
 
-    public GameStateDto execute(UUID gameId, CommandRequestDto request) {
-        GameState gameState = sessions.get(gameId);
-        if (gameState == null) throw new GameNotFoundException(gameId);
+    public GameStateDto execute(UUID gameId, String userId, CommandRequestDto request) {
+        SessionContext ctx = sessions.get(gameId);
+        if (ctx == null) throw new GameNotFoundException(gameId);
 
-        Turn player = "player1".equals(request.playerId()) ? Turn.PLAYER_1 : Turn.PLAYER_2;
-        GameCommand command = toCommand(request, player, gameState);
-        engine.execute(gameState, command);
+        Turn player = resolvePlayer(ctx, userId);
+        GameCommand command = toCommand(request, player, ctx.gameState());
+        engine.execute(ctx.gameState(), command);
 
-        GameStatus status = gameState.getPhase() == GamePhase.GAME_OVER
+        GameStatus status = ctx.gameState().getPhase() == GamePhase.GAME_OVER
                 ? GameStatus.FINISHED : GameStatus.IN_PROGRESS;
 
-        GameStateDto dto = toDto(gameId, gameState);
+        GameStateDto dto = toDto(gameId, ctx);
         persist(gameId, dto, status);
         broadcastState(gameId, dto);
         return dto;
     }
 
     public GameStateDto getSession(UUID gameId) {
-        GameState gameState = sessions.get(gameId);
-        if (gameState != null) return toDto(gameId, gameState);
+        SessionContext ctx = sessions.get(gameId);
+        if (ctx != null) return toDto(gameId, ctx);
 
         // Fallback: return last persisted state from DB (handles missed broadcast / server restart)
         Game game = gameRepository.findById(gameId)
@@ -114,17 +119,25 @@ public class GameSessionService {
         }
     }
 
+    // --- Player resolution ---
+
+    private Turn resolvePlayer(SessionContext ctx, String userId) {
+        if (userId.equals(ctx.player1Id())) return Turn.PLAYER_1;
+        if (userId.equals(ctx.player2Id())) return Turn.PLAYER_2;
+        throw new IllegalArgumentException("User is not a player in this game");
+    }
+
     // --- Broadcast & Timeout ---
 
     private void broadcastState(UUID gameId, GameStateDto dto) {
         messagingTemplate.convertAndSend("/topic/games/" + gameId, dto);
     }
 
-    private void scheduleMulliganTimeout(UUID gameId, GameState state) {
+    private void scheduleMulliganTimeout(UUID gameId, SessionContext ctx) {
         scheduler.schedule(() -> {
-            if (state.getPhase() == GamePhase.REDRAW) {
-                engine.startPlay(state);
-                GameStateDto dto = toDto(gameId, state);
+            if (ctx.gameState().getPhase() == GamePhase.REDRAW) {
+                engine.startPlay(ctx.gameState());
+                GameStateDto dto = toDto(gameId, ctx);
                 persist(gameId, dto, GameStatus.IN_PROGRESS);
                 broadcastState(gameId, dto);
             }
@@ -133,15 +146,16 @@ public class GameSessionService {
 
     // --- Mapping ---
 
-    private GameStateDto toDto(UUID gameId, GameState state) {
+    private GameStateDto toDto(UUID gameId, SessionContext ctx) {
+        GameState state = ctx.gameState();
         return new GameStateDto(
                 gameId,
                 state.getPhase().name(),
                 state.getCurrentTurn().name(),
                 state.getPendingAbility() != null ? state.getPendingAbility().name() : null,
                 state.getCurrentRound(),
-                toPlayerDto("player1", state.getPlayer1(), state),
-                toPlayerDto("player2", state.getPlayer2(), state)
+                toPlayerDto(ctx.player1Id(), state.getPlayer1(), state),
+                toPlayerDto(ctx.player2Id(), state.getPlayer2(), state)
         );
     }
 

@@ -20,6 +20,8 @@ public class Game {
 
     private String player1Id;
 
+    private String player2Id;
+
     @Column(columnDefinition = "TEXT")
     private String stateJson;
 
