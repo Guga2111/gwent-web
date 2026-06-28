@@ -81,6 +81,7 @@ public class GameSessionService {
 
         GameStateDto dto = toDto(gameId, ctx);
         persist(gameId, dto, GameStatus.IN_PROGRESS);
+        broadcastState(gameId, dto);
 
         return dto;
     }
