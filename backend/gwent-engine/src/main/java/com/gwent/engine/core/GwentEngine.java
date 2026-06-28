@@ -24,6 +24,10 @@ public class GwentEngine {
         }
     }
 
+    public int calculateScore(PlayerState player) {
+        return scoreCalculator.calculate(player);
+    }
+
     // --- Engine-initiated transitions ---
 
     public void resolveCoinFlip(GameState state, Turn firstPlayer) {
@@ -102,6 +106,7 @@ public class GwentEngine {
         if (current.getMulligansRemaining() == 0)
             throw new NoMulligansRemainingException();
         if (!current.getHand().contains(card))
+
             throw new CardNotInHandException();
 
         current.removeFromHand(card);
