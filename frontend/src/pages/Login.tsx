@@ -25,7 +25,7 @@ export default function Login() {
       }
       const token = await login({ email, password })
       setToken(token)
-      navigate('/lobby')
+      navigate('/hub')
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : 'Authentication failed'
