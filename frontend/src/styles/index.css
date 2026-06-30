@@ -25,6 +25,18 @@
   --red: #c44;
   --green: #5a8a3c;
   --blue: #4a7a9c;
+  --blue-light: #c8def0;
+  --blue-dim: #5e7790;
+  --blue-dark: #16314d;
+
+  /* Parchment (quest cards, "coming soon" stubs) */
+  --parchment-light: #e9d6a6;
+  --parchment-mid: #dcc795;
+  --parchment-dark: #cbb279;
+  --parchment-text: #3d2b14;
+  --parchment-heading: #5a3f1c;
+  --parchment-muted: #7a5e34;
+  --parchment-accent: #7a5620;
 
   /* Borders */
   --border-subtle: #3a3020;
@@ -100,6 +112,20 @@ input {
 }
 
 /* ── Keyframe Animations ── */
+
+/* ── Board Overlay Backdrop ── */
+
+.board-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(13, 10, 7, 0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  z-index: 50;
+}
 
 @keyframes gw-flicker {
   0%, 100% { opacity: 0.82; }
