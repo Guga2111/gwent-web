@@ -1,23 +1,24 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useGameStore } from '@/stores/gameStore'
 import { useAuthStore } from '@/stores/authStore'
 import { useWebSocket } from '@/hooks/useWebSocket'
-import type { Turn } from '@/types/game'
+import { getGameState } from '@/api/game'
+import type { Turn, RowType } from '@/types/game'
 
-import PlayerPanel from '@/components/board/PlayerPanel'
-import LeaderCard from '@/components/board/LeaderCard'
-import WeatherZone from '@/components/board/WeatherZone'
-import PassButton from '@/components/board/PassButton'
-import BoardRow from '@/components/board/BoardRow'
-import Hand from '@/components/board/Hand'
-import DeckStack from '@/components/board/DeckStack'
-import GraveyardStack from '@/components/board/GraveyardStack'
-import CentralDivider from '@/components/board/CentralDivider'
-import ControlBar from '@/components/board/ControlBar'
-import MulliganOverlay from '@/components/board/MulliganOverlay'
-import RoundEndOverlay from '@/components/board/RoundEndOverlay'
-import GameOverOverlay from '@/components/board/GameOverOverlay'
+import PlayerPanel from '@/components/board/rail/PlayerPanel'
+import LeaderCard from '@/components/board/card/LeaderCard'
+import WeatherZone from '@/components/board/rail/WeatherZone'
+import PassButton from '@/components/board/rail/PassButton'
+import BoardRow from '@/components/board/row/BoardRow'
+import Hand from '@/components/board/row/Hand'
+import DeckStack from '@/components/board/rail/DeckStack'
+import GraveyardStack from '@/components/board/rail/GraveyardStack'
+import CentralDivider from '@/components/board/row/CentralDivider'
+import ControlBar from '@/components/board/controls/ControlBar'
+import MulliganOverlay from '@/components/board/overlays/MulliganOverlay'
+import RoundEndOverlay from '@/components/board/overlays/RoundEndOverlay'
+import GameOverOverlay from '@/components/board/overlays/GameOverOverlay'
 
 export default function Game() {
   const { gameId } = useParams<{ gameId: string }>()
@@ -25,16 +26,30 @@ export default function Game() {
 
   const gameState = useGameStore((s) => s.gameState)
   const connected = useGameStore((s) => s.connected)
+  const error = useGameStore((s) => s.error)
   const setGameId = useGameStore((s) => s.setGameId)
+  const setGameState = useGameStore((s) => s.setGameState)
+  const setError = useGameStore((s) => s.setError)
   const reset = useGameStore((s) => s.reset)
   const user = useAuthStore((s) => s.user)
+
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
 
   const { sendCommand } = useWebSocket(gameId ?? null)
 
   useEffect(() => {
-    if (gameId) setGameId(gameId)
+    if (!gameId) return
+    setGameId(gameId)
+    getGameState(gameId).then(setGameState).catch(() => {})
     return () => reset()
-  }, [gameId, setGameId, reset])
+  }, [gameId])
+
+  // Auto-dismiss errors after 3s
+  useEffect(() => {
+    if (!error) return
+    const t = setTimeout(() => setError(null), 3000)
+    return () => clearTimeout(t)
+  }, [error, setError])
 
   // Determine which player we are
   const myTurn: Turn | null = gameState
@@ -48,6 +63,14 @@ export default function Game() {
   const myState = myTurn === 'PLAYER_1' ? gameState?.player1 : gameState?.player2
   const opponentState = myTurn === 'PLAYER_1' ? gameState?.player2 : gameState?.player1
   const isMyTurn = gameState?.currentTurn === myTurn
+
+  const playerId = user?.email
+
+  const handlePlayCard = (targetRow: RowType) => {
+    if (!selectedCardId || !isMyTurn) return
+    sendCommand({ commandType: 'PLAY_CARD', playerId, cardId: selectedCardId, targetRow })
+    setSelectedCardId(null)
+  }
 
   if (!connected || !gameState || !myState || !opponentState) {
     return (
@@ -108,9 +131,11 @@ export default function Game() {
           side="top"
         />
         <PlayerPanel player={opponentState} isActive={!isMyTurn} side="top" />
+        <div style={{ flex: 1 }} />
+        {/* TODO: pass real weatherEffects once GameStateDto includes them */}
         <WeatherZone weatherEffects={[]} />
         <PassButton
-          onClick={() => sendCommand({ commandType: 'PASS' })}
+          onClick={() => sendCommand({ commandType: 'PASS', playerId })}
           disabled={!isMyTurn || myState.passed}
         />
         <div style={{ flex: 1 }} />
@@ -118,7 +143,7 @@ export default function Game() {
         <LeaderCard
           leaderUsed={myState.leaderUsed}
           disabled={!isMyTurn || myState.leaderUsed}
-          onClick={() => sendCommand({ commandType: 'USE_LEADER' })}
+          onClick={() => sendCommand({ commandType: 'USE_LEADER', playerId })}
           side="bottom"
         />
       </div>
@@ -132,40 +157,86 @@ export default function Game() {
           overflow: 'hidden',
         }}
       >
+        {/* Error notification */}
+        {error && (
+          <div
+            style={{
+              position: 'absolute',
+              top: 12,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 20,
+              backgroundColor: 'rgba(var(--red-rgb, 204,68,68), 0.92)',
+              border: '1px solid rgba(255,100,100,0.4)',
+              borderRadius: 6,
+              padding: '8px 18px',
+              fontFamily: 'var(--font-ui)',
+              fontSize: 13,
+              color: '#fff',
+              pointerEvents: 'none',
+            }}
+          >
+            {error}
+          </div>
+        )}
+
         {/* Opponent hand */}
         <Hand cardIds={opponentState.handCardIds} isPlayer={false} interactive={false} />
 
         {/* Opponent rows: siege, ranged, melee (top to bottom) */}
-        <BoardRow cardIds={opponentState.siegeRowCardIds} rowLabel="Cerco" side="opponent" interactive={false} />
-        <BoardRow cardIds={opponentState.rangedRowCardIds} rowLabel="Distância" side="opponent" interactive={false} />
-        <BoardRow cardIds={opponentState.meleeRowCardIds} rowLabel="Corpo" side="opponent" interactive={false} />
+        <BoardRow cardIds={opponentState.siegeRowCardIds} rowLabel="Cerco" rowType="SIEGE" side="opponent" interactive={false} />
+        <BoardRow cardIds={opponentState.rangedRowCardIds} rowLabel="Distância" rowType="RANGED" side="opponent" interactive={false} />
+        <BoardRow cardIds={opponentState.meleeRowCardIds} rowLabel="Corpo" rowType="MELEE" side="opponent" interactive={false} />
 
         <CentralDivider />
 
         {/* Player rows: melee, ranged, siege (top to bottom) */}
-        <BoardRow cardIds={myState.meleeRowCardIds} rowLabel="Corpo" side="player" interactive={isMyTurn} />
-        <BoardRow cardIds={myState.rangedRowCardIds} rowLabel="Distância" side="player" interactive={isMyTurn} />
-        <BoardRow cardIds={myState.siegeRowCardIds} rowLabel="Cerco" side="player" interactive={isMyTurn} />
+        <BoardRow
+          cardIds={myState.meleeRowCardIds}
+          rowLabel="Corpo"
+          rowType="MELEE"
+          side="player"
+          interactive={isMyTurn}
+          isPlacementTarget={!!selectedCardId && isMyTurn}
+          onRowClick={selectedCardId && isMyTurn ? () => handlePlayCard('MELEE') : undefined}
+        />
+        <BoardRow
+          cardIds={myState.rangedRowCardIds}
+          rowLabel="Distância"
+          rowType="RANGED"
+          side="player"
+          interactive={isMyTurn}
+          isPlacementTarget={!!selectedCardId && isMyTurn}
+          onRowClick={selectedCardId && isMyTurn ? () => handlePlayCard('RANGED') : undefined}
+        />
+        <BoardRow
+          cardIds={myState.siegeRowCardIds}
+          rowLabel="Cerco"
+          rowType="SIEGE"
+          side="player"
+          interactive={isMyTurn}
+          isPlacementTarget={!!selectedCardId && isMyTurn}
+          onRowClick={selectedCardId && isMyTurn ? () => handlePlayCard('SIEGE') : undefined}
+        />
 
         {/* Player hand */}
         <Hand
           cardIds={myState.handCardIds}
           isPlayer
           interactive={isMyTurn}
+          selectedCardId={selectedCardId ?? undefined}
           onCardClick={(cardId) =>
-            sendCommand({ commandType: 'PLAY_CARD', cardId })
+            setSelectedCardId((prev) => (prev === cardId ? null : cardId))
           }
         />
-
-        <ControlBar onSurrender={() => {}} />
 
         {/* Phase overlays */}
         {gameState.phase === 'REDRAW' && !myState.mulliganConfirmed && (
           <MulliganOverlay
             handCardIds={myState.handCardIds}
             mulligansRemaining={myState.mulligansRemaining}
-            onMulligan={(cardId) => sendCommand({ commandType: 'MULLIGAN', cardId })}
-            onConfirm={() => sendCommand({ commandType: 'CONFIRM_MULLIGAN' })}
+            onMulligan={(cardId) => sendCommand({ commandType: 'MULLIGAN', playerId, cardId })}
+            onConfirm={() => sendCommand({ commandType: 'CONFIRM_MULLIGAN', playerId })}
           />
         )}
         {gameState.phase === 'ROUND_END' && (
@@ -196,10 +267,14 @@ export default function Game() {
           gap: 12,
         }}
       >
+        {/* TODO: replace handCardIds.length with deckSize once PlayerStateDto includes it */}
         <DeckStack count={opponentState.handCardIds?.length ?? 0} label="Mão" />
         <GraveyardStack count={opponentState.graveyardCardIds?.length ?? 0} />
-        <div style={{ flex: 1 }} />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <ControlBar onSurrender={() => {}} />
+        </div>
         <GraveyardStack count={myState.graveyardCardIds?.length ?? 0} />
+        {/* TODO: replace handCardIds.length with deckSize once PlayerStateDto includes it */}
         <DeckStack count={myState.handCardIds?.length ?? 0} label="Mão" />
       </div>
     </div>

@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import TopHUD from '@/components/hub/TopHUD'
+import React, { useState } from 'react'
+import { useAuthStore } from '@/stores/authStore'
+import TopHUD from '@/components/hub/hud/TopHUD'
 import BottomNav from '@/components/hub/BottomNav'
 import TownCrier from '@/components/hub/TownCrier'
 import Taverna from '@/pages/hub/Taverna'
@@ -10,16 +11,18 @@ import Profile from '@/pages/hub/Profile'
 
 type TabId = 'home' | 'deck' | 'shop' | 'rank' | 'profile'
 
-const tabContent: Record<TabId, JSX.Element> = {
-  home: <Taverna />,
-  deck: <DeckForge />,
-  shop: <Shop />,
-  rank: <Leaderboard />,
-  profile: <Profile />,
+const tabContent: Record<TabId, React.ComponentType> = {
+  home: Taverna,
+  deck: DeckForge,
+  shop: Shop,
+  rank: Leaderboard,
+  profile: Profile,
 }
 
 export default function Hub() {
   const [activeTab, setActiveTab] = useState<TabId>('home')
+  const user = useAuthStore((s) => s.user)
+  const ActiveTab = tabContent[activeTab]
 
   return (
     <div
@@ -66,7 +69,7 @@ export default function Hub() {
         }}
       />
 
-      <TopHUD onSettingsClick={() => setActiveTab('profile')} />
+      <TopHUD user={user} onSettingsClick={() => setActiveTab('profile')} />
 
       {/* Content area */}
       <div
@@ -78,7 +81,7 @@ export default function Hub() {
           overflow: 'hidden',
         }}
       >
-        {tabContent[activeTab]}
+        <ActiveTab />
       </div>
 
       <TownCrier />
