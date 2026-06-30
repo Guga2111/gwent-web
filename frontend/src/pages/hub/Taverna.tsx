@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { Pencil } from 'lucide-react'
+import { createGame, joinGame } from '@/api/game'
 import MesaPrivadaModal from '@/components/hub/MesaPrivadaModal'
 
 const deckFan = [
@@ -11,6 +13,15 @@ const deckFan = [
 
 export default function Taverna() {
   const [modalOpen, setModalOpen] = useState(false)
+
+  async function handleCreateGame(): Promise<string> {
+    const { gameId } = await createGame()
+    return gameId
+  }
+
+  async function handleJoinGame(code: string): Promise<void> {
+    await joinGame(code)
+  }
 
   return (
     <div
@@ -322,10 +333,7 @@ export default function Taverna() {
               border: 'none',
             }}
           >
-            <svg viewBox="0 0 24 24" style={{ width: 12, height: 12, fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
-              <path d="M21.17 6.81a1 1 0 0 0-3.98-3.99L3.84 16.17a2 2 0 0 0-.5.83l-1.32 4.35a.5.5 0 0 0 .62.62l4.35-1.32a2 2 0 0 0 .83-.5z" />
-              <path d="m15 5 4 4" />
-            </svg>
+            <Pencil size={12} strokeWidth={2} />
             Editar
           </button>
         </div>
@@ -448,10 +456,10 @@ export default function Taverna() {
           transform: 'rotate(-1.4deg)',
           padding: '17px 19px 14px',
           borderRadius: 3,
-          background: 'linear-gradient(155deg, #e9d6a6, #dcc795 55%, #cbb279)',
+          background: 'linear-gradient(155deg, var(--parchment-light), var(--parchment-mid) 55%, var(--parchment-dark))',
           boxShadow:
             '0 16px 34px rgba(0,0,0,.55), inset 0 0 36px rgba(150,115,60,.32), inset 0 0 0 1px rgba(120,90,45,.25)',
-          color: '#3d2b14',
+          color: 'var(--parchment-text)',
           textAlign: 'left',
         }}
       >
@@ -490,7 +498,7 @@ export default function Taverna() {
             letterSpacing: '1.5px',
             textTransform: 'uppercase',
             textAlign: 'center',
-            color: '#5a3f1c',
+            color: 'var(--parchment-heading)',
             margin: '4px 0 11px',
           }}
         >
@@ -506,7 +514,7 @@ export default function Taverna() {
             <div key={i}>
               {i > 0 && <div style={{ height: 1, background: 'rgba(90,63,28,.18)', marginBottom: 10 }} />}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: '#3d2b14' }}>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--parchment-text)' }}>
                   {quest.text}
                 </span>
                 <span
@@ -514,7 +522,7 @@ export default function Taverna() {
                     fontFamily: 'var(--font-heading)',
                     fontWeight: 700,
                     fontSize: '11.5px',
-                    color: '#7a5620',
+                    color: 'var(--parchment-accent)',
                   }}
                 >
                   {quest.progress}
@@ -538,7 +546,7 @@ export default function Taverna() {
                     }}
                   />
                 </div>
-                <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#8a6526' }}>
+                <span style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--parchment-accent)' }}>
                   &#x2B26; {quest.reward}
                 </span>
               </div>
@@ -552,7 +560,7 @@ export default function Taverna() {
             fontStyle: 'italic',
             fontSize: '10.5px',
             textAlign: 'right',
-            color: '#7a5e34',
+            color: 'var(--parchment-muted)',
             marginTop: 10,
           }}
         >
@@ -560,7 +568,12 @@ export default function Taverna() {
         </div>
       </div>
 
-      <MesaPrivadaModal open={modalOpen} onClose={() => setModalOpen(false)} />
+      <MesaPrivadaModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onCreateGame={handleCreateGame}
+        onJoinGame={handleJoinGame}
+      />
     </div>
   )
 }
