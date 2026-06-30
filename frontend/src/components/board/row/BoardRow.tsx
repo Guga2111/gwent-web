@@ -1,10 +1,15 @@
-import BoardCard from './BoardCard'
+import type { RowType } from '@/types/game'
+import Card from '../card/Card'
+import CountBadge from '@/components/ui/CountBadge'
 
 interface BoardRowProps {
   cardIds: string[]
   rowLabel: string
+  rowType: RowType
   side: 'player' | 'opponent'
   onCardClick?: (cardId: string) => void
+  onRowClick?: () => void
+  isPlacementTarget?: boolean
   interactive: boolean
 }
 
@@ -14,12 +19,13 @@ const ROW_TINTS: Record<string, string> = {
   Cerco: 'rgba(20, 40, 70, 0.3)',
 }
 
-export default function BoardRow({ cardIds, rowLabel, side, onCardClick, interactive }: BoardRowProps) {
+export default function BoardRow({ cardIds, rowLabel, onCardClick, onRowClick, isPlacementTarget, interactive }: BoardRowProps) {
   const cards = cardIds ?? []
-  const score = cards.length
+  const score = cards.length // TODO: replace with sum of card powers once cards carry power data
 
   return (
     <div
+      onClick={onRowClick}
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -27,38 +33,24 @@ export default function BoardRow({ cardIds, rowLabel, side, onCardClick, interac
         position: 'relative',
         backgroundColor: ROW_TINTS[rowLabel] ?? 'transparent',
         borderBottom: '1px solid var(--border-subtle)',
+        outline: isPlacementTarget ? '2px solid var(--gold)' : 'none',
+        outlineOffset: -2,
+        cursor: onRowClick ? 'pointer' : 'default',
         padding: '4px 0',
         minHeight: 0,
+        transition: 'outline 0.15s',
       }}
     >
       {/* Score badge */}
-      <div
-        style={{
-          position: 'absolute',
-          left: -14,
-          width: 36,
-          height: 36,
-          borderRadius: '50%',
-          backgroundColor: 'var(--bg-dark)',
-          border: '1px solid var(--border-gold)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontFamily: 'var(--font-heading)',
-          fontSize: 13,
-          fontWeight: 700,
-          color: 'var(--gold-light)',
-          zIndex: 2,
-        }}
-      >
-        {score}
+      <div style={{ position: 'absolute', left: 4, zIndex: 2 }}>
+        <CountBadge value={score} size={36} fontSize={13} />
       </div>
 
       {/* Horn slot */}
       <div
         style={{
           width: 34,
-          height: 56,
+          height: 72,
           marginLeft: 28,
           border: '1px dashed var(--border-subtle)',
           borderRadius: 3,
@@ -90,6 +82,7 @@ export default function BoardRow({ cardIds, rowLabel, side, onCardClick, interac
         style={{
           flex: 1,
           display: 'flex',
+          justifyContent: 'center',
           gap: 6,
           padding: '0 8px',
           overflowX: 'hidden',
@@ -98,7 +91,7 @@ export default function BoardRow({ cardIds, rowLabel, side, onCardClick, interac
         }}
       >
         {cards.map((cardId) => (
-          <BoardCard
+          <Card
             key={cardId}
             cardId={cardId}
             onClick={onCardClick ? () => onCardClick(cardId) : undefined}
@@ -111,10 +104,11 @@ export default function BoardRow({ cardIds, rowLabel, side, onCardClick, interac
       <div
         style={{
           width: 46,
-          height: 56,
+          height: 72,
           border: '1px dashed var(--border-subtle)',
           borderRadius: 3,
           flexShrink: 0,
+          marginLeft: 12,
           marginRight: 4,
         }}
       />

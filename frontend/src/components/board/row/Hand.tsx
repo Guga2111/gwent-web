@@ -1,15 +1,15 @@
 import { useState } from 'react'
-import BoardCard from './BoardCard'
-import CardBack from './CardBack'
+import Card from '../card/Card'
 
 interface HandProps {
   cardIds: string[]
   isPlayer: boolean
   onCardClick?: (cardId: string) => void
   interactive: boolean
+  selectedCardId?: string
 }
 
-export default function Hand({ cardIds: rawCardIds, isPlayer, onCardClick, interactive }: HandProps) {
+export default function Hand({ cardIds: rawCardIds, isPlayer, onCardClick, interactive, selectedCardId }: HandProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const cardIds = rawCardIds ?? []
   const count = cardIds.length
@@ -26,7 +26,7 @@ export default function Hand({ cardIds: rawCardIds, isPlayer, onCardClick, inter
           display: 'flex',
           justifyContent: 'center',
           padding: '6px 0',
-          minHeight: 90,
+          minHeight: 114,
         }}
       >
         {Array.from({ length: count }, (_, i) => (
@@ -38,7 +38,7 @@ export default function Hand({ cardIds: rawCardIds, isPlayer, onCardClick, inter
               zIndex: i,
             }}
           >
-            <CardBack />
+            <Card />
           </div>
         ))}
       </div>
@@ -61,13 +61,14 @@ export default function Hand({ cardIds: rawCardIds, isPlayer, onCardClick, inter
         style={{
           display: 'flex',
           justifyContent: 'center',
-          minHeight: 90,
+          minHeight: 114,
         }}
       >
         {cardIds.map((cardId, i) => {
           const isHovered = hoveredIndex === i
-          const rotation = isHovered ? 0 : getRotation(i)
-          const lift = isHovered ? -20 : 0
+          const isSelected = selectedCardId === cardId
+          const rotation = isHovered || isSelected ? 0 : getRotation(i)
+          const lift = isHovered || isSelected ? -20 : 0
 
           return (
             <div
@@ -76,13 +77,14 @@ export default function Hand({ cardIds: rawCardIds, isPlayer, onCardClick, inter
                 marginLeft: i === 0 ? 0 : -12,
                 transform: `rotate(${rotation}deg) translateY(${lift}px)`,
                 transition: 'transform 0.15s, z-index 0s',
-                zIndex: isHovered ? 100 : i,
+                zIndex: isSelected ? 101 : isHovered ? 100 : i,
                 position: 'relative',
+                filter: isSelected ? 'drop-shadow(0 0 6px var(--gold))' : 'none',
               }}
               onMouseEnter={() => setHoveredIndex(i)}
               onMouseLeave={() => setHoveredIndex(null)}
             >
-              <BoardCard
+              <Card
                 cardId={cardId}
                 onClick={onCardClick ? () => onCardClick(cardId) : undefined}
                 interactive={interactive}

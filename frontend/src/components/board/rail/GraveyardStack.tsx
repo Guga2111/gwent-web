@@ -1,3 +1,5 @@
+import { Skull } from 'lucide-react'
+
 interface GraveyardStackProps {
   count: number
 }
@@ -5,7 +7,7 @@ interface GraveyardStackProps {
 export default function GraveyardStack({ count }: GraveyardStackProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-      <div style={{ fontSize: 20, color: 'var(--text-muted)' }}>☠</div>
+      <Skull size={20} strokeWidth={1.5} style={{ color: 'var(--text-muted)' }} />
       <div
         style={{
           fontSize: 11,

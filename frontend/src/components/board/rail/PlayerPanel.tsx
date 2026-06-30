@@ -1,4 +1,5 @@
 import type { PlayerStateDto } from '@/types/game'
+import CountBadge from '@/components/ui/CountBadge'
 
 interface PlayerPanelProps {
   player: PlayerStateDto
@@ -18,9 +19,10 @@ export default function PlayerPanel({ player, isActive, side }: PlayerPanelProps
         alignItems: 'center',
         gap: 6,
         padding: '12px 8px',
-        borderLeft: '2px solid transparent',
+        borderRadius: 4,
+        width: '100%',
         ...(isActive
-          ? { animation: 'tb-turn 2s ease-in-out infinite', borderRadius: 4 }
+          ? { animation: 'tb-turn 2s ease-in-out infinite' }
           : {}),
       }}
     >
@@ -82,24 +84,12 @@ export default function PlayerPanel({ player, isActive, side }: PlayerPanelProps
       </div>
 
       {/* Score */}
-      <div
-        style={{
-          width: 48,
-          height: 48,
-          borderRadius: '50%',
-          backgroundColor: side === 'bottom' ? 'var(--gold-dark)' : 'var(--bg-medium)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontFamily: 'var(--font-heading)',
-          fontSize: 20,
-          fontWeight: 700,
-          color: 'var(--gold-light)',
-          border: '2px solid var(--border-gold)',
-        }}
-      >
-        {player.score}
-      </div>
+      <CountBadge
+        value={player.score}
+        size={48}
+        fontSize={20}
+        bg={side === 'bottom' ? 'var(--gold-dark)' : 'var(--bg-medium)'}
+      />
     </div>
   )
 }

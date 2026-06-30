@@ -1,3 +1,5 @@
+import CountBadge from '@/components/ui/CountBadge'
+
 interface DeckStackProps {
   count: number
   label: string
@@ -24,27 +26,8 @@ export default function DeckStack({ count, label }: DeckStackProps) {
           />
         ))}
         {/* Count badge */}
-        <div
-          style={{
-            position: 'absolute',
-            top: -6,
-            right: -6,
-            width: 22,
-            height: 22,
-            borderRadius: '50%',
-            backgroundColor: 'var(--bg-dark)',
-            border: '1px solid var(--border-gold)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontFamily: 'var(--font-ui)',
-            fontSize: 10,
-            fontWeight: 700,
-            color: 'var(--text-primary)',
-            zIndex: 3,
-          }}
-        >
-          {count}
+        <div style={{ position: 'absolute', top: -6, right: -6, zIndex: 3 }}>
+          <CountBadge value={count} size={22} fontSize={10} />
         </div>
       </div>
       <div

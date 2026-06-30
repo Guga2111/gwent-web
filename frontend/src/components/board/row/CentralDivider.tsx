@@ -1,3 +1,5 @@
+import { Swords } from 'lucide-react'
+
 export default function CentralDivider() {
   return (
     <div
@@ -5,7 +7,6 @@ export default function CentralDivider() {
         position: 'relative',
         height: 1,
         backgroundColor: 'var(--border-gold)',
-        margin: '0 20px',
         flexShrink: 0,
       }}
     >
@@ -23,12 +24,11 @@ export default function CentralDivider() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: 16,
           color: 'var(--gold)',
           zIndex: 1,
         }}
       >
-        ⚔
+        <Swords size={16} strokeWidth={1.5} />
       </div>
     </div>
   )

@@ -1,26 +1,47 @@
-interface BoardCardProps {
-  cardId: string
+interface CardProps {
+  cardId?: string       // present = face-up, absent = face-down
   onClick?: () => void
-  interactive: boolean
+  interactive?: boolean
 }
 
-export default function BoardCard({ cardId, onClick, interactive }: BoardCardProps) {
+const CARD_WIDTH = 72
+const CARD_HEIGHT = 106
+
+const sharedStyle: React.CSSProperties = {
+  width: CARD_WIDTH,
+  height: CARD_HEIGHT,
+  backgroundColor: 'var(--bg-card)',
+  border: '1px solid var(--border-gold)',
+  borderRadius: 4,
+  flexShrink: 0,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+}
+
+export default function Card({ cardId, onClick, interactive = false }: CardProps) {
+  const faceDown = cardId === undefined
+
+  if (faceDown) {
+    return (
+      <div
+        style={{
+          ...sharedStyle,
+          backgroundImage:
+            'repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(106, 85, 48, 0.15) 8px, rgba(106, 85, 48, 0.15) 9px), repeating-linear-gradient(-45deg, transparent, transparent 8px, rgba(106, 85, 48, 0.15) 8px, rgba(106, 85, 48, 0.15) 9px)',
+        }}
+      />
+    )
+  }
+
   return (
     <div
       onClick={interactive ? onClick : undefined}
       style={{
-        width: 56,
-        height: 82,
-        backgroundColor: 'var(--bg-card)',
-        border: '1px solid var(--border-gold)',
-        borderRadius: 4,
+        ...sharedStyle,
         position: 'relative',
-        flexShrink: 0,
         cursor: interactive ? 'pointer' : 'default',
         transition: 'transform 0.15s, border-color 0.15s',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
       }}
       onMouseEnter={(e) => {
         if (interactive) {
@@ -35,7 +56,6 @@ export default function BoardCard({ cardId, onClick, interactive }: BoardCardPro
         }
       }}
     >
-      {/* Card ID label */}
       <div
         style={{
           fontSize: 8,

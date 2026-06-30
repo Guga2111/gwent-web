@@ -1,11 +1,13 @@
+import { Snowflake, CloudFog, CloudRain, type LucideIcon } from 'lucide-react'
+
 interface WeatherZoneProps {
   weatherEffects: string[]
 }
 
-const WEATHER_SLOTS = [
-  { key: 'FROST', label: 'Geada', icon: '❄' },
-  { key: 'FOG', label: 'Névoa', icon: '☁' },
-  { key: 'RAIN', label: 'Chuva', icon: '💧' },
+const WEATHER_SLOTS: { key: string; label: string; Icon: LucideIcon }[] = [
+  { key: 'FROST', label: 'Geada', Icon: Snowflake },
+  { key: 'FOG', label: 'Névoa', Icon: CloudFog },
+  { key: 'RAIN', label: 'Chuva', Icon: CloudRain },
 ]
 
 export default function WeatherZone({ weatherEffects }: WeatherZoneProps) {
@@ -24,7 +26,7 @@ export default function WeatherZone({ weatherEffects }: WeatherZoneProps) {
         border: '1px solid var(--border-subtle)',
       }}
     >
-      {WEATHER_SLOTS.map(({ key, label, icon }) => {
+      {WEATHER_SLOTS.map(({ key, label, Icon }) => {
         const active = activeSet.has(key)
         return (
           <div
@@ -36,9 +38,11 @@ export default function WeatherZone({ weatherEffects }: WeatherZoneProps) {
               fontSize: 11,
             }}
           >
-            <span style={{ color: active ? 'var(--gold)' : 'var(--text-muted)', fontSize: 14 }}>
-              {icon}
-            </span>
+            <Icon
+              size={14}
+              strokeWidth={1.5}
+              style={{ color: active ? 'var(--gold)' : 'var(--text-muted)', flexShrink: 0 }}
+            />
             <span
               style={{
                 fontFamily: 'var(--font-ui)',

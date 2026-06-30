@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import BoardCard from './BoardCard'
+import Card from '../card/Card'
+import PrimaryButton from '@/components/ui/PrimaryButton'
 
 interface MulliganOverlayProps {
   handCardIds: string[]
@@ -30,19 +31,7 @@ export default function MulliganOverlay({ handCardIds, onMulligan, onConfirm, mu
   }
 
   return (
-    <div
-      style={{
-        position: 'absolute',
-        inset: 0,
-        backgroundColor: 'rgba(13, 10, 7, 0.85)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 24,
-        zIndex: 50,
-      }}
-    >
+    <div className="board-overlay">
       <h2
         style={{
           fontFamily: 'var(--font-display)',
@@ -76,26 +65,12 @@ export default function MulliganOverlay({ handCardIds, onMulligan, onConfirm, mu
               cursor: 'pointer',
             }}
           >
-            <BoardCard cardId={cardId} interactive={false} />
+            <Card cardId={cardId} interactive={false} />
           </div>
         ))}
       </div>
 
-      <button
-        onClick={handleConfirm}
-        style={{
-          padding: '10px 32px',
-          backgroundColor: 'var(--gold-dark)',
-          border: '1px solid var(--gold)',
-          borderRadius: 4,
-          fontFamily: 'var(--font-heading)',
-          fontSize: 16,
-          color: 'var(--text-primary)',
-          cursor: 'pointer',
-        }}
-      >
-        Confirmar
-      </button>
+      <PrimaryButton onClick={handleConfirm}>Confirmar</PrimaryButton>
     </div>
   )
 }
