@@ -1,13 +1,16 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { createGame, joinGame } from '@/api/game'
+import { X, Plus, LogIn } from 'lucide-react'
+import PrimaryButton from '@/components/ui/PrimaryButton'
 
 interface MesaPrivadaModalProps {
   open: boolean
   onClose: () => void
+  onCreateGame: () => Promise<string>
+  onJoinGame: (code: string) => Promise<void>
 }
 
-export default function MesaPrivadaModal({ open, onClose }: MesaPrivadaModalProps) {
+export default function MesaPrivadaModal({ open, onClose, onCreateGame, onJoinGame }: MesaPrivadaModalProps) {
   const navigate = useNavigate()
 
   const [createdId, setCreatedId] = useState('')
@@ -35,7 +38,7 @@ export default function MesaPrivadaModal({ open, onClose }: MesaPrivadaModalProp
     setError('')
     setLoading(true)
     try {
-      const { gameId } = await createGame()
+      const gameId = await onCreateGame()
       setCreatedId(gameId)
     } catch {
       setError('Falha ao criar partida')
@@ -49,7 +52,7 @@ export default function MesaPrivadaModal({ open, onClose }: MesaPrivadaModalProp
     setError('')
     setLoading(true)
     try {
-      await joinGame(joinCode.trim())
+      await onJoinGame(joinCode.trim())
       navigate(`/game/${joinCode.trim()}`)
     } catch {
       setError('Falha ao entrar na partida')
@@ -103,10 +106,7 @@ export default function MesaPrivadaModal({ open, onClose }: MesaPrivadaModalProp
             justifyContent: 'center',
           }}
         >
-          <svg viewBox="0 0 24 24" style={{ width: 15, height: 15, fill: 'none', stroke: 'currentColor', strokeWidth: 2.2, strokeLinecap: 'round' }}>
-            <line x1="5" y1="5" x2="19" y2="19" />
-            <line x1="19" y1="5" x2="5" y2="19" />
-          </svg>
+          <X size={15} strokeWidth={2.2} />
         </button>
 
         {/* Header */}
@@ -176,10 +176,7 @@ export default function MesaPrivadaModal({ open, onClose }: MesaPrivadaModalProp
                     boxShadow: '0 4px 10px rgba(0,0,0,.4)',
                   }}
                 >
-                  <svg viewBox="0 0 24 24" style={{ width: 26, height: 26, fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
+                  <Plus size={26} strokeWidth={1.8} />
                 </div>
                 <div
                   style={{
@@ -234,28 +231,13 @@ export default function MesaPrivadaModal({ open, onClose }: MesaPrivadaModalProp
                 >
                   {createdId}
                 </code>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    navigate(`/game/${createdId}`)
-                  }}
-                  style={{
-                    marginTop: 4,
-                    padding: '10px 20px',
-                    borderRadius: 7,
-                    border: 'none',
-                    background: 'linear-gradient(180deg, var(--gold-light), var(--gold))',
-                    color: 'var(--bg-darkest)',
-                    fontFamily: 'var(--font-heading)',
-                    fontWeight: 700,
-                    fontSize: 13,
-                    letterSpacing: '.5px',
-                    cursor: 'pointer',
-                    boxShadow: '0 5px 12px rgba(0,0,0,.4)',
-                  }}
+                <PrimaryButton
+                  variant="light"
+                  onClick={() => navigate(`/game/${createdId}`)}
+                  style={{ marginTop: 4, padding: '10px 20px', borderRadius: 7, fontSize: 13 }}
                 >
                   Entrar na Partida
-                </button>
+                </PrimaryButton>
               </>
             )}
           </div>
@@ -291,11 +273,7 @@ export default function MesaPrivadaModal({ open, onClose }: MesaPrivadaModalProp
                     color: 'var(--gold)',
                   }}
                 >
-                  <svg viewBox="0 0 24 24" style={{ width: 26, height: 26, fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
-                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                    <polyline points="10 17 15 12 10 7" />
-                    <line x1="15" y1="12" x2="3" y2="12" />
-                  </svg>
+                  <LogIn size={26} strokeWidth={1.8} />
                 </div>
                 <div
                   style={{
@@ -343,29 +321,14 @@ export default function MesaPrivadaModal({ open, onClose }: MesaPrivadaModalProp
                     textAlign: 'center',
                   }}
                 />
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleJoin()
-                  }}
+                <PrimaryButton
+                  variant="light"
                   disabled={loading || !joinCode.trim()}
-                  style={{
-                    padding: '10px 20px',
-                    borderRadius: 7,
-                    border: 'none',
-                    background: 'linear-gradient(180deg, var(--gold-light), var(--gold))',
-                    color: 'var(--bg-darkest)',
-                    fontFamily: 'var(--font-heading)',
-                    fontWeight: 700,
-                    fontSize: 13,
-                    letterSpacing: '.5px',
-                    cursor: 'pointer',
-                    boxShadow: '0 5px 12px rgba(0,0,0,.4)',
-                    opacity: loading || !joinCode.trim() ? 0.5 : 1,
-                  }}
+                  onClick={handleJoin}
+                  style={{ padding: '10px 20px', borderRadius: 7, fontSize: 13 }}
                 >
                   {loading ? '...' : 'Entrar'}
-                </button>
+                </PrimaryButton>
               </>
             )}
           </div>

@@ -1,3 +1,5 @@
+import { Volume2 } from 'lucide-react'
+
 export default function TownCrier() {
   return (
     <div
@@ -13,22 +15,7 @@ export default function TownCrier() {
         flexShrink: 0,
       }}
     >
-      <svg
-        viewBox="0 0 24 24"
-        style={{
-          width: 15,
-          height: 15,
-          fill: 'none',
-          stroke: 'currentColor',
-          strokeWidth: 2,
-          strokeLinecap: 'round',
-          strokeLinejoin: 'round',
-          flexShrink: 0,
-        }}
-      >
-        <path d="M3 11h3l9-5v12l-9-5H3z" />
-        <path d="M16 9a3 3 0 0 1 0 6" />
-      </svg>
+      <Volume2 size={15} strokeWidth={2} style={{ flexShrink: 0 }} />
       <span
         style={{
           fontFamily: 'var(--font-body)',
