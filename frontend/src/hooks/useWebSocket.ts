@@ -9,6 +9,7 @@ export function useWebSocket(gameId: string | null) {
   const clientRef = useRef<Client | null>(null)
   const setGameState = useGameStore((s) => s.setGameState)
   const setConnected = useGameStore((s) => s.setConnected)
+  const setError = useGameStore((s) => s.setError)
   const token = useAuthStore((s) => s.token)
 
   useEffect(() => {
@@ -22,6 +23,10 @@ export function useWebSocket(gameId: string | null) {
         stompClient.subscribe(`/topic/games/${gameId}`, (message) => {
           const state: GameStateDto = JSON.parse(message.body)
           setGameState(state)
+        })
+        // TODO: adjust topic to match backend error handling config
+        stompClient.subscribe(`/topic/games/${gameId}/errors`, (message) => {
+          setError(message.body)
         })
       },
       onDisconnect: () => {
@@ -41,7 +46,7 @@ export function useWebSocket(gameId: string | null) {
       clientRef.current = null
       setConnected(false)
     }
-  }, [gameId, token, setGameState, setConnected])
+  }, [gameId, token, setGameState, setConnected, setError])
 
   const sendCommand = useCallback(
     (command: CommandRequest) => {
