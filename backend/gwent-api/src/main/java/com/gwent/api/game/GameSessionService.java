@@ -24,8 +24,6 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class GameSessionService {
 
-    private record SessionContext(GameState gameState, String player1Id, String player2Id) {}
-
     private final GwentEngine engine = new GwentEngine();
     private final Map<UUID, SessionContext> sessions = new ConcurrentHashMap<>();
     // 4 threads: sufficient for MVP. When scaling, replace with Spring TaskScheduler
@@ -35,12 +33,14 @@ public class GameSessionService {
     private final GameRepository gameRepository;
     private final ObjectMapper objectMapper;
     private final SimpMessagingTemplate messagingTemplate;
+    private final GameModelMapper mapper;
 
     public GameSessionService(GameRepository gameRepository, ObjectMapper objectMapper,
-                              SimpMessagingTemplate messagingTemplate) {
+                              SimpMessagingTemplate messagingTemplate, GameModelMapper mapper) {
         this.gameRepository = gameRepository;
         this.objectMapper = objectMapper;
         this.messagingTemplate = messagingTemplate;
+        this.mapper = mapper;
     }
 
     public CreateGameDto createSession(String userId) {
@@ -142,27 +142,21 @@ public class GameSessionService {
         }, 30, TimeUnit.SECONDS);
     }
 
-    // --- Mapping ---
+    // --- Mapping delegation ---
 
     private GameStateDto toDto(UUID gameId, SessionContext ctx, Turn perspective) {
         GameState state = ctx.gameState();
-        String meId = perspective == Turn.PLAYER_1 ? ctx.player1Id() : ctx.player2Id();
-        String opponentId = perspective == Turn.PLAYER_1 ? ctx.player2Id() : ctx.player1Id();
         PlayerState meState = state.getPlayer(perspective);
         PlayerState opponentState = state.getPlayer(perspective == Turn.PLAYER_1 ? Turn.PLAYER_2 : Turn.PLAYER_1);
 
-        return new GameStateDto(
-                gameId,
-                state.getPhase().name(),
-                state.getCurrentTurn().name(),
-                perspective.name(),
-                state.getPendingAbility() != null ? state.getPendingAbility().name() : null,
-                state.getCurrentRound(),
-                state.getBoard().getActiveWeatherCards().stream().map(this::toCardDto).toList(),
-                toPlayerDto(meId, meState),
-                toOpponentDto(opponentId, opponentState)
+        return mapper.toGameStateDto(
+                gameId, ctx, perspective,
+                engine.calculateScore(meState),
+                engine.calculateScore(opponentState)
         );
     }
+
+    // --- Command mapping ---
 
     private GameCommand toCommand(CommandRequestDto request, Turn player, GameState state) {
         return switch (request.commandType()) {
@@ -186,62 +180,6 @@ public class GameSessionService {
                 .filter(c -> c.id().equals(cardId))
                 .findFirst()
                 .orElseThrow(() -> new CardNotFoundException(cardId));
-    }
-
-    private PlayerStateDto toPlayerDto(String playerId, PlayerState player) {
-        return new PlayerStateDto(
-                playerId,
-                player.getLives(),
-                engine.calculateScore(player),
-                player.isPassed(),
-                player.isLeaderUsed(),
-                toCardDto(player.getLeader()),
-                player.getMulligansRemaining(),
-                player.isMulliganConfirmed(),
-                player.getHand().stream().map(this::toCardDto).toList(),
-                player.getDeck().size(),
-                toBoardRowDto(player.getMeleeRow()),
-                toBoardRowDto(player.getRangedRow()),
-                toBoardRowDto(player.getSiegeRow()),
-                player.getGraveyard().stream().map(this::toCardDto).toList()
-        );
-    }
-
-    private OpponentStateDto toOpponentDto(String playerId, PlayerState player) {
-        return new OpponentStateDto(
-                playerId,
-                player.getLives(),
-                engine.calculateScore(player),
-                player.isPassed(),
-                player.isLeaderUsed(),
-                toCardDto(player.getLeader()),
-                player.getHand().size(),
-                player.getDeck().size(),
-                toBoardRowDto(player.getMeleeRow()),
-                toBoardRowDto(player.getRangedRow()),
-                toBoardRowDto(player.getSiegeRow()),
-                player.getGraveyard().stream().map(this::toCardDto).toList()
-        );
-    }
-
-    private CardDto toCardDto(Card card) {
-        return new CardDto(
-                card.id(),
-                card.name(),
-                card.basePower(),
-                card.cardType().name(),
-                card.rowType() != null ? card.rowType().name() : null,
-                card.ability() != null ? card.ability().name() : null,
-                card.faction().name()
-        );
-    }
-
-    private BoardRowDto toBoardRowDto(com.gwent.engine.state.BoardRow row) {
-        return new BoardRowDto(
-                row.getCards().stream().map(this::toCardDto).toList(),
-                row.isHornActive(),
-                row.isWeatherActive()
-        );
     }
 
     // --- Persistence ---
