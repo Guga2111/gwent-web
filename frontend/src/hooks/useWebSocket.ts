@@ -11,16 +11,17 @@ export function useWebSocket(gameId: string | null) {
   const setConnected = useGameStore((s) => s.setConnected)
   const setError = useGameStore((s) => s.setError)
   const token = useAuthStore((s) => s.token)
+  const user = useAuthStore((s) => s.user)
 
   useEffect(() => {
-    if (!gameId) return
+    if (!gameId || !user) return
 
     const stompClient = new Client({
       webSocketFactory: () => new SockJS('/ws'),
       reconnectDelay: 5000,
       onConnect: () => {
         setConnected(true)
-        stompClient.subscribe(`/topic/games/${gameId}`, (message) => {
+        stompClient.subscribe(`/topic/games/${gameId}/${user.email}`, (message) => {
           const state: GameStateDto = JSON.parse(message.body)
           setGameState(state)
         })
@@ -46,7 +47,7 @@ export function useWebSocket(gameId: string | null) {
       clientRef.current = null
       setConnected(false)
     }
-  }, [gameId, token, setGameState, setConnected, setError])
+  }, [gameId, token, user, setGameState, setConnected, setError])
 
   const sendCommand = useCallback(
     (command: CommandRequest) => {

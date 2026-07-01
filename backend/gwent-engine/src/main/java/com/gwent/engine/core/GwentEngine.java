@@ -204,8 +204,6 @@ public class GwentEngine {
         state.getPlayer1().resetPassed();
         state.getPlayer2().resetPassed();
         state.setCurrentTurn(loser);
-        drawCards(state.getPlayer1(), 2);
-        drawCards(state.getPlayer2(), 2);
         state.nextRound();
         state.setPhase(GamePhase.PLAY);
     }

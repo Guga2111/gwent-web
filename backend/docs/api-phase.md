@@ -360,6 +360,81 @@ with env vars injected by the GitHub Actions deploy step.
 
 ## Architecture — future improvements (not MVP)
 
+### WebSocket/STOMP authentication
+
+Currently the `/ws/**` endpoint is `permitAll()` in `SecurityConfig` and there is no
+`ChannelInterceptor` in `WebSocketConfig`. This means any client can connect via WebSocket
+and send/receive STOMP messages without a JWT.
+
+The HTTP `JWTAuthorizationFilter` only runs on the initial HTTP handshake, and since `/ws/**`
+is permitted, no authentication happens at all — neither on the handshake nor on subsequent
+STOMP frames.
+
+**How to fix:**
+1. Add a `ChannelInterceptor` to `WebSocketConfig` that intercepts the STOMP `CONNECT` frame
+2. Extract the JWT from the STOMP `Authorization` header (or a custom `token` header)
+3. Validate the JWT using the same logic as `JWTAuthorizationFilter`
+4. Set the `Authentication` in the STOMP session's `SecurityContext`
+5. Reject the connection if the token is missing or invalid
+
+```java
+@Override
+public void configureClientInboundChannel(ChannelRegistration registration) {
+    registration.interceptors(new ChannelInterceptor() {
+        @Override
+        public Message<?> preSend(Message<?> message, MessageChannel channel) {
+            StompHeaderAccessor accessor = MessageHeaderAccessor
+                .getAccessor(message, StompHeaderAccessor.class);
+            if (StompCommand.CONNECT.equals(accessor.getCommand())) {
+                String token = accessor.getFirstNativeHeader("Authorization");
+                // validate JWT, set Authentication principal
+            }
+            return message;
+        }
+    });
+}
+```
+
+**When to implement:** before exposing the app to real users. For local development with
+trusted clients this is acceptable, but any public deploy must authenticate WebSocket connections.
+
+---
+
+### Player faction in PlayerState
+
+Currently `Faction` exists as a domain enum and each `Card` carries its faction, but
+`PlayerState` has no `faction` field. The player's faction is implicit — inferred from
+the leader card or deck composition — but never stored explicitly.
+
+This matters because faction passive abilities are per-player, not per-card:
+- **Monsters:** keep one random card on the board between rounds
+- **Northern Realms:** draw an extra card when winning a round
+- **Nilfgaard:** win on a tie
+- **Scoia'tael:** choose who goes first each round
+- **Skellige:** (TBD)
+
+**Where it belongs:** `PlayerState.faction` in `gwent-engine`. The engine needs the faction
+to resolve round transitions and passive abilities — having it live in the API would force
+the engine to receive it as an external parameter on every operation.
+
+**How to implement:**
+1. Add `Faction faction` field to `PlayerState`
+2. Set it at game creation time when the API builds the `PlayerState` from the player's deck
+3. Use it in the engine during round-end logic to apply faction passives
+4. Expose it in `PlayerStateDto` so the frontend can display faction crests/colors
+
+**Faction passive abilities to implement** (resolved in `startNewRound` / `resolveRound`):
+- **Monsters:** keep one random unit card on the board between rounds (skip `clearRows` for that card)
+- **Northern Realms:** draw 1 extra card from deck when winning the round
+- **Nilfgaard:** win the round on a tie (instead of both players losing a life)
+- **Scoia'tael:** choose who goes first each round (prompt player instead of auto-assigning loser)
+- **Skellige:** (TBD — resurrect random cards from graveyard in Witcher 3 variant)
+
+**When to implement:** when faction passive abilities are added to the engine. For MVP with
+no faction passives, the field is not strictly needed.
+
+---
+
 ### Redis as session store
 
 `GameSessionService` currently uses a `ConcurrentHashMap<UUID, GameState>` as the runtime

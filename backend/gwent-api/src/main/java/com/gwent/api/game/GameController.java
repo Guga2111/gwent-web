@@ -34,8 +34,8 @@ public class GameController {
     }
 
     @GetMapping("/{gameId}")
-    public ResponseEntity<GameStateDto> getGame(@PathVariable UUID gameId) {
-        return ResponseEntity.ok(gameSessionService.getSession(gameId));
+    public ResponseEntity<GameStateDto> getGame(@PathVariable UUID gameId, Principal principal) {
+        return ResponseEntity.ok(gameSessionService.getSession(gameId, principal.getName()));
     }
 
     @MessageMapping("/games/{gameId}/command")

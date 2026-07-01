@@ -326,7 +326,7 @@ class GwentEngineTest {
     }
 
     @Test
-    void shouldDrawTwoCardsEachAtNewRound() {
+    void shouldNotDrawCardsAtNewRound() {
         Card u1 = makeUnit("u1", "A", 5, RowType.MELEE);
         Card u2 = makeUnit("u2", "B", 3, RowType.MELEE);
         Card u3 = makeUnit("u3", "C", 4, RowType.RANGED);
@@ -338,8 +338,8 @@ class GwentEngineTest {
         engine.execute(state, new PassCommand());
         engine.execute(state, new PassCommand());
 
-        assertEquals(2, p1.getHand().size());
-        assertEquals(2, p2.getHand().size());
+        assertEquals(0, p1.getHand().size());
+        assertEquals(0, p2.getHand().size());
     }
 
     // =========================================================

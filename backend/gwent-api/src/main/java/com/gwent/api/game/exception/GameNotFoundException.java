@@ -1,4 +1,4 @@
-package com.gwent.api.shared.exception;
+package com.gwent.api.game.exception;
 
 import java.util.UUID;
 

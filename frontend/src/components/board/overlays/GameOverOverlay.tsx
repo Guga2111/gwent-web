@@ -1,9 +1,9 @@
-import type { PlayerStateDto } from '@/types/game'
+import type { PlayerStateDto, OpponentStateDto } from '@/types/game'
 import PrimaryButton from '@/components/ui/PrimaryButton'
 
 interface GameOverOverlayProps {
   myState: PlayerStateDto
-  opponentState: PlayerStateDto
+  opponentState: OpponentStateDto
   onBack: () => void
 }
 

@@ -1,9 +1,9 @@
-import type { RowType } from '@/types/game'
+import type { BoardRowDto, RowType } from '@/types/game'
 import Card from '../card/Card'
 import CountBadge from '@/components/ui/CountBadge'
 
 interface BoardRowProps {
-  cardIds: string[]
+  row: BoardRowDto
   rowLabel: string
   rowType: RowType
   side: 'player' | 'opponent'
@@ -19,9 +19,9 @@ const ROW_TINTS: Record<string, string> = {
   Cerco: 'rgba(20, 40, 70, 0.3)',
 }
 
-export default function BoardRow({ cardIds, rowLabel, onCardClick, onRowClick, isPlacementTarget, interactive }: BoardRowProps) {
-  const cards = cardIds ?? []
-  const score = cards.length // TODO: replace with sum of card powers once cards carry power data
+export default function BoardRow({ row, rowLabel, onCardClick, onRowClick, isPlacementTarget, interactive }: BoardRowProps) {
+  const cards = row.cards ?? []
+  const score = cards.reduce((sum, c) => sum + (c.basePower ?? 0), 0)
 
   return (
     <div
@@ -54,7 +54,7 @@ export default function BoardRow({ cardIds, rowLabel, onCardClick, onRowClick, i
           marginLeft: 28,
           border: '1px dashed var(--border-subtle)',
           borderRadius: 3,
-          backgroundColor: 'var(--bg-medium)',
+          backgroundColor: row.hornActive ? 'rgba(218, 165, 32, 0.3)' : 'var(--bg-medium)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -90,11 +90,11 @@ export default function BoardRow({ cardIds, rowLabel, onCardClick, onRowClick, i
           minHeight: 0,
         }}
       >
-        {cards.map((cardId) => (
+        {cards.map((card) => (
           <Card
-            key={cardId}
-            cardId={cardId}
-            onClick={onCardClick ? () => onCardClick(cardId) : undefined}
+            key={card.id}
+            card={card}
+            onClick={onCardClick ? () => onCardClick(card.id) : undefined}
             interactive={interactive}
           />
         ))}

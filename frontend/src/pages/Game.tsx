@@ -4,7 +4,7 @@ import { useGameStore } from '@/stores/gameStore'
 import { useAuthStore } from '@/stores/authStore'
 import { useWebSocket } from '@/hooks/useWebSocket'
 import { getGameState } from '@/api/game'
-import type { Turn, RowType } from '@/types/game'
+import type { RowType } from '@/types/game'
 
 import PlayerPanel from '@/components/board/rail/PlayerPanel'
 import LeaderCard from '@/components/board/card/LeaderCard'
@@ -51,20 +51,19 @@ export default function Game() {
     return () => clearTimeout(t)
   }, [error, setError])
 
-  // Determine which player we are
-  const myTurn: Turn | null = gameState
-    ? gameState.player1.playerId === user?.email
-      ? 'PLAYER_1'
-      : gameState.player2.playerId === user?.email
-        ? 'PLAYER_2'
-        : null
-    : null
-
-  const myState = myTurn === 'PLAYER_1' ? gameState?.player1 : gameState?.player2
-  const opponentState = myTurn === 'PLAYER_1' ? gameState?.player2 : gameState?.player1
-  const isMyTurn = gameState?.currentTurn === myTurn
+  const me = gameState?.me
+  const opponent = gameState?.opponent
+  const isMyTurn = gameState ? gameState.currentTurn === gameState.myTurn : false
 
   const playerId = user?.email
+
+  const selectedCard = me?.hand.find((c) => c.id === selectedCardId) ?? null
+
+  const canPlayOnRow = (row: RowType): boolean => {
+    if (!selectedCard || !isMyTurn) return false
+    if (selectedCard.ability === 'AGILE') return row === 'MELEE' || row === 'RANGED'
+    return selectedCard.rowType === row
+  }
 
   const handlePlayCard = (targetRow: RowType) => {
     if (!selectedCardId || !isMyTurn) return
@@ -72,7 +71,7 @@ export default function Game() {
     setSelectedCardId(null)
   }
 
-  if (!connected || !gameState || !myState || !opponentState) {
+  if (!connected || !gameState || !me || !opponent) {
     return (
       <div
         style={{
@@ -125,24 +124,23 @@ export default function Game() {
         }}
       >
         <LeaderCard
-          leaderUsed={opponentState.leaderUsed}
+          leaderUsed={opponent.leaderUsed}
           disabled
           onClick={() => {}}
           side="top"
         />
-        <PlayerPanel player={opponentState} isActive={!isMyTurn} side="top" />
+        <PlayerPanel player={opponent} isActive={!isMyTurn} side="top" />
         <div style={{ flex: 1 }} />
-        {/* TODO: pass real weatherEffects once GameStateDto includes them */}
-        <WeatherZone weatherEffects={[]} />
+        <WeatherZone weatherEffects={gameState.weatherCards.map((c) => c.ability ?? '')} />
         <PassButton
           onClick={() => sendCommand({ commandType: 'PASS', playerId })}
-          disabled={!isMyTurn || myState.passed}
+          disabled={!isMyTurn || me.passed}
         />
         <div style={{ flex: 1 }} />
-        <PlayerPanel player={myState} isActive={isMyTurn} side="bottom" />
+        <PlayerPanel player={me} isActive={isMyTurn} side="bottom" />
         <LeaderCard
-          leaderUsed={myState.leaderUsed}
-          disabled={!isMyTurn || myState.leaderUsed}
+          leaderUsed={me.leaderUsed}
+          disabled={!isMyTurn || me.leaderUsed}
           onClick={() => sendCommand({ commandType: 'USE_LEADER', playerId })}
           side="bottom"
         />
@@ -180,48 +178,48 @@ export default function Game() {
           </div>
         )}
 
-        {/* Opponent hand */}
-        <Hand cardIds={opponentState.handCardIds} isPlayer={false} interactive={false} />
+        {/* Opponent hand (face-down) */}
+        <Hand opponentHandSize={opponent.handSize} isPlayer={false} interactive={false} />
 
         {/* Opponent rows: siege, ranged, melee (top to bottom) */}
-        <BoardRow cardIds={opponentState.siegeRowCardIds} rowLabel="Cerco" rowType="SIEGE" side="opponent" interactive={false} />
-        <BoardRow cardIds={opponentState.rangedRowCardIds} rowLabel="Distância" rowType="RANGED" side="opponent" interactive={false} />
-        <BoardRow cardIds={opponentState.meleeRowCardIds} rowLabel="Corpo" rowType="MELEE" side="opponent" interactive={false} />
+        <BoardRow row={opponent.siegeRow} rowLabel="Cerco" rowType="SIEGE" side="opponent" interactive={false} />
+        <BoardRow row={opponent.rangedRow} rowLabel="Distância" rowType="RANGED" side="opponent" interactive={false} />
+        <BoardRow row={opponent.meleeRow} rowLabel="Corpo" rowType="MELEE" side="opponent" interactive={false} />
 
         <CentralDivider />
 
         {/* Player rows: melee, ranged, siege (top to bottom) */}
         <BoardRow
-          cardIds={myState.meleeRowCardIds}
+          row={me.meleeRow}
           rowLabel="Corpo"
           rowType="MELEE"
           side="player"
           interactive={isMyTurn}
-          isPlacementTarget={!!selectedCardId && isMyTurn}
-          onRowClick={selectedCardId && isMyTurn ? () => handlePlayCard('MELEE') : undefined}
+          isPlacementTarget={canPlayOnRow('MELEE')}
+          onRowClick={canPlayOnRow('MELEE') ? () => handlePlayCard('MELEE') : undefined}
         />
         <BoardRow
-          cardIds={myState.rangedRowCardIds}
+          row={me.rangedRow}
           rowLabel="Distância"
           rowType="RANGED"
           side="player"
           interactive={isMyTurn}
-          isPlacementTarget={!!selectedCardId && isMyTurn}
-          onRowClick={selectedCardId && isMyTurn ? () => handlePlayCard('RANGED') : undefined}
+          isPlacementTarget={canPlayOnRow('RANGED')}
+          onRowClick={canPlayOnRow('RANGED') ? () => handlePlayCard('RANGED') : undefined}
         />
         <BoardRow
-          cardIds={myState.siegeRowCardIds}
+          row={me.siegeRow}
           rowLabel="Cerco"
           rowType="SIEGE"
           side="player"
           interactive={isMyTurn}
-          isPlacementTarget={!!selectedCardId && isMyTurn}
-          onRowClick={selectedCardId && isMyTurn ? () => handlePlayCard('SIEGE') : undefined}
+          isPlacementTarget={canPlayOnRow('SIEGE')}
+          onRowClick={canPlayOnRow('SIEGE') ? () => handlePlayCard('SIEGE') : undefined}
         />
 
         {/* Player hand */}
         <Hand
-          cardIds={myState.handCardIds}
+          cards={me.hand}
           isPlayer
           interactive={isMyTurn}
           selectedCardId={selectedCardId ?? undefined}
@@ -231,10 +229,10 @@ export default function Game() {
         />
 
         {/* Phase overlays */}
-        {gameState.phase === 'REDRAW' && !myState.mulliganConfirmed && (
+        {gameState.phase === 'REDRAW' && !me.mulliganConfirmed && (
           <MulliganOverlay
-            handCardIds={myState.handCardIds}
-            mulligansRemaining={myState.mulligansRemaining}
+            hand={me.hand}
+            mulligansRemaining={me.mulligansRemaining}
             onMulligan={(cardId) => sendCommand({ commandType: 'MULLIGAN', playerId, cardId })}
             onConfirm={() => sendCommand({ commandType: 'CONFIRM_MULLIGAN', playerId })}
           />
@@ -242,14 +240,14 @@ export default function Game() {
         {gameState.phase === 'ROUND_END' && (
           <RoundEndOverlay
             round={gameState.currentRound}
-            myScore={myState.score}
-            opponentScore={opponentState.score}
+            myScore={me.score}
+            opponentScore={opponent.score}
           />
         )}
         {gameState.phase === 'GAME_OVER' && (
           <GameOverOverlay
-            myState={myState}
-            opponentState={opponentState}
+            myState={me}
+            opponentState={opponent}
             onBack={() => navigate('/hub')}
           />
         )}
@@ -267,15 +265,13 @@ export default function Game() {
           gap: 12,
         }}
       >
-        {/* TODO: replace handCardIds.length with deckSize once PlayerStateDto includes it */}
-        <DeckStack count={opponentState.handCardIds?.length ?? 0} label="Mão" />
-        <GraveyardStack count={opponentState.graveyardCardIds?.length ?? 0} />
+        <DeckStack count={opponent.deckSize} label="Deck" />
+        <GraveyardStack count={opponent.graveyard.length} />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
           <ControlBar onSurrender={() => {}} />
         </div>
-        <GraveyardStack count={myState.graveyardCardIds?.length ?? 0} />
-        {/* TODO: replace handCardIds.length with deckSize once PlayerStateDto includes it */}
-        <DeckStack count={myState.handCardIds?.length ?? 0} label="Mão" />
+        <GraveyardStack count={me.graveyard.length} />
+        <DeckStack count={me.deckSize} label="Deck" />
       </div>
     </div>
   )

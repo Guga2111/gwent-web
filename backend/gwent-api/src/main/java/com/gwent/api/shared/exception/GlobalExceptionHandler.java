@@ -1,6 +1,10 @@
 package com.gwent.api.shared.exception;
 
 import com.gwent.api.game.dto.ErrorDto;
+import com.gwent.api.game.exception.CardNotFoundException;
+import com.gwent.api.game.exception.GameNotFoundException;
+import com.gwent.api.game.exception.GameNotWaitingException;
+import com.gwent.api.game.exception.PlayerNotInGameException;
 import com.gwent.engine.exception.GwentException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +30,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorDto> handleGwentException(GwentException ex) {
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
                 .body(new ErrorDto("GAME_RULE_VIOLATION", ex.getMessage()));
+    }
+
+    @ExceptionHandler(GameNotWaitingException.class)
+    public ResponseEntity<ErrorDto> handleGameNotWaiting(GameNotWaitingException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorDto("GAME_NOT_WAITING", ex.getMessage()));
+    }
+
+    @ExceptionHandler(PlayerNotInGameException.class)
+    public ResponseEntity<ErrorDto> handlePlayerNotInGame(PlayerNotInGameException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ErrorDto("PLAYER_NOT_IN_GAME", ex.getMessage()));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
