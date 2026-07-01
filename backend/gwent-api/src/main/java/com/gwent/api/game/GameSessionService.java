@@ -160,18 +160,17 @@ public class GameSessionService {
 
     private GameCommand toCommand(CommandRequestDto request, Turn player, GameState state) {
         return switch (request.commandType()) {
-            case "PASS"             -> new PassCommand();
-            case "USE_LEADER"       -> new UseLeaderCommand();
-            case "CONFIRM_MULLIGAN" -> new ConfirmMulliganCommand(player);
-            case "PLAY_CARD"        -> new PlayCardCommand(
+            case PASS             -> new PassCommand();
+            case USE_LEADER       -> new UseLeaderCommand();
+            case CONFIRM_MULLIGAN -> new ConfirmMulliganCommand(player);
+            case PLAY_CARD        -> new PlayCardCommand(
                     findCard(request.cardId(), state.getPlayer(player).getHand()),
                     RowType.valueOf(request.targetRow()));
-            case "MULLIGAN"         -> new MulliganCommand(
+            case MULLIGAN         -> new MulliganCommand(
                     player,
                     findCard(request.cardId(), state.getPlayer(player).getHand()));
-            case "RESOLVE_MEDIC"    -> new ResolveMedicCommand(
+            case RESOLVE_MEDIC    -> new ResolveMedicCommand(
                     findCard(request.cardId(), state.getPlayer(player).getGraveyard()));
-            default -> throw new IllegalArgumentException("Unknown command: " + request.commandType());
         };
     }
 
