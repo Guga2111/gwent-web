@@ -57,6 +57,14 @@ export default function Game() {
 
   const playerId = user?.email
 
+  const selectedCard = me?.hand.find((c) => c.id === selectedCardId) ?? null
+
+  const canPlayOnRow = (row: RowType): boolean => {
+    if (!selectedCard || !isMyTurn) return false
+    if (selectedCard.ability === 'AGILE') return row === 'MELEE' || row === 'RANGED'
+    return selectedCard.rowType === row
+  }
+
   const handlePlayCard = (targetRow: RowType) => {
     if (!selectedCardId || !isMyTurn) return
     sendCommand({ commandType: 'PLAY_CARD', playerId, cardId: selectedCardId, targetRow })
@@ -187,8 +195,8 @@ export default function Game() {
           rowType="MELEE"
           side="player"
           interactive={isMyTurn}
-          isPlacementTarget={!!selectedCardId && isMyTurn}
-          onRowClick={selectedCardId && isMyTurn ? () => handlePlayCard('MELEE') : undefined}
+          isPlacementTarget={canPlayOnRow('MELEE')}
+          onRowClick={canPlayOnRow('MELEE') ? () => handlePlayCard('MELEE') : undefined}
         />
         <BoardRow
           row={me.rangedRow}
@@ -196,8 +204,8 @@ export default function Game() {
           rowType="RANGED"
           side="player"
           interactive={isMyTurn}
-          isPlacementTarget={!!selectedCardId && isMyTurn}
-          onRowClick={selectedCardId && isMyTurn ? () => handlePlayCard('RANGED') : undefined}
+          isPlacementTarget={canPlayOnRow('RANGED')}
+          onRowClick={canPlayOnRow('RANGED') ? () => handlePlayCard('RANGED') : undefined}
         />
         <BoardRow
           row={me.siegeRow}
@@ -205,8 +213,8 @@ export default function Game() {
           rowType="SIEGE"
           side="player"
           interactive={isMyTurn}
-          isPlacementTarget={!!selectedCardId && isMyTurn}
-          onRowClick={selectedCardId && isMyTurn ? () => handlePlayCard('SIEGE') : undefined}
+          isPlacementTarget={canPlayOnRow('SIEGE')}
+          onRowClick={canPlayOnRow('SIEGE') ? () => handlePlayCard('SIEGE') : undefined}
         />
 
         {/* Player hand */}
