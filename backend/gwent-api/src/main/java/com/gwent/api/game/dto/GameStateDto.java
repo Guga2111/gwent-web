@@ -1,13 +1,16 @@
 package com.gwent.api.game.dto;
 
+import java.util.List;
 import java.util.UUID;
 
-public record GameStateDto (
+public record GameStateDto(
         UUID gameId,
         String phase,
         String currentTurn,
+        String myTurn,
         String pendingAbility,
         int currentRound,
-        PlayerStateDto player1,
-        PlayerStateDto player2
+        List<CardDto> weatherCards,
+        PlayerStateDto me,
+        OpponentStateDto opponent
 ) {}

@@ -5,29 +5,64 @@ export type Ability = 'NONE' | 'SPY' | 'BOND' | 'MORALE' | 'MEDIC' | 'MUSTER' | 
 export type GamePhase = 'COIN_FLIP' | 'REDRAW' | 'PLAY' | 'ROUND_END' | 'GAME_OVER'
 export type Turn = 'PLAYER_1' | 'PLAYER_2'
 
+export interface CardDto {
+  id: string
+  name: string
+  basePower: number | null
+  cardType: CardType
+  rowType: RowType | null
+  ability: Ability | null
+  faction: Faction
+}
+
+export interface BoardRowDto {
+  cards: CardDto[]
+  hornActive: boolean
+  weatherActive: boolean
+}
+
 export interface PlayerStateDto {
   playerId: string
   lives: number
   score: number
   passed: boolean
   leaderUsed: boolean
+  leader: CardDto
   mulligansRemaining: number
   mulliganConfirmed: boolean
-  handCardIds: string[]
-  meleeRowCardIds: string[]
-  rangedRowCardIds: string[]
-  siegeRowCardIds: string[]
-  graveyardCardIds: string[]
+  hand: CardDto[]
+  deckSize: number
+  meleeRow: BoardRowDto
+  rangedRow: BoardRowDto
+  siegeRow: BoardRowDto
+  graveyard: CardDto[]
+}
+
+export interface OpponentStateDto {
+  playerId: string
+  lives: number
+  score: number
+  passed: boolean
+  leaderUsed: boolean
+  leader: CardDto
+  handSize: number
+  deckSize: number
+  meleeRow: BoardRowDto
+  rangedRow: BoardRowDto
+  siegeRow: BoardRowDto
+  graveyard: CardDto[]
 }
 
 export interface GameStateDto {
   gameId: string
   phase: GamePhase
   currentTurn: Turn
+  myTurn: Turn
   pendingAbility: string | null
   currentRound: number
-  player1: PlayerStateDto
-  player2: PlayerStateDto
+  weatherCards: CardDto[]
+  me: PlayerStateDto
+  opponent: OpponentStateDto
 }
 
 export interface CommandRequest {

@@ -2,10 +2,7 @@ package com.gwent.api.game;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gwent.api.game.dto.CommandRequestDto;
-import com.gwent.api.game.dto.CreateGameDto;
-import com.gwent.api.game.dto.GameStateDto;
-import com.gwent.api.game.dto.PlayerStateDto;
+import com.gwent.api.game.dto.*;
 import com.gwent.api.shared.exception.CardNotFoundException;
 import com.gwent.api.shared.exception.GameNotFoundException;
 import com.gwent.engine.command.*;
@@ -79,11 +76,10 @@ public class GameSessionService {
         sessions.put(gameId, ctx);
         scheduleMulliganTimeout(gameId, ctx);
 
-        GameStateDto dto = toDto(gameId, ctx);
-        persist(gameId, dto, GameStatus.IN_PROGRESS);
-        broadcastState(gameId, dto);
+        broadcastState(gameId, ctx);
+        persist(gameId, ctx);
 
-        return dto;
+        return toDto(gameId, ctx, Turn.PLAYER_2);
     }
 
     public GameStateDto execute(UUID gameId, String userId, CommandRequestDto request) {
@@ -94,20 +90,19 @@ public class GameSessionService {
         GameCommand command = toCommand(request, player, ctx.gameState());
         engine.execute(ctx.gameState(), command);
 
-        GameStatus status = ctx.gameState().getPhase() == GamePhase.GAME_OVER
-                ? GameStatus.FINISHED : GameStatus.IN_PROGRESS;
+        broadcastState(gameId, ctx);
+        persist(gameId, ctx);
 
-        GameStateDto dto = toDto(gameId, ctx);
-        persist(gameId, dto, status);
-        broadcastState(gameId, dto);
-        return dto;
+        return toDto(gameId, ctx, player);
     }
 
-    public GameStateDto getSession(UUID gameId) {
+    public GameStateDto getSession(UUID gameId, String userId) {
         SessionContext ctx = sessions.get(gameId);
-        if (ctx != null) return toDto(gameId, ctx);
+        if (ctx != null) {
+            Turn perspective = resolvePlayer(ctx, userId);
+            return toDto(gameId, ctx, perspective);
+        }
 
-        // Fallback: return last persisted state from DB (handles missed broadcast / server restart)
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new GameNotFoundException(gameId));
 
@@ -130,33 +125,42 @@ public class GameSessionService {
 
     // --- Broadcast & Timeout ---
 
-    private void broadcastState(UUID gameId, GameStateDto dto) {
-        messagingTemplate.convertAndSend("/topic/games/" + gameId, dto);
+    private void broadcastState(UUID gameId, SessionContext ctx) {
+        GameStateDto p1Dto = toDto(gameId, ctx, Turn.PLAYER_1);
+        GameStateDto p2Dto = toDto(gameId, ctx, Turn.PLAYER_2);
+        messagingTemplate.convertAndSend("/topic/games/" + gameId + "/" + ctx.player1Id(), p1Dto);
+        messagingTemplate.convertAndSend("/topic/games/" + gameId + "/" + ctx.player2Id(), p2Dto);
     }
 
     private void scheduleMulliganTimeout(UUID gameId, SessionContext ctx) {
         scheduler.schedule(() -> {
             if (ctx.gameState().getPhase() == GamePhase.REDRAW) {
                 engine.startPlay(ctx.gameState());
-                GameStateDto dto = toDto(gameId, ctx);
-                persist(gameId, dto, GameStatus.IN_PROGRESS);
-                broadcastState(gameId, dto);
+                broadcastState(gameId, ctx);
+                persist(gameId, ctx);
             }
         }, 30, TimeUnit.SECONDS);
     }
 
     // --- Mapping ---
 
-    private GameStateDto toDto(UUID gameId, SessionContext ctx) {
+    private GameStateDto toDto(UUID gameId, SessionContext ctx, Turn perspective) {
         GameState state = ctx.gameState();
+        String meId = perspective == Turn.PLAYER_1 ? ctx.player1Id() : ctx.player2Id();
+        String opponentId = perspective == Turn.PLAYER_1 ? ctx.player2Id() : ctx.player1Id();
+        PlayerState meState = state.getPlayer(perspective);
+        PlayerState opponentState = state.getPlayer(perspective == Turn.PLAYER_1 ? Turn.PLAYER_2 : Turn.PLAYER_1);
+
         return new GameStateDto(
                 gameId,
                 state.getPhase().name(),
                 state.getCurrentTurn().name(),
+                perspective.name(),
                 state.getPendingAbility() != null ? state.getPendingAbility().name() : null,
                 state.getCurrentRound(),
-                toPlayerDto(ctx.player1Id(), state.getPlayer1(), state),
-                toPlayerDto(ctx.player2Id(), state.getPlayer2(), state)
+                state.getBoard().getActiveWeatherCards().stream().map(this::toCardDto).toList(),
+                toPlayerDto(meId, meState),
+                toOpponentDto(opponentId, opponentState)
         );
     }
 
@@ -184,27 +188,69 @@ public class GameSessionService {
                 .orElseThrow(() -> new CardNotFoundException(cardId));
     }
 
-    private PlayerStateDto toPlayerDto(String playerId, PlayerState player, GameState state) {
+    private PlayerStateDto toPlayerDto(String playerId, PlayerState player) {
         return new PlayerStateDto(
                 playerId,
                 player.getLives(),
                 engine.calculateScore(player),
                 player.isPassed(),
                 player.isLeaderUsed(),
+                toCardDto(player.getLeader()),
                 player.getMulligansRemaining(),
                 player.isMulliganConfirmed(),
-                player.getHand().stream().map(Card::id).toList(),
-                player.getMeleeRow().getCards().stream().map(Card::id).toList(),
-                player.getRangedRow().getCards().stream().map(Card::id).toList(),
-                player.getSiegeRow().getCards().stream().map(Card::id).toList(),
-                player.getGraveyard().stream().map(Card::id).toList()
+                player.getHand().stream().map(this::toCardDto).toList(),
+                player.getDeck().size(),
+                toBoardRowDto(player.getMeleeRow()),
+                toBoardRowDto(player.getRangedRow()),
+                toBoardRowDto(player.getSiegeRow()),
+                player.getGraveyard().stream().map(this::toCardDto).toList()
+        );
+    }
+
+    private OpponentStateDto toOpponentDto(String playerId, PlayerState player) {
+        return new OpponentStateDto(
+                playerId,
+                player.getLives(),
+                engine.calculateScore(player),
+                player.isPassed(),
+                player.isLeaderUsed(),
+                toCardDto(player.getLeader()),
+                player.getHand().size(),
+                player.getDeck().size(),
+                toBoardRowDto(player.getMeleeRow()),
+                toBoardRowDto(player.getRangedRow()),
+                toBoardRowDto(player.getSiegeRow()),
+                player.getGraveyard().stream().map(this::toCardDto).toList()
+        );
+    }
+
+    private CardDto toCardDto(Card card) {
+        return new CardDto(
+                card.id(),
+                card.name(),
+                card.basePower(),
+                card.cardType().name(),
+                card.rowType() != null ? card.rowType().name() : null,
+                card.ability() != null ? card.ability().name() : null,
+                card.faction().name()
+        );
+    }
+
+    private BoardRowDto toBoardRowDto(com.gwent.engine.state.BoardRow row) {
+        return new BoardRowDto(
+                row.getCards().stream().map(this::toCardDto).toList(),
+                row.isHornActive(),
+                row.isWeatherActive()
         );
     }
 
     // --- Persistence ---
 
-    private void persist(UUID gameId, GameStateDto dto, GameStatus status) {
+    private void persist(UUID gameId, SessionContext ctx) {
         try {
+            GameStatus status = ctx.gameState().getPhase() == GamePhase.GAME_OVER
+                    ? GameStatus.FINISHED : GameStatus.IN_PROGRESS;
+            GameStateDto dto = toDto(gameId, ctx, Turn.PLAYER_1);
             Game game = gameRepository.findById(gameId).orElse(new Game());
             game.setId(gameId);
             game.setStateJson(objectMapper.writeValueAsString(dto));

@@ -1,8 +1,8 @@
-import type { PlayerStateDto } from '@/types/game'
+import type { PlayerStateDto, OpponentStateDto } from '@/types/game'
 import CountBadge from '@/components/ui/CountBadge'
 
 interface PlayerPanelProps {
-  player: PlayerStateDto
+  player: PlayerStateDto | OpponentStateDto
   isActive: boolean
   side: 'top' | 'bottom'
 }

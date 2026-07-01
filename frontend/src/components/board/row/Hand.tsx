@@ -1,18 +1,20 @@
 import { useState } from 'react'
 import Card from '../card/Card'
+import type { CardDto } from '@/types/game'
 
 interface HandProps {
-  cardIds: string[]
+  cards?: CardDto[]
+  opponentHandSize?: number
   isPlayer: boolean
   onCardClick?: (cardId: string) => void
   interactive: boolean
   selectedCardId?: string
 }
 
-export default function Hand({ cardIds: rawCardIds, isPlayer, onCardClick, interactive, selectedCardId }: HandProps) {
+export default function Hand({ cards: rawCards, opponentHandSize, isPlayer, onCardClick, interactive, selectedCardId }: HandProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
-  const cardIds = rawCardIds ?? []
-  const count = cardIds.length
+  const cards = rawCards ?? []
+  const count = isPlayer ? cards.length : (opponentHandSize ?? 0)
 
   const getRotation = (i: number) => {
     if (count <= 1) return 0
@@ -64,15 +66,15 @@ export default function Hand({ cardIds: rawCardIds, isPlayer, onCardClick, inter
           minHeight: 114,
         }}
       >
-        {cardIds.map((cardId, i) => {
+        {cards.map((card, i) => {
           const isHovered = hoveredIndex === i
-          const isSelected = selectedCardId === cardId
+          const isSelected = selectedCardId === card.id
           const rotation = isHovered || isSelected ? 0 : getRotation(i)
           const lift = isHovered || isSelected ? -20 : 0
 
           return (
             <div
-              key={cardId}
+              key={card.id}
               style={{
                 marginLeft: i === 0 ? 0 : -12,
                 transform: `rotate(${rotation}deg) translateY(${lift}px)`,
@@ -85,8 +87,8 @@ export default function Hand({ cardIds: rawCardIds, isPlayer, onCardClick, inter
               onMouseLeave={() => setHoveredIndex(null)}
             >
               <Card
-                cardId={cardId}
-                onClick={onCardClick ? () => onCardClick(cardId) : undefined}
+                card={card}
+                onClick={onCardClick ? () => onCardClick(card.id) : undefined}
                 interactive={interactive}
               />
             </div>

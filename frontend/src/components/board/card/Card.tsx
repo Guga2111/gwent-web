@@ -1,5 +1,7 @@
+import type { CardDto } from '@/types/game'
+
 interface CardProps {
-  cardId?: string       // present = face-up, absent = face-down
+  card?: CardDto        // present = face-up, absent = face-down
   onClick?: () => void
   interactive?: boolean
 }
@@ -19,10 +21,8 @@ const sharedStyle: React.CSSProperties = {
   justifyContent: 'center',
 }
 
-export default function Card({ cardId, onClick, interactive = false }: CardProps) {
-  const faceDown = cardId === undefined
-
-  if (faceDown) {
+export default function Card({ card, onClick, interactive = false }: CardProps) {
+  if (!card) {
     return (
       <div
         style={{
@@ -42,6 +42,9 @@ export default function Card({ cardId, onClick, interactive = false }: CardProps
         position: 'relative',
         cursor: interactive ? 'pointer' : 'default',
         transition: 'transform 0.15s, border-color 0.15s',
+        flexDirection: 'column',
+        gap: 2,
+        padding: '4px',
       }}
       onMouseEnter={(e) => {
         if (interactive) {
@@ -56,6 +59,18 @@ export default function Card({ cardId, onClick, interactive = false }: CardProps
         }
       }}
     >
+      {card.basePower != null && (
+        <div
+          style={{
+            fontSize: 14,
+            fontFamily: 'var(--font-heading)',
+            color: 'var(--gold-light)',
+            lineHeight: 1,
+          }}
+        >
+          {card.basePower}
+        </div>
+      )}
       <div
         style={{
           fontSize: 8,
@@ -65,11 +80,10 @@ export default function Card({ cardId, onClick, interactive = false }: CardProps
           overflow: 'hidden',
           textOverflow: 'ellipsis',
           whiteSpace: 'nowrap',
-          padding: '0 4px',
           maxWidth: '100%',
         }}
       >
-        {cardId}
+        {card.name}
       </div>
     </div>
   )

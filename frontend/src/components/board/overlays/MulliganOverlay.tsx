@@ -1,17 +1,18 @@
 import { useState } from 'react'
 import Card from '../card/Card'
 import PrimaryButton from '@/components/ui/PrimaryButton'
+import type { CardDto } from '@/types/game'
 
 interface MulliganOverlayProps {
-  handCardIds: string[]
+  hand: CardDto[]
   onMulligan: (cardId: string) => void
   onConfirm: () => void
   mulligansRemaining: number
 }
 
-export default function MulliganOverlay({ handCardIds, onMulligan, onConfirm, mulligansRemaining }: MulliganOverlayProps) {
+export default function MulliganOverlay({ hand, onMulligan, onConfirm, mulligansRemaining }: MulliganOverlayProps) {
   const [selected, setSelected] = useState<Set<string>>(new Set())
-  const cardIds = handCardIds ?? []
+  const cards = hand ?? []
 
   const toggleCard = (cardId: string) => {
     setSelected((prev) => {
@@ -54,18 +55,18 @@ export default function MulliganOverlay({ handCardIds, onMulligan, onConfirm, mu
       </p>
 
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
-        {cardIds.map((cardId) => (
+        {cards.map((card) => (
           <div
-            key={cardId}
-            onClick={() => toggleCard(cardId)}
+            key={card.id}
+            onClick={() => toggleCard(card.id)}
             style={{
-              border: selected.has(cardId) ? '2px solid var(--gold-light)' : '2px solid transparent',
+              border: selected.has(card.id) ? '2px solid var(--gold-light)' : '2px solid transparent',
               borderRadius: 6,
               padding: 2,
               cursor: 'pointer',
             }}
           >
-            <Card cardId={cardId} interactive={false} />
+            <Card card={card} interactive={false} />
           </div>
         ))}
       </div>
