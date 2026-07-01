@@ -1,13 +1,17 @@
 package com.gwent.api.game;
 
 import com.gwent.api.game.dto.*;
+import com.gwent.api.game.exception.CardNotFoundException;
+import com.gwent.engine.command.*;
 import com.gwent.engine.domain.Card;
+import com.gwent.engine.domain.RowType;
 import com.gwent.engine.domain.Turn;
 import com.gwent.engine.state.BoardRow;
 import com.gwent.engine.state.GameState;
 import com.gwent.engine.state.PlayerState;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -87,5 +91,28 @@ public class GameModelMapper {
                 row.isHornActive(),
                 row.isWeatherActive()
         );
+    }
+
+    public GameCommand toCommand(CommandRequestDto request, Turn player, GameState state) {
+        return switch (request.commandType()) {
+            case PASS             -> new PassCommand();
+            case USE_LEADER       -> new UseLeaderCommand();
+            case CONFIRM_MULLIGAN -> new ConfirmMulliganCommand(player);
+            case PLAY_CARD        -> new PlayCardCommand(
+                    findCard(request.cardId(), state.getPlayer(player).getHand()),
+                    RowType.valueOf(request.targetRow()));
+            case MULLIGAN         -> new MulliganCommand(
+                    player,
+                    findCard(request.cardId(), state.getPlayer(player).getHand()));
+            case RESOLVE_MEDIC    -> new ResolveMedicCommand(
+                    findCard(request.cardId(), state.getPlayer(player).getGraveyard()));
+        };
+    }
+
+    private Card findCard(String cardId, List<Card> cards) {
+        return cards.stream()
+                .filter(c -> c.id().equals(cardId))
+                .findFirst()
+                .orElseThrow(() -> new CardNotFoundException(cardId));
     }
 }

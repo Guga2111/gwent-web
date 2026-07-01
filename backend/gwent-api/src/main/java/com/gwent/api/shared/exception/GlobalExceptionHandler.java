@@ -1,6 +1,8 @@
 package com.gwent.api.shared.exception;
 
 import com.gwent.api.game.dto.ErrorDto;
+import com.gwent.api.game.exception.CardNotFoundException;
+import com.gwent.api.game.exception.GameNotFoundException;
 import com.gwent.api.game.exception.GameNotWaitingException;
 import com.gwent.api.game.exception.PlayerNotInGameException;
 import com.gwent.engine.exception.GwentException;

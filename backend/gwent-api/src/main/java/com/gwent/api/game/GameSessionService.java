@@ -3,11 +3,9 @@ package com.gwent.api.game;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gwent.api.game.dto.*;
+import com.gwent.api.game.exception.GameNotFoundException;
 import com.gwent.api.game.exception.GameNotWaitingException;
 import com.gwent.api.game.exception.PlayerNotInGameException;
-import com.gwent.api.shared.exception.CardNotFoundException;
-import com.gwent.api.shared.exception.GameNotFoundException;
-import com.gwent.engine.command.*;
 import com.gwent.engine.core.GwentEngine;
 import com.gwent.engine.domain.*;
 import com.gwent.engine.state.GameState;
@@ -89,8 +87,7 @@ public class GameSessionService {
         if (ctx == null) throw new GameNotFoundException(gameId);
 
         Turn player = resolvePlayer(ctx, userId);
-        GameCommand command = toCommand(request, player, ctx.gameState());
-        engine.execute(ctx.gameState(), command);
+        engine.execute(ctx.gameState(), mapper.toCommand(request, player, ctx.gameState()));
 
         broadcastState(gameId, ctx);
         persist(gameId, ctx);
@@ -157,33 +154,6 @@ public class GameSessionService {
                 engine.calculateScore(opponentState)
         );
     }
-
-    // --- Command mapping ---
-
-    private GameCommand toCommand(CommandRequestDto request, Turn player, GameState state) {
-        return switch (request.commandType()) {
-            case PASS             -> new PassCommand();
-            case USE_LEADER       -> new UseLeaderCommand();
-            case CONFIRM_MULLIGAN -> new ConfirmMulliganCommand(player);
-            case PLAY_CARD        -> new PlayCardCommand(
-                    findCard(request.cardId(), state.getPlayer(player).getHand()),
-                    RowType.valueOf(request.targetRow()));
-            case MULLIGAN         -> new MulliganCommand(
-                    player,
-                    findCard(request.cardId(), state.getPlayer(player).getHand()));
-            case RESOLVE_MEDIC    -> new ResolveMedicCommand(
-                    findCard(request.cardId(), state.getPlayer(player).getGraveyard()));
-        };
-    }
-
-    private Card findCard(String cardId, List<Card> cards) {
-        return cards.stream()
-                .filter(c -> c.id().equals(cardId))
-                .findFirst()
-                .orElseThrow(() -> new CardNotFoundException(cardId));
-    }
-
-    // --- Persistence ---
 
     private void persist(UUID gameId, SessionContext ctx) {
         try {
