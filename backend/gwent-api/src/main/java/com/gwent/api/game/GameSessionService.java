@@ -3,6 +3,8 @@ package com.gwent.api.game;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gwent.api.game.dto.*;
+import com.gwent.api.game.exception.GameNotWaitingException;
+import com.gwent.api.game.exception.PlayerNotInGameException;
 import com.gwent.api.shared.exception.CardNotFoundException;
 import com.gwent.api.shared.exception.GameNotFoundException;
 import com.gwent.engine.command.*;
@@ -60,7 +62,7 @@ public class GameSessionService {
                 .orElseThrow(() -> new GameNotFoundException(gameId));
 
         if (game.getStatus() != GameStatus.WAITING) {
-            throw new IllegalArgumentException("Game is not waiting for players");
+            throw new GameNotWaitingException(gameId);
         }
 
         game.setPlayer2Id(userId);
@@ -120,7 +122,7 @@ public class GameSessionService {
     private Turn resolvePlayer(SessionContext ctx, String userId) {
         if (userId.equals(ctx.player1Id())) return Turn.PLAYER_1;
         if (userId.equals(ctx.player2Id())) return Turn.PLAYER_2;
-        throw new IllegalArgumentException("User is not a player in this game");
+        throw new PlayerNotInGameException(userId);
     }
 
     // --- Broadcast & Timeout ---
