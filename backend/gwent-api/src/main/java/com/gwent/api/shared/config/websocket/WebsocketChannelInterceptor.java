@@ -1,7 +1,10 @@
+package com.gwent.api.shared.config.websocket;
+
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.gwent.api.security.SecurityConstants;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -66,11 +69,10 @@ public class WebsocketChannelInterceptor implements ChannelInterceptor {
 
     private void handleSubscribe(StompHeaderAccessor accessor) {
         String destination = accessor.getDestination();
-        
-        // verify if this topic here is the correct websocket channel
-        if (destination != null && destination.startsWith("/topic/player/")) {
+
+        if (destination != null && destination.startsWith("/topic/games/")) {
             Authentication user = (Authentication) accessor.getUser();
-            
+
             if (user == null || !isAuthorizedForTopic(user, destination)) {
                 throw new MessageDeliveryException("Denied access to player topic");
             }
@@ -78,8 +80,10 @@ public class WebsocketChannelInterceptor implements ChannelInterceptor {
     }
 
     private boolean isAuthorizedForTopic(Authentication user, String destination) {
-      // verify here also i think there is the gameId (uuid) between topic and player
-        String targetPlayerEmail = destination.substring("/topic/player/".length());
-        return user.getName().equals(targetPlayerEmail); 
+        // pattern: /topic/games/{gameId}/{playerEmail}
+        String[] segments = destination.substring("/topic/games/".length()).split("/");
+        if (segments.length < 2) return false;
+        String targetPlayerEmail = segments[1];
+        return user.getName().equals(targetPlayerEmail);
     }
 }
