@@ -4,6 +4,7 @@ import com.gwent.api.game.dto.CommandRequestDto;
 import com.gwent.api.game.dto.CreateGameDto;
 import com.gwent.api.game.dto.ErrorDto;
 import com.gwent.api.game.dto.GameStateDto;
+import com.gwent.api.game.exception.CardNotFoundException;
 import com.gwent.api.game.exception.GameNotFoundException;
 import com.gwent.api.game.exception.PlayerNotInGameException;
 import com.gwent.engine.exception.GwentException;
@@ -56,6 +57,8 @@ public class GameController {
             broadcastError(gameId, "GAME_NOT_FOUND", e.getMessage());
         } catch (PlayerNotInGameException e) {
             broadcastError(gameId, "PLAYER_NOT_IN_GAME", e.getMessage());
+        } catch (CardNotFoundException e) {
+            broadcastError(gameId, "CARD_NOT_FOUND", e.getMessage());
         }
     }
 
