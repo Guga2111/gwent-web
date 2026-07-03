@@ -178,7 +178,9 @@ class GwentEngineTest {
     @Test
     void shouldSetPendingAbilityAndNotSwitchTurnWhenMedicPlayed() {
         Card medic = makeUnit("medic", "Medic", 5, RowType.MELEE, Ability.MEDIC);
-        GameState state = makePlayState(playerWithHand(medic), makePlayer());
+        PlayerState p1 = playerWithHand(medic);
+        p1.addToGraveyard(makeUnit("dead", "Dead Unit", 4, RowType.MELEE));
+        GameState state = makePlayState(p1, makePlayer());
 
         engine.execute(state, new PlayCardCommand(medic, RowType.MELEE));
 
@@ -607,8 +609,10 @@ class GwentEngineTest {
     void shouldChainMedicWhenRevivedCardIsAlsoAMedic() {
         Card medic1 = makeUnit("medic1", "Medic", 5, RowType.MELEE, Ability.MEDIC);
         Card medic2 = makeUnit("medic2", "Medic", 5, RowType.MELEE, Ability.MEDIC);
+        Card anotherUnit = makeUnit("unit", "Unit", 3, RowType.MELEE);
         PlayerState p1 = playerWithHand(medic1);
         p1.addToGraveyard(medic2);
+        p1.addToGraveyard(anotherUnit);
         GameState state = makePlayState(p1, makePlayer());
 
         engine.execute(state, new PlayCardCommand(medic1, RowType.MELEE));
@@ -635,7 +639,9 @@ class GwentEngineTest {
     void shouldThrowWhenRevivedCardNotInGraveyard() {
         Card medic = makeUnit("medic", "Medic", 5, RowType.MELEE, Ability.MEDIC);
         Card notInGraveyard = makeUnit("ghost", "Ghost", 4, RowType.MELEE);
+        Card validTarget = makeUnit("valid", "Valid", 3, RowType.MELEE);
         PlayerState p1 = playerWithHand(medic);
+        p1.addToGraveyard(validTarget);
         GameState state = makePlayState(p1, makePlayer());
 
         engine.execute(state, new PlayCardCommand(medic, RowType.MELEE));
@@ -648,8 +654,10 @@ class GwentEngineTest {
     void shouldThrowWhenTryingToReviveSpecialCard() {
         Card medic = makeUnit("medic", "Medic", 5, RowType.MELEE, Ability.MEDIC);
         Card special = new Card("spec", "Special", Faction.NEUTRAL, CardType.SPECIAL, null, null, null, null);
+        Card validTarget = makeUnit("valid", "Valid", 3, RowType.MELEE);
         PlayerState p1 = playerWithHand(medic);
         p1.addToGraveyard(special);
+        p1.addToGraveyard(validTarget);
         GameState state = makePlayState(p1, makePlayer());
 
         engine.execute(state, new PlayCardCommand(medic, RowType.MELEE));
@@ -659,11 +667,45 @@ class GwentEngineTest {
     }
 
     @Test
+    void shouldThrowWhenTryingToReviveHeroCard() {
+        Card medic = makeUnit("medic", "Medic", 5, RowType.MELEE, Ability.MEDIC);
+        Card hero = new Card("hero", "Geralt", Faction.NEUTRAL, CardType.HERO, null, null, RowType.MELEE, 15);
+        PlayerState p1 = playerWithHand(medic);
+        p1.addToGraveyard(hero);
+        // Also add a unit so medic triggers pendingAbility
+        Card unit = makeUnit("unit", "Unit", 3, RowType.MELEE);
+        p1.addToGraveyard(unit);
+        GameState state = makePlayState(p1, makePlayer());
+
+        engine.execute(state, new PlayCardCommand(medic, RowType.MELEE));
+
+        assertThrows(InvalidRowException.class, () ->
+                engine.execute(state, new ResolveMedicCommand(hero)));
+    }
+
+    @Test
+    void shouldSkipMedicWhenGraveyardHasNoUnitCards() {
+        Card medic = makeUnit("medic", "Medic", 5, RowType.MELEE, Ability.MEDIC);
+        PlayerState p1 = playerWithHand(medic);
+        // Only hero in graveyard — medic should skip
+        Card hero = new Card("hero", "Geralt", Faction.NEUTRAL, CardType.HERO, null, null, RowType.MELEE, 15);
+        p1.addToGraveyard(hero);
+        GameState state = makePlayState(p1, makePlayer());
+
+        engine.execute(state, new PlayCardCommand(medic, RowType.MELEE));
+
+        assertNull(state.getPendingAbility());
+        assertEquals(Turn.PLAYER_2, state.getCurrentTurn()); // turn switched normally
+    }
+
+    @Test
     void shouldThrowWhenTryingToReviveLeaderCard() {
         Card medic = makeUnit("medic", "Medic", 5, RowType.MELEE, Ability.MEDIC);
         Card leader = makeLeader();
+        Card validTarget = makeUnit("valid", "Valid", 3, RowType.MELEE);
         PlayerState p1 = playerWithHand(medic);
         p1.addToGraveyard(leader);
+        p1.addToGraveyard(validTarget);
         GameState state = makePlayState(p1, makePlayer());
 
         engine.execute(state, new PlayCardCommand(medic, RowType.MELEE));

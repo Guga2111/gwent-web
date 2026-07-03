@@ -19,6 +19,7 @@ import ControlBar from '@/components/board/controls/ControlBar'
 import MulliganOverlay from '@/components/board/overlays/MulliganOverlay'
 import RoundEndOverlay from '@/components/board/overlays/RoundEndOverlay'
 import GameOverOverlay from '@/components/board/overlays/GameOverOverlay'
+import MedicOverlay from '@/components/board/overlays/MedicOverlay'
 
 export default function Game() {
   const { gameId } = useParams<{ gameId: string }>()
@@ -242,6 +243,12 @@ export default function Game() {
             round={gameState.currentRound}
             myScore={me.score}
             opponentScore={opponent.score}
+          />
+        )}
+        {gameState.pendingAbility === 'MEDIC_CHOICE' && isMyTurn && (
+          <MedicOverlay
+            graveyard={me.graveyard}
+            onSelectCard={(cardId) => sendCommand({ commandType: 'RESOLVE_MEDIC', playerId, cardId })}
           />
         )}
         {gameState.phase === 'GAME_OVER' && (

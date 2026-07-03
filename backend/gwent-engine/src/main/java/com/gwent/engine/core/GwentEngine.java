@@ -154,8 +154,7 @@ public class GwentEngine {
             throw new InvalidPhaseCommandException(GamePhase.PLAY, state.getPhase());
         if (!current.getGraveyard().contains(card))
             throw new CardNotInGraveyardException();
-        if (card.cardType() == CardType.SPECIAL || card.cardType() == CardType.WEATHER
-                || card.cardType() == CardType.LEADER)
+        if (card.cardType() != CardType.UNIT)
             throw new InvalidRowException();
 
         current.removeFromGraveyard(card);

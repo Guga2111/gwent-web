@@ -6,6 +6,7 @@ import com.gwent.api.game.dto.*;
 import com.gwent.api.game.exception.GameNotFoundException;
 import com.gwent.api.game.exception.GameNotWaitingException;
 import com.gwent.api.game.exception.PlayerNotInGameException;
+import com.gwent.engine.command.ResolveMedicCommand;
 import com.gwent.engine.core.GwentEngine;
 import com.gwent.engine.domain.*;
 import com.gwent.engine.state.GameState;
@@ -16,16 +17,14 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 @Service
 public class GameSessionService {
 
     private final GwentEngine engine = new GwentEngine();
     private final Map<UUID, SessionContext> sessions = new ConcurrentHashMap<>();
+    private final Map<UUID, ScheduledFuture<?>> medicTimers = new ConcurrentHashMap<>();
     // 4 threads: sufficient for MVP. When scaling, replace with Spring TaskScheduler
     // (container-managed, configurable) or Redis TTL + keyspace notifications (zero threads).
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
@@ -89,6 +88,12 @@ public class GameSessionService {
         Turn player = resolvePlayer(ctx, userId);
         engine.execute(ctx.gameState(), mapper.toCommand(request, player, ctx.gameState()));
 
+        if (ctx.gameState().getPendingAbility() == PendingAbility.MEDIC_CHOICE) {
+            scheduleMedicTimeout(gameId, ctx);
+        } else {
+            cancelMedicTimer(gameId);
+        }
+
         broadcastState(gameId, ctx);
         persist(gameId, ctx);
 
@@ -129,6 +134,32 @@ public class GameSessionService {
         GameStateDto p2Dto = toDto(gameId, ctx, Turn.PLAYER_2);
         messagingTemplate.convertAndSend("/topic/games/" + gameId + "/" + ctx.player1Id(), p1Dto);
         messagingTemplate.convertAndSend("/topic/games/" + gameId + "/" + ctx.player2Id(), p2Dto);
+    }
+
+    private void scheduleMedicTimeout(UUID gameId, SessionContext ctx) {
+        cancelMedicTimer(gameId);
+        medicTimers.put(gameId, scheduler.schedule(() -> {
+            if (ctx.gameState().getPendingAbility() == PendingAbility.MEDIC_CHOICE) {
+                PlayerState current = ctx.gameState().getCurrentPlayer();
+                Card randomUnit = current.getGraveyard().stream()
+                        .filter(c -> c.cardType() == CardType.UNIT)
+                        .findAny()
+                        .orElse(null);
+                if (randomUnit != null) {
+                    engine.execute(ctx.gameState(), new ResolveMedicCommand(randomUnit));
+                    if (ctx.gameState().getPendingAbility() == PendingAbility.MEDIC_CHOICE) {
+                        scheduleMedicTimeout(gameId, ctx);
+                    }
+                    broadcastState(gameId, ctx);
+                    persist(gameId, ctx);
+                }
+            }
+        }, 30, TimeUnit.SECONDS));
+    }
+
+    private void cancelMedicTimer(UUID gameId) {
+        ScheduledFuture<?> timer = medicTimers.remove(gameId);
+        if (timer != null) timer.cancel(false);
     }
 
     private void scheduleMulliganTimeout(UUID gameId, SessionContext ctx) {

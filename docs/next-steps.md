@@ -50,3 +50,4 @@
 11. **Tooltips de habilidades nas cartas**
 12. **Animacoes de jogada/pontuacao**
 13. **Leaderboard e estatisticas**
+14. **Countdown visual nos overlays** — mostrar timer regressivo no MulliganOverlay (30s) e MedicOverlay (30s). O backend ja aplica timeout automatico, mas o frontend nao exibe contagem
