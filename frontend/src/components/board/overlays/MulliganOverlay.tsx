@@ -12,9 +12,11 @@ interface MulliganOverlayProps {
 
 export default function MulliganOverlay({ hand, onMulligan, onConfirm, mulligansRemaining }: MulliganOverlayProps) {
   const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [submitted, setSubmitted] = useState(false)
   const cards = hand ?? []
 
   const toggleCard = (cardId: string) => {
+    if (submitted) return
     setSelected((prev) => {
       const next = new Set(prev)
       if (next.has(cardId)) {
@@ -27,6 +29,8 @@ export default function MulliganOverlay({ hand, onMulligan, onConfirm, mulligans
   }
 
   const handleConfirm = () => {
+    if (submitted) return
+    setSubmitted(true)
     selected.forEach((cardId) => onMulligan(cardId))
     onConfirm()
   }
@@ -71,7 +75,7 @@ export default function MulliganOverlay({ hand, onMulligan, onConfirm, mulligans
         ))}
       </div>
 
-      <PrimaryButton onClick={handleConfirm}>Confirmar</PrimaryButton>
+      <PrimaryButton onClick={handleConfirm} disabled={submitted}>Confirmar</PrimaryButton>
     </div>
   )
 }
