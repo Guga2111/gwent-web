@@ -482,7 +482,7 @@ class GwentEngineTest {
         PlayerState p1 = playerWithHand(card);
         GameState state = makeRedrawState(p1, makePlayer());
 
-        engine.execute(state, new ConfirmMulliganCommand(Turn.PLAYER_1));
+        engine.execute(state, new ConfirmMulliganCommand(Turn.PLAYER_1, List.of()));
 
         assertThrows(PlayerAlreadyConfirmedMulliganException.class, () ->
                 engine.execute(state, new MulliganCommand(Turn.PLAYER_1, card)));
@@ -496,8 +496,8 @@ class GwentEngineTest {
     void shouldTransitionToPlayWhenBothPlayersConfirm() {
         GameState state = makeRedrawState(makePlayer(), makePlayer());
 
-        engine.execute(state, new ConfirmMulliganCommand(Turn.PLAYER_1));
-        engine.execute(state, new ConfirmMulliganCommand(Turn.PLAYER_2));
+        engine.execute(state, new ConfirmMulliganCommand(Turn.PLAYER_1, List.of()));
+        engine.execute(state, new ConfirmMulliganCommand(Turn.PLAYER_2, List.of()));
 
         assertEquals(GamePhase.PLAY, state.getPhase());
     }
@@ -506,7 +506,7 @@ class GwentEngineTest {
     void shouldStayInRedrawWhenOnlyOnePlayerConfirms() {
         GameState state = makeRedrawState(makePlayer(), makePlayer());
 
-        engine.execute(state, new ConfirmMulliganCommand(Turn.PLAYER_1));
+        engine.execute(state, new ConfirmMulliganCommand(Turn.PLAYER_1, List.of()));
 
         assertEquals(GamePhase.REDRAW, state.getPhase());
     }
@@ -520,8 +520,8 @@ class GwentEngineTest {
         GameState state = makeRedrawState(p1, makePlayer());
 
         engine.execute(state, new MulliganCommand(Turn.PLAYER_1, card));
-        engine.execute(state, new ConfirmMulliganCommand(Turn.PLAYER_1));
-        engine.execute(state, new ConfirmMulliganCommand(Turn.PLAYER_2));
+        engine.execute(state, new ConfirmMulliganCommand(Turn.PLAYER_1, List.of()));
+        engine.execute(state, new ConfirmMulliganCommand(Turn.PLAYER_2, List.of()));
 
         assertEquals(GamePhase.PLAY, state.getPhase());
     }
@@ -530,7 +530,7 @@ class GwentEngineTest {
     void shouldMarkPlayerAsConfirmed() {
         GameState state = makeRedrawState(makePlayer(), makePlayer());
 
-        engine.execute(state, new ConfirmMulliganCommand(Turn.PLAYER_2));
+        engine.execute(state, new ConfirmMulliganCommand(Turn.PLAYER_2, List.of()));
 
         assertTrue(state.getPlayer2().isMulliganConfirmed());
         assertFalse(state.getPlayer1().isMulliganConfirmed());
@@ -545,7 +545,7 @@ class GwentEngineTest {
         GameState state = makePlayState(makePlayer(), makePlayer());
 
         assertThrows(InvalidPhaseCommandException.class, () ->
-                engine.execute(state, new ConfirmMulliganCommand(Turn.PLAYER_1)));
+                engine.execute(state, new ConfirmMulliganCommand(Turn.PLAYER_1, List.of())));
     }
 
     // =========================================================

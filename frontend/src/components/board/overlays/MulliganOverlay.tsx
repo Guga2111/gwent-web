@@ -5,12 +5,11 @@ import type { CardDto } from '@/types/game'
 
 interface MulliganOverlayProps {
   hand: CardDto[]
-  onMulligan: (cardId: string) => void
-  onConfirm: () => void
+  onConfirm: (cardIds: string[]) => void
   mulligansRemaining: number
 }
 
-export default function MulliganOverlay({ hand, onMulligan, onConfirm, mulligansRemaining }: MulliganOverlayProps) {
+export default function MulliganOverlay({ hand, onConfirm, mulligansRemaining }: MulliganOverlayProps) {
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const submittedRef = useRef(false)
   const cards = hand ?? []
@@ -31,8 +30,7 @@ export default function MulliganOverlay({ hand, onMulligan, onConfirm, mulligans
   const handleConfirm = () => {
     if (submittedRef.current) return
     submittedRef.current = true
-    selected.forEach((cardId) => onMulligan(cardId))
-    onConfirm()
+    onConfirm([...selected])
   }
 
   return (

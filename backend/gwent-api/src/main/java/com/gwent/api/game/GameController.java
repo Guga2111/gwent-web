@@ -52,19 +52,19 @@ public class GameController {
         try {
             gameSessionService.execute(gameId, userId, request);
         } catch (GwentException e) {
-            broadcastError(gameId, "GAME_RULE_VIOLATION", e.getMessage());
+            sendErrorToPlayer(gameId, userId, "GAME_RULE_VIOLATION", e.getMessage());
         } catch (GameNotFoundException e) {
-            broadcastError(gameId, "GAME_NOT_FOUND", e.getMessage());
+            sendErrorToPlayer(gameId, userId, "GAME_NOT_FOUND", e.getMessage());
         } catch (PlayerNotInGameException e) {
-            broadcastError(gameId, "PLAYER_NOT_IN_GAME", e.getMessage());
+            sendErrorToPlayer(gameId, userId, "PLAYER_NOT_IN_GAME", e.getMessage());
         } catch (CardNotFoundException e) {
-            broadcastError(gameId, "CARD_NOT_FOUND", e.getMessage());
+            sendErrorToPlayer(gameId, userId, "CARD_NOT_FOUND", e.getMessage());
         }
     }
 
-    private void broadcastError(UUID gameId, String error, String message) {
+    private void sendErrorToPlayer(UUID gameId, String userId, String error, String message) {
         messagingTemplate.convertAndSend(
-                "/topic/games/" + gameId + "/errors",
+                "/topic/games/" + gameId + "/" + userId + "/errors",
                 new ErrorDto(error, message)
         );
     }

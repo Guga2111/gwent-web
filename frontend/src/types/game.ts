@@ -70,4 +70,5 @@ export interface CommandRequest {
   playerId?: string
   cardId?: string
   targetRow?: string
+  cardIds?: string[]
 }

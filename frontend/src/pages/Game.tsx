@@ -234,8 +234,7 @@ export default function Game() {
           <MulliganOverlay
             hand={me.hand}
             mulligansRemaining={me.mulligansRemaining}
-            onMulligan={(cardId) => sendCommand({ commandType: 'MULLIGAN', playerId, cardId })}
-            onConfirm={() => sendCommand({ commandType: 'CONFIRM_MULLIGAN', playerId })}
+            onConfirm={(cardIds) => sendCommand({ commandType: 'CONFIRM_MULLIGAN', playerId, cardIds })}
           />
         )}
         {gameState.phase === 'ROUND_END' && (

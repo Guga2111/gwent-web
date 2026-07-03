@@ -116,7 +116,6 @@ public class GwentEngine {
     }
 
     private void handleConfirmMulligan(GameState state, ConfirmMulliganCommand command) {
-        // if both players confirmed → startPlay(state)
         Turn oppositePlayerTurn = command.player() == Turn.PLAYER_2 ? Turn.PLAYER_1 : Turn.PLAYER_2;
 
         PlayerState currentPlayer = state.getPlayer(command.player());
@@ -124,6 +123,16 @@ public class GwentEngine {
 
         if (state.getPhase() != GamePhase.REDRAW) throw new InvalidPhaseCommandException(GamePhase.REDRAW, state.getPhase());
         if (currentPlayer.isMulliganConfirmed()) throw new PlayerAlreadyConfirmedMulliganException();
+
+        // Process mulligans atomically before confirming
+        for (Card card : command.cardsToReturn()) {
+            if (currentPlayer.getMulligansRemaining() == 0) break;
+            if (!currentPlayer.getHand().contains(card)) continue;
+            currentPlayer.removeFromHand(card);
+            currentPlayer.returnToDeck(card);
+            if (!currentPlayer.isDeckEmpty()) currentPlayer.drawCard();
+            currentPlayer.decrementMulligans();
+        }
 
         currentPlayer.confirmMulligan();
 

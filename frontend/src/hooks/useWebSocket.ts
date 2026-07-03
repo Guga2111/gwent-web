@@ -32,7 +32,7 @@ export function useWebSocket(gameId: string | null) {
           const state: GameStateDto = JSON.parse(message.body)
           setGameState(state)
         })
-        stompClient.subscribe(`/topic/games/${gameId}/errors`, (message) => {
+        stompClient.subscribe(`/topic/games/${gameId}/${user.email}/errors`, (message) => {
           if (!active) return
           setError(message.body)
         })

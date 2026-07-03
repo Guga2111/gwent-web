@@ -97,7 +97,10 @@ public class GameModelMapper {
         return switch (request.commandType()) {
             case PASS             -> new PassCommand();
             case USE_LEADER       -> new UseLeaderCommand();
-            case CONFIRM_MULLIGAN -> new ConfirmMulliganCommand(player);
+            case CONFIRM_MULLIGAN -> new ConfirmMulliganCommand(player,
+                    request.cardIds() != null
+                            ? request.cardIds().stream().map(id -> findCard(id, state.getPlayer(player).getHand())).toList()
+                            : List.of());
             case PLAY_CARD        -> new PlayCardCommand(
                     findCard(request.cardId(), state.getPlayer(player).getHand()),
                     RowType.valueOf(request.targetRow()));
