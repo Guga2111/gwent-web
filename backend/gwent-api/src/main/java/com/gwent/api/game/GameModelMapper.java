@@ -33,7 +33,11 @@ public class GameModelMapper {
                 state.getCurrentRound(),
                 state.getBoard().getActiveWeatherCards().stream().map(this::toCardDto).toList(),
                 toPlayerDto(meId, meState, meScore),
-                toOpponentDto(opponentId, opponentState, opponentScore)
+                toOpponentDto(opponentId, opponentState, opponentScore),
+                state.getWinner() != null
+                        ? (state.getWinner() == Turn.PLAYER_1 ? ctx.player1Id() : ctx.player2Id())
+                        : null,
+                state.getEndReason() != null ? state.getEndReason().name() : null
         );
     }
 

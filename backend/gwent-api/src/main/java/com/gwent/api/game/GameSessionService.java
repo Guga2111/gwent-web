@@ -126,6 +126,21 @@ public class GameSessionService {
         }
     }
 
+    public void surrender(UUID gameId, String userId) {
+        Object lock = gameLocks.computeIfAbsent(gameId, k -> new Object());
+        synchronized (lock) {
+            SessionContext ctx = sessions.get(gameId);
+            if (ctx == null) throw new GameNotFoundException(gameId);
+
+            Turn player = resolvePlayer(ctx, userId);
+            engine.surrender(ctx.gameState(), player);
+
+            cancelMedicTimer(gameId);
+            broadcastState(gameId, ctx);
+            persist(gameId, ctx);
+        }
+    }
+
     // --- Player resolution ---
 
     private Turn resolvePlayer(SessionContext ctx, String userId) {

@@ -12,5 +12,7 @@ public record GameStateDto(
         int currentRound,
         List<CardDto> weatherCards,
         PlayerStateDto me,
-        OpponentStateDto opponent
+        OpponentStateDto opponent,
+        String winner,
+        String endReason
 ) {}

@@ -46,6 +46,12 @@ public class GameController {
         return ResponseEntity.ok(gameSessionService.getSession(gameId, principal.getName()));
     }
 
+    @PostMapping("/{gameId}/surrender")
+    public ResponseEntity<Void> surrender(@PathVariable UUID gameId, Principal principal) {
+        gameSessionService.surrender(gameId, principal.getName());
+        return ResponseEntity.ok().build();
+    }
+
     @MessageMapping("/games/{gameId}/command")
     public void handleCommand(@DestinationVariable UUID gameId, CommandRequestDto request, Principal principal) {
         String userId = principal != null ? principal.getName() : request.playerId();
