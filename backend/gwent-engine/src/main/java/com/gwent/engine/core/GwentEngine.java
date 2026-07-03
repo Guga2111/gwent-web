@@ -123,6 +123,7 @@ public class GwentEngine {
         PlayerState oppositePlayer = state.getPlayer(oppositePlayerTurn);
 
         if (state.getPhase() != GamePhase.REDRAW) throw new InvalidPhaseCommandException(GamePhase.REDRAW, state.getPhase());
+        if (currentPlayer.isMulliganConfirmed()) throw new PlayerAlreadyConfirmedMulliganException();
 
         currentPlayer.confirmMulligan();
 

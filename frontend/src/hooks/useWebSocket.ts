@@ -18,6 +18,9 @@ export function useWebSocket(gameId: string | null) {
 
     const stompClient = new Client({
       webSocketFactory: () => new SockJS('/ws'),
+      connectHeaders: {
+        Authorization: `Bearer ${token}`,
+      },
       reconnectDelay: 5000,
       onConnect: () => {
         setConnected(true)
