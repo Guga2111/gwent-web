@@ -715,6 +715,86 @@ class GwentEngineTest {
     }
 
     // =========================================================
+    // surrender — happy paths
+    // =========================================================
+
+    @Test
+    void shouldSetGameOverWhenPlayerSurrenders() {
+        GameState state = makePlayState(makePlayer(), makePlayer());
+
+        engine.surrender(state, Turn.PLAYER_1);
+
+        assertEquals(GamePhase.GAME_OVER, state.getPhase());
+    }
+
+    @Test
+    void shouldSetOpponentAsWinnerWhenPlayerSurrenders() {
+        GameState state = makePlayState(makePlayer(), makePlayer());
+
+        engine.surrender(state, Turn.PLAYER_1);
+
+        assertEquals(Turn.PLAYER_2, state.getWinner());
+    }
+
+    @Test
+    void shouldSetSurrenderAsEndReason() {
+        GameState state = makePlayState(makePlayer(), makePlayer());
+
+        engine.surrender(state, Turn.PLAYER_2);
+
+        assertEquals(Turn.PLAYER_1, state.getWinner());
+        assertEquals(EndReason.SURRENDER, state.getEndReason());
+    }
+
+    // =========================================================
+    // resolveRound — winner and endReason
+    // =========================================================
+
+    @Test
+    void shouldSetWinnerWhenPlayerIsEliminatedByScore() {
+        Card strong = makeUnit("strong", "Strong", 10, RowType.MELEE);
+        PlayerState p1 = makePlayer();
+        p1.loseLife(); // 1 life remaining
+        PlayerState p2 = playerWithHand(strong);
+        GameState state = makePlayState(p1, p2);
+
+        engine.execute(state, new PassCommand());
+        engine.execute(state, new PlayCardCommand(strong, RowType.MELEE));
+        engine.execute(state, new PassCommand());
+
+        assertEquals(Turn.PLAYER_2, state.getWinner());
+        assertEquals(EndReason.NORMAL, state.getEndReason());
+    }
+
+    @Test
+    void shouldSetNullWinnerOnTieElimination() {
+        PlayerState p1 = makePlayer();
+        PlayerState p2 = makePlayer();
+        p1.loseLife(); // 1 life remaining
+        p2.loseLife(); // 1 life remaining
+        GameState state = makePlayState(p1, p2);
+
+        engine.execute(state, new PassCommand());
+        engine.execute(state, new PassCommand()); // tie → both lose last life
+
+        assertEquals(GamePhase.GAME_OVER, state.getPhase());
+        assertNull(state.getWinner());
+        assertEquals(EndReason.NORMAL, state.getEndReason());
+    }
+
+    @Test
+    void shouldNotSetWinnerWhenRoundEndsWithoutElimination() {
+        GameState state = makePlayState(makePlayer(), makePlayer());
+
+        engine.execute(state, new PassCommand());
+        engine.execute(state, new PassCommand());
+
+        assertEquals(GamePhase.PLAY, state.getPhase()); // new round started
+        assertNull(state.getWinner());
+        assertNull(state.getEndReason());
+    }
+
+    // =========================================================
     // Helpers
     // =========================================================
 

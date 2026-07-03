@@ -46,6 +46,11 @@ public class GwentEngine {
         state.setPhase(GamePhase.PLAY);
     }
 
+    public void surrender(GameState state, Turn player) {
+        Turn opposite = player == Turn.PLAYER_1 ? Turn.PLAYER_2 : Turn.PLAYER_1;
+        state.finishGame(opposite, EndReason.SURRENDER);
+    }
+
     // --- Command handlers ---
 
     private void handlePlayCard(GameState state, PlayCardCommand command) {
@@ -198,8 +203,15 @@ public class GwentEngine {
             loser = state.getCurrentTurn();
         }
 
-        if (state.getPlayer1().isEliminated() || state.getPlayer2().isEliminated()) {
-            state.setPhase(GamePhase.GAME_OVER);
+        boolean p1Out = state.getPlayer1().isEliminated();
+        boolean p2Out = state.getPlayer2().isEliminated();
+
+        if (p1Out && p2Out) {
+            state.finishGame(null, EndReason.NORMAL);
+        } else if (p1Out) {
+            state.finishGame(Turn.PLAYER_2, EndReason.NORMAL);
+        } else if (p2Out) {
+            state.finishGame(Turn.PLAYER_1, EndReason.NORMAL);
         } else {
             startNewRound(state, loser);
         }
