@@ -19,6 +19,10 @@ export async function getGameState(gameId: string): Promise<GameStateDto> {
   return response.data
 }
 
+export async function surrender(gameId: string): Promise<void> {
+  await client.post(`/api/games/${gameId}/surrender`)
+}
+
 export async function getActiveGame(): Promise<string | null> {
   const response = await client.get<{ gameId: string }>('/api/games/active')
   if (response.status === 204) return null

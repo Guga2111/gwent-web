@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useGameStore } from '@/stores/gameStore'
 import { useAuthStore } from '@/stores/authStore'
 import { useWebSocket } from '@/hooks/useWebSocket'
+import { surrender } from '@/api/game'
 import type { RowType } from '@/types/game'
 
 import PlayerPanel from '@/components/board/rail/PlayerPanel'
@@ -272,7 +273,7 @@ export default function Game() {
         <DeckStack count={opponent.deckSize} label="Deck" />
         <GraveyardStack count={opponent.graveyard.length} />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <ControlBar onSurrender={() => {}} />
+          <ControlBar onSurrender={() => gameId && surrender(gameId).catch(() => {})} />
         </div>
         <GraveyardStack count={me.graveyard.length} />
         <DeckStack count={me.deckSize} label="Deck" />
