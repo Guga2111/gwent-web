@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useGameStore } from '@/stores/gameStore'
 import { useAuthStore } from '@/stores/authStore'
 import { useWebSocket } from '@/hooks/useWebSocket'
-import { getGameState } from '@/api/game'
 import type { RowType } from '@/types/game'
 
 import PlayerPanel from '@/components/board/rail/PlayerPanel'
@@ -41,7 +40,6 @@ export default function Game() {
   useEffect(() => {
     if (!gameId) return
     setGameId(gameId)
-    getGameState(gameId).then(setGameState).catch(() => {})
     return () => reset()
   }, [gameId])
 

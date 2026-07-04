@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.*;
 
@@ -124,6 +125,11 @@ public class GameSessionService {
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to deserialize game state", e);
         }
+    }
+
+    public Optional<ActiveGameDto> getActiveGame(String userId) {
+        return gameRepository.findActiveGameForPlayer(GameStatus.IN_PROGRESS, userId)
+                .map(g -> new ActiveGameDto(g.getId()));
     }
 
     public void surrender(UUID gameId, String userId) {

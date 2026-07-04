@@ -3,6 +3,7 @@ import { Client } from '@stomp/stompjs'
 import SockJS from 'sockjs-client'
 import { useGameStore } from '@/stores/gameStore'
 import { useAuthStore } from '@/stores/authStore'
+import { getGameState } from '@/api/game'
 import type { GameStateDto, CommandRequest } from '@/types/game'
 
 export function useWebSocket(gameId: string | null) {
@@ -27,6 +28,7 @@ export function useWebSocket(gameId: string | null) {
       onConnect: () => {
         if (!active) return
         setConnected(true)
+        getGameState(gameId).then(setGameState).catch(() => {})
         stompClient.subscribe(`/topic/games/${gameId}/${user.email}`, (message) => {
           if (!active) return
           const state: GameStateDto = JSON.parse(message.body)

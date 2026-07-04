@@ -1,5 +1,6 @@
 package com.gwent.api.game;
 
+import com.gwent.api.game.dto.ActiveGameDto;
 import com.gwent.api.game.dto.CommandRequestDto;
 import com.gwent.api.game.dto.CreateGameDto;
 import com.gwent.api.game.dto.ErrorDto;
@@ -44,6 +45,13 @@ public class GameController {
     @GetMapping("/{gameId}")
     public ResponseEntity<GameStateDto> getGame(@PathVariable UUID gameId, Principal principal) {
         return ResponseEntity.ok(gameSessionService.getSession(gameId, principal.getName()));
+    }
+
+    @GetMapping("/active")
+    public ResponseEntity<ActiveGameDto> getActiveGame(Principal principal) {
+        return gameSessionService.getActiveGame(principal.getName())
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
     }
 
     @PostMapping("/{gameId}/surrender")

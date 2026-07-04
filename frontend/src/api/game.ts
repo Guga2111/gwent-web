@@ -18,3 +18,9 @@ export async function getGameState(gameId: string): Promise<GameStateDto> {
   const response = await client.get<GameStateDto>(`/api/games/${gameId}`)
   return response.data
 }
+
+export async function getActiveGame(): Promise<string | null> {
+  const response = await client.get<{ gameId: string }>('/api/games/active')
+  if (response.status === 204) return null
+  return response.data.gameId
+}
