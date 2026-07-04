@@ -18,18 +18,13 @@ export default function PassButton({ onClick, disabled }: PassButtonProps) {
   }, [onClick, disabled])
 
   return (
-    <div style={{ padding: '8px 12px', textAlign: 'center' }}>
+    <div className="px-3 py-2 text-center">
       <button
         onClick={onClick}
         disabled={disabled}
+        className="w-full py-2 bg-[var(--bg-medium)] border border-[var(--border-gold)] rounded text-sm"
         style={{
-          width: '100%',
-          padding: '8px 0',
-          backgroundColor: 'var(--bg-medium)',
-          border: '1px solid var(--border-gold)',
-          borderRadius: 4,
           fontFamily: 'var(--font-heading)',
-          fontSize: 14,
           color: disabled ? 'var(--text-muted)' : 'var(--gold)',
           cursor: disabled ? 'not-allowed' : 'pointer',
           opacity: disabled ? 0.5 : 1,
@@ -38,12 +33,8 @@ export default function PassButton({ onClick, disabled }: PassButtonProps) {
         PASSAR
       </button>
       <div
-        style={{
-          fontSize: 10,
-          fontFamily: 'var(--font-ui)',
-          color: 'var(--text-muted)',
-          marginTop: 4,
-        }}
+        className="text-[10px] text-[var(--text-muted)] mt-1"
+        style={{ fontFamily: 'var(--font-ui)' }}
       >
         [ESPAÇO] segure
       </div>

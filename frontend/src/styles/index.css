@@ -51,39 +51,35 @@
 
 /* ── Base Reset ── */
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+    width: 100%;
+  }
 
-html,
-body,
-#root {
-  height: 100%;
-  width: 100%;
-}
+  body {
+    background-color: var(--bg-darkest);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-body {
-  background-color: var(--bg-darkest);
-  color: var(--text-primary);
-  font-family: var(--font-body);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+  h1, h2, h3 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+  }
 
-h1, h2, h3 {
-  font-family: var(--font-heading);
-  font-weight: 600;
-}
+  button {
+    cursor: pointer;
+    font-family: var(--font-ui);
+  }
 
-button {
-  cursor: pointer;
-  font-family: var(--font-ui);
-}
-
-input {
-  font-family: var(--font-ui);
+  input {
+    font-family: var(--font-ui);
+  }
 }
 
 /* ── Scrollbar ── */
@@ -109,6 +105,60 @@ input {
 
 .card-shadow {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), 0 0 1px rgba(202, 160, 87, 0.2);
+}
+
+/* ── Component Classes ── */
+
+@layer components {
+  /* Game card base (72×106) */
+  .card-base {
+    width: 72px;
+    height: 106px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-gold);
+    border-radius: 4px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Leader card base (70×92) */
+  .leader-card-base {
+    width: 70px;
+    height: 92px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-gold);
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    transition: transform 0.15s;
+  }
+
+  /* Overlay heading (used in mulligan, medic, etc.) */
+  .overlay-title {
+    font-size: 24px;
+    color: var(--gold-light);
+    font-family: var(--font-display);
+  }
+
+  /* Overlay body text */
+  .overlay-body {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-style: italic;
+    font-family: var(--font-body);
+  }
+
+  /* Tiny muted label (deck label, row label, etc.) */
+  .label-muted {
+    font-size: 9px;
+    color: var(--text-muted);
+    font-family: var(--font-heading);
+  }
 }
 
 /* ── Keyframe Animations ── */

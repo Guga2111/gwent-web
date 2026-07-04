@@ -6,27 +6,12 @@ interface CardProps {
   interactive?: boolean
 }
 
-const CARD_WIDTH = 72
-const CARD_HEIGHT = 106
-
-const sharedStyle: React.CSSProperties = {
-  width: CARD_WIDTH,
-  height: CARD_HEIGHT,
-  backgroundColor: 'var(--bg-card)',
-  border: '1px solid var(--border-gold)',
-  borderRadius: 4,
-  flexShrink: 0,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-}
-
 export default function Card({ card, onClick, interactive = false }: CardProps) {
   if (!card) {
     return (
       <div
+        className="card-base"
         style={{
-          ...sharedStyle,
           backgroundImage:
             'repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(106, 85, 48, 0.15) 8px, rgba(106, 85, 48, 0.15) 9px), repeating-linear-gradient(-45deg, transparent, transparent 8px, rgba(106, 85, 48, 0.15) 8px, rgba(106, 85, 48, 0.15) 9px)',
         }}
@@ -37,51 +22,23 @@ export default function Card({ card, onClick, interactive = false }: CardProps) 
   return (
     <div
       onClick={interactive ? onClick : undefined}
-      style={{
-        ...sharedStyle,
-        position: 'relative',
-        cursor: interactive ? 'pointer' : 'default',
-        transition: 'transform 0.15s, border-color 0.15s',
-        flexDirection: 'column',
-        gap: 2,
-        padding: '4px',
-      }}
-      onMouseEnter={(e) => {
-        if (interactive) {
-          e.currentTarget.style.transform = 'translateY(-6px)'
-          e.currentTarget.style.borderColor = 'var(--gold-light)'
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (interactive) {
-          e.currentTarget.style.transform = 'translateY(0)'
-          e.currentTarget.style.borderColor = 'var(--border-gold)'
-        }
-      }}
+      className={`card-base relative flex-col gap-0.5 p-1 transition-[translate,border-color] duration-150 ${
+        interactive
+          ? 'cursor-pointer hover:-translate-y-1.5 hover:border-[var(--gold-light)]'
+          : 'cursor-default'
+      }`}
     >
       {card.basePower != null && (
         <div
-          style={{
-            fontSize: 14,
-            fontFamily: 'var(--font-heading)',
-            color: 'var(--gold-light)',
-            lineHeight: 1,
-          }}
+          className="text-sm leading-none text-[var(--gold-light)]"
+          style={{ fontFamily: 'var(--font-heading)' }}
         >
           {card.basePower}
         </div>
       )}
       <div
-        style={{
-          fontSize: 8,
-          fontFamily: 'var(--font-heading)',
-          color: 'var(--text-secondary)',
-          textAlign: 'center',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          maxWidth: '100%',
-        }}
+        className="text-[8px] text-center text-[var(--text-secondary)] overflow-hidden text-ellipsis whitespace-nowrap max-w-full"
+        style={{ fontFamily: 'var(--font-heading)' }}
       >
         {card.name}
       </div>

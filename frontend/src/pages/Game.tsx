@@ -29,7 +29,6 @@ export default function Game() {
   const connected = useGameStore((s) => s.connected)
   const error = useGameStore((s) => s.error)
   const setGameId = useGameStore((s) => s.setGameId)
-  const setGameState = useGameStore((s) => s.setGameState)
   const setError = useGameStore((s) => s.setError)
   const reset = useGameStore((s) => s.reset)
   const user = useAuthStore((s) => s.user)
@@ -73,30 +72,16 @@ export default function Game() {
 
   if (!connected || !gameState || !me || !opponent) {
     return (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          height: '100vh',
-          gap: 16,
-          backgroundColor: 'var(--bg-darkest)',
-        }}
-      >
-        <p style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-heading)' }}>
+      <div className="flex flex-col items-center justify-center h-screen gap-4 bg-[var(--bg-darkest)]">
+        <p
+          className="text-[var(--text-secondary)]"
+          style={{ fontFamily: 'var(--font-heading)' }}
+        >
           {!connected ? 'Conectando...' : 'Aguardando estado do jogo...'}
         </p>
         <button
           onClick={() => navigate('/hub')}
-          style={{
-            fontSize: 14,
-            textDecoration: 'underline',
-            color: 'var(--text-muted)',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-          }}
+          className="text-sm underline text-[var(--text-muted)] bg-transparent border-none cursor-pointer"
         >
           Voltar à Taverna
         </button>
@@ -105,24 +90,9 @@ export default function Game() {
   }
 
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: '220px 1fr 96px',
-        height: '100vh',
-        backgroundColor: 'var(--bg-darkest)',
-      }}
-    >
+    <div className="grid grid-cols-[220px_1fr_96px] h-screen bg-[var(--bg-darkest)]">
       {/* Left Rail */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          backgroundColor: 'var(--bg-dark)',
-          borderRight: '1px solid var(--border-subtle)',
-          overflow: 'hidden',
-        }}
-      >
+      <div className="flex flex-col bg-[var(--bg-dark)] border-r border-[var(--border-subtle)] overflow-hidden">
         <LeaderCard
           leaderUsed={opponent.leaderUsed}
           disabled
@@ -130,13 +100,13 @@ export default function Game() {
           side="top"
         />
         <PlayerPanel player={opponent} isActive={!isMyTurn} side="top" />
-        <div style={{ flex: 1 }} />
+        <div className="flex-1" />
         <WeatherZone weatherEffects={gameState.weatherCards.map((c) => c.ability ?? '')} />
         <PassButton
           onClick={() => sendCommand({ commandType: 'PASS', playerId })}
           disabled={!isMyTurn || me.passed}
         />
-        <div style={{ flex: 1 }} />
+        <div className="flex-1" />
         <PlayerPanel player={me} isActive={isMyTurn} side="bottom" />
         <LeaderCard
           leaderUsed={me.leaderUsed}
@@ -147,31 +117,14 @@ export default function Game() {
       </div>
 
       {/* Center Board */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
+      <div className="flex flex-col relative overflow-hidden">
         {/* Error notification */}
         {error && (
           <div
+            className="absolute top-3 left-1/2 -translate-x-1/2 z-20 rounded-md px-[18px] py-2 text-[13px] text-white pointer-events-none border border-[rgba(255,100,100,0.4)]"
             style={{
-              position: 'absolute',
-              top: 12,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              zIndex: 20,
-              backgroundColor: 'rgba(var(--red-rgb, 204,68,68), 0.92)',
-              border: '1px solid rgba(255,100,100,0.4)',
-              borderRadius: 6,
-              padding: '8px 18px',
               fontFamily: 'var(--font-ui)',
-              fontSize: 13,
-              color: '#fff',
-              pointerEvents: 'none',
+              backgroundColor: 'rgba(204, 68, 68, 0.92)',
             }}
           >
             {error}
@@ -260,20 +213,10 @@ export default function Game() {
       </div>
 
       {/* Right Rail */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          backgroundColor: 'var(--bg-dark)',
-          borderLeft: '1px solid var(--border-subtle)',
-          padding: '12px 0',
-          gap: 12,
-        }}
-      >
+      <div className="flex flex-col items-center bg-[var(--bg-dark)] border-l border-[var(--border-subtle)] py-3 gap-3">
         <DeckStack count={opponent.deckSize} label="Deck" />
         <GraveyardStack count={opponent.graveyard.length} />
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="flex-1 flex flex-col items-center justify-center">
           <ControlBar onSurrender={() => gameId && surrender(gameId).catch(() => {})} />
         </div>
         <GraveyardStack count={me.graveyard.length} />

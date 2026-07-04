@@ -31,29 +31,27 @@ export default function RoundEndOverlay({ round, myScore, opponentScore }: Round
         : 'var(--gold)'
 
   return (
-    <div
-      className="board-overlay"
-      style={{ backgroundColor: 'rgba(13, 10, 7, 0.8)' }}
-    >
-      <div style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: 'var(--text-secondary)' }}>
+    <div className="board-overlay" style={{ backgroundColor: 'rgba(13, 10, 7, 0.8)' }}>
+      <div
+        className="text-[16px] text-[var(--text-secondary)]"
+        style={{ fontFamily: 'var(--font-heading)' }}
+      >
         Round {round}
       </div>
 
       <div
-        style={{
-          display: 'flex',
-          gap: 32,
-          alignItems: 'center',
-          fontFamily: 'var(--font-heading)',
-          fontSize: 28,
-        }}
+        className="flex gap-8 items-center text-[28px]"
+        style={{ fontFamily: 'var(--font-heading)' }}
       >
-        <span style={{ color: 'var(--gold-light)' }}>{myScore}</span>
-        <span style={{ color: 'var(--text-muted)', fontSize: 16 }}>vs</span>
-        <span style={{ color: 'var(--text-secondary)' }}>{opponentScore}</span>
+        <span className="text-[var(--gold-light)]">{myScore}</span>
+        <span className="text-[var(--text-muted)] text-[16px]">vs</span>
+        <span className="text-[var(--text-secondary)]">{opponentScore}</span>
       </div>
 
-      <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, color: resultColor }}>
+      <div
+        className="text-[22px]"
+        style={{ fontFamily: 'var(--font-display)', color: resultColor }}
+      >
         {result}
       </div>
     </div>

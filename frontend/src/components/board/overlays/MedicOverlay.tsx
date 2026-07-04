@@ -11,41 +11,18 @@ export default function MedicOverlay({ graveyard, onSelectCard }: MedicOverlayPr
 
   return (
     <div className="board-overlay">
-      <h2
-        style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: 24,
-          color: 'var(--gold-light)',
-        }}
-      >
-        Escolha uma carta para reviver
-      </h2>
+      <h2 className="overlay-title">Escolha uma carta para reviver</h2>
 
-      <p
-        style={{
-          fontFamily: 'var(--font-body)',
-          fontSize: 14,
-          color: 'var(--text-secondary)',
-          fontStyle: 'italic',
-        }}
-      >
+      <p className="overlay-body">
         O Medic permite restaurar uma unidade do cemiterio
       </p>
 
-      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+      <div className="flex gap-3 flex-wrap justify-center">
         {revivableCards.map((card) => (
           <div
             key={card.id}
             onClick={() => onSelectCard(card.id)}
-            style={{
-              border: '2px solid transparent',
-              borderRadius: 6,
-              padding: 2,
-              cursor: 'pointer',
-              transition: 'border-color 0.15s',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--gold-light)')}
-            onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'transparent')}
+            className="border-2 border-transparent rounded-md p-0.5 cursor-pointer transition-colors duration-150 hover:border-[var(--gold-light)]"
           >
             <Card card={card} interactive={false} />
           </div>

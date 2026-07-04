@@ -13,42 +13,16 @@ export default function PlayerPanel({ player, isActive, side }: PlayerPanelProps
 
   return (
     <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 6,
-        padding: '12px 8px',
-        borderRadius: 4,
-        width: '100%',
-        ...(isActive
-          ? { animation: 'tb-turn 2s ease-in-out infinite' }
-          : {}),
-      }}
+      className="flex flex-col items-center gap-1.5 px-2 py-3 rounded w-full"
+      style={isActive ? { animation: 'tb-turn 2s ease-in-out infinite' } : undefined}
     >
       {/* Avatar */}
-      <div
-        style={{
-          width: 48,
-          height: 48,
-          borderRadius: '50%',
-          backgroundColor: 'var(--bg-medium)',
-          border: '2px solid var(--border-gold)',
-        }}
-      />
+      <div className="w-12 h-12 rounded-full bg-[var(--bg-medium)] border-2 border-[var(--border-gold)]" />
 
       {/* Name */}
       <div
-        style={{
-          fontFamily: 'var(--font-ui)',
-          fontSize: 12,
-          color: 'var(--text-primary)',
-          maxWidth: 180,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          textAlign: 'center',
-        }}
+        className="text-xs text-[var(--text-primary)] max-w-[180px] overflow-hidden text-ellipsis whitespace-nowrap text-center"
+        style={{ fontFamily: 'var(--font-ui)' }}
       >
         {player.playerId}
       </div>
@@ -56,26 +30,20 @@ export default function PlayerPanel({ player, isActive, side }: PlayerPanelProps
       {/* Passed label */}
       {player.passed && (
         <div
-          style={{
-            fontFamily: 'var(--font-body)',
-            fontSize: 11,
-            color: 'var(--text-muted)',
-            fontStyle: 'italic',
-          }}
+          className="text-[11px] italic text-[var(--text-muted)]"
+          style={{ fontFamily: 'var(--font-body)' }}
         >
           PASSOU
         </div>
       )}
 
       {/* Lives gems */}
-      <div style={{ display: 'flex', gap: 6 }}>
+      <div className="flex gap-1.5">
         {gems.map((alive, i) => (
           <div
             key={i}
+            className="w-3 h-3 rounded-full"
             style={{
-              width: 12,
-              height: 12,
-              borderRadius: '50%',
               backgroundColor: alive ? 'var(--gold)' : 'transparent',
               border: alive ? '1px solid var(--gold-light)' : '1px solid var(--border-subtle)',
             }}

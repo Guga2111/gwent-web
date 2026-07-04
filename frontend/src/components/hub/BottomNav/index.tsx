@@ -19,18 +19,7 @@ const tabs: { id: TabId; label: string; icon: LucideIcon }[] = [
 
 export default function BottomNav({ activeTab, setActiveTab }: BottomNavProps) {
   return (
-    <nav
-      style={{
-        position: 'relative',
-        zIndex: 3,
-        display: 'flex',
-        alignItems: 'flex-end',
-        justifyContent: 'center',
-        gap: 14,
-        padding: '6px 0 22px',
-        flexShrink: 0,
-      }}
-    >
+    <nav className="relative z-30 flex items-end justify-center gap-3.5 pt-1.5 pb-[22px] shrink-0">
       {tabs.map((tab) => (
         <NavigationCard
           key={tab.id}
