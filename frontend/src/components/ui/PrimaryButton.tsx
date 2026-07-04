@@ -8,18 +8,9 @@ interface PrimaryButtonProps {
   style?: CSSProperties
 }
 
-const variantStyles: Record<'dark' | 'light', CSSProperties> = {
-  dark: {
-    backgroundColor: 'var(--gold-dark)',
-    border: '1px solid var(--gold)',
-    color: 'var(--text-primary)',
-  },
-  light: {
-    background: 'linear-gradient(180deg, var(--gold-light), var(--gold))',
-    border: 'none',
-    color: 'var(--bg-darkest)',
-    boxShadow: '0 5px 12px rgba(0,0,0,.4)',
-  },
+const variantClasses: Record<'dark' | 'light', string> = {
+  dark: 'bg-[var(--gold-dark)] border border-[var(--gold)] text-[var(--text-primary)]',
+  light: 'border-none text-[var(--bg-darkest)] shadow-[0_5px_12px_rgba(0,0,0,.4)]',
 }
 
 export default function PrimaryButton({
@@ -33,15 +24,10 @@ export default function PrimaryButton({
     <button
       onClick={onClick}
       disabled={disabled}
+      className={`px-8 py-2.5 rounded font-bold text-base ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} ${variantClasses[variant]}`}
       style={{
-        padding: '10px 32px',
-        borderRadius: 4,
         fontFamily: 'var(--font-heading)',
-        fontWeight: 700,
-        fontSize: 16,
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        opacity: disabled ? 0.5 : 1,
-        ...variantStyles[variant],
+        ...(variant === 'light' ? { background: 'linear-gradient(180deg, var(--gold-light), var(--gold))' } : {}),
         ...style,
       }}
     >

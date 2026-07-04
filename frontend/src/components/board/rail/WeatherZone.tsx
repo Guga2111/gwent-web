@@ -14,40 +14,20 @@ export default function WeatherZone({ weatherEffects }: WeatherZoneProps) {
   const activeSet = new Set((weatherEffects ?? []).map((e) => e.toUpperCase()))
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 4,
-        padding: '8px 12px',
-        margin: '4px 8px',
-        borderRadius: 4,
-        backgroundColor: 'rgba(13, 10, 7, 0.5)',
-        border: '1px solid var(--border-subtle)',
-      }}
-    >
+    <div className="flex flex-col gap-1 p-2 mx-2 my-1 rounded border border-[var(--border-subtle)] bg-[rgba(13,10,7,0.5)]">
       {WEATHER_SLOTS.map(({ key, label, Icon }) => {
         const active = activeSet.has(key)
         return (
-          <div
-            key={key}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              fontSize: 11,
-            }}
-          >
+          <div key={key} className="flex items-center gap-1.5 text-[11px]">
             <Icon
               size={14}
               strokeWidth={1.5}
-              style={{ color: active ? 'var(--gold)' : 'var(--text-muted)', flexShrink: 0 }}
+              className="shrink-0"
+              style={{ color: active ? 'var(--gold)' : 'var(--text-muted)' }}
             />
             <span
-              style={{
-                fontFamily: 'var(--font-ui)',
-                color: active ? 'var(--text-primary)' : 'var(--text-muted)',
-              }}
+              className={active ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}
+              style={{ fontFamily: 'var(--font-ui)' }}
             >
               {label}
             </span>

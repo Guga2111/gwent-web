@@ -12,23 +12,11 @@ export default function GameOverOverlay({ myState, opponentState, winner, onBack
   const won = winner === myState.playerId
 
   return (
-    <div
-      style={{
-        position: 'absolute',
-        inset: 0,
-        backgroundColor: 'var(--bg-darkest)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 20,
-        zIndex: 50,
-      }}
-    >
+    <div className="absolute inset-0 bg-[var(--bg-darkest)] flex flex-col items-center justify-center gap-5 z-50">
       <h1
+        className="text-[36px]"
         style={{
           fontFamily: 'var(--font-display)',
-          fontSize: 36,
           color: won ? 'var(--gold-light)' : 'var(--text-muted)',
           textShadow: won ? '0 0 20px rgba(246, 221, 151, 0.5)' : 'none',
         }}
@@ -37,26 +25,18 @@ export default function GameOverOverlay({ myState, opponentState, winner, onBack
       </h1>
 
       <div
-        style={{
-          display: 'flex',
-          gap: 48,
-          fontFamily: 'var(--font-heading)',
-          fontSize: 18,
-        }}
+        className="flex gap-12 text-[18px]"
+        style={{ fontFamily: 'var(--font-heading)' }}
       >
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ color: 'var(--text-muted)', fontSize: 12, marginBottom: 4 }}>Você</div>
-          <div style={{ color: 'var(--gold-light)', fontSize: 28 }}>{myState.score}</div>
-          <div style={{ color: 'var(--text-secondary)', fontSize: 14 }}>
-            {myState.lives} vidas
-          </div>
+        <div className="text-center">
+          <div className="text-xs text-[var(--text-muted)] mb-1">Você</div>
+          <div className="text-[28px] text-[var(--gold-light)]">{myState.score}</div>
+          <div className="text-sm text-[var(--text-secondary)]">{myState.lives} vidas</div>
         </div>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ color: 'var(--text-muted)', fontSize: 12, marginBottom: 4 }}>Oponente</div>
-          <div style={{ color: 'var(--text-secondary)', fontSize: 28 }}>{opponentState.score}</div>
-          <div style={{ color: 'var(--text-secondary)', fontSize: 14 }}>
-            {opponentState.lives} vidas
-          </div>
+        <div className="text-center">
+          <div className="text-xs text-[var(--text-muted)] mb-1">Oponente</div>
+          <div className="text-[28px] text-[var(--text-secondary)]">{opponentState.score}</div>
+          <div className="text-sm text-[var(--text-secondary)]">{opponentState.lives} vidas</div>
         </div>
       </div>
 

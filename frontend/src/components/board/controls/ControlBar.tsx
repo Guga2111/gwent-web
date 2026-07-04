@@ -14,31 +14,14 @@ export default function ControlBar({ onSurrender }: ControlBarProps) {
   const handlers = [onSurrender, () => {}, () => {}]
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 6,
-      }}
-    >
+    <div className="flex flex-col items-center gap-1.5">
       {ACTIONS.map(({ label, Icon, danger }, i) => (
         <button
           key={label}
           onClick={handlers[i]}
           title={label}
-          style={{
-            width: 36,
-            height: 36,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: 'var(--bg-medium)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 4,
-            color: danger ? 'var(--red)' : 'var(--text-muted)',
-            cursor: 'pointer',
-          }}
+          className="w-9 h-9 flex items-center justify-center bg-[var(--bg-medium)] border border-[var(--border-subtle)] rounded cursor-pointer"
+          style={{ color: danger ? 'var(--red)' : 'var(--text-muted)' }}
         >
           <Icon size={16} strokeWidth={1.5} />
         </button>

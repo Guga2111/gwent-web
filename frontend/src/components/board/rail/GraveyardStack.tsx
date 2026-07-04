@@ -6,14 +6,11 @@ interface GraveyardStackProps {
 
 export default function GraveyardStack({ count }: GraveyardStackProps) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-      <Skull size={20} strokeWidth={1.5} style={{ color: 'var(--text-muted)' }} />
+    <div className="flex flex-col items-center gap-0.5">
+      <Skull size={20} strokeWidth={1.5} className="text-[var(--text-muted)]" />
       <div
-        style={{
-          fontSize: 11,
-          fontFamily: 'var(--font-ui)',
-          color: 'var(--text-muted)',
-        }}
+        className="text-[11px] text-[var(--text-muted)]"
+        style={{ fontFamily: 'var(--font-ui)' }}
       >
         {count}
       </div>

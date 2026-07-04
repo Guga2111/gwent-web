@@ -4,42 +4,23 @@ interface ComingSoonPageProps {
 
 export default function ComingSoonPage({ title }: ComingSoonPageProps) {
   return (
-    <div
-      style={{
-        position: 'absolute',
-        inset: 0,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
+    <div className="absolute inset-0 flex items-center justify-center">
       <div
+        className="px-[60px] py-10 rounded-[9px] text-center"
         style={{
-          padding: '40px 60px',
-          borderRadius: 9,
           background: 'linear-gradient(155deg, var(--parchment-light), var(--parchment-mid) 55%, var(--parchment-dark))',
           boxShadow: '0 16px 34px rgba(0,0,0,.55), inset 0 0 36px rgba(150,115,60,.32)',
-          textAlign: 'center',
         }}
       >
         <div
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontWeight: 700,
-            fontSize: 26,
-            color: 'var(--parchment-heading)',
-            marginBottom: 8,
-          }}
+          className="text-[26px] font-bold text-[var(--parchment-heading)] mb-2"
+          style={{ fontFamily: 'var(--font-display)' }}
         >
           {title}
         </div>
         <div
-          style={{
-            fontFamily: 'var(--font-body)',
-            fontStyle: 'italic',
-            fontSize: 15,
-            color: 'var(--parchment-muted)',
-          }}
+          className="italic text-[15px] text-[var(--parchment-muted)]"
+          style={{ fontFamily: 'var(--font-body)' }}
         >
           Em breve
         </div>

@@ -34,46 +34,29 @@ export default function Hub() {
 
   return (
     <div
+      className="h-screen flex flex-col relative overflow-hidden"
       style={{
-        height: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        background:
-          'radial-gradient(135% 125% at 50% -8%, #2c1e10 0%, #160d06 46%, var(--bg-darkest) 100%)',
-        position: 'relative',
-        overflow: 'hidden',
+        background: 'radial-gradient(135% 125% at 50% -8%, #2c1e10 0%, #160d06 46%, var(--bg-darkest) 100%)',
       }}
     >
       {/* Atmosphere layers */}
       <div
+        className="absolute inset-0 pointer-events-none"
         style={{
-          position: 'absolute',
-          inset: 0,
-          background:
-            'radial-gradient(60% 50% at 50% 30%, rgba(255,196,108,.22), rgba(150,90,30,.06) 44%, transparent 72%)',
+          background: 'radial-gradient(60% 50% at 50% 30%, rgba(255,196,108,.22), rgba(150,90,30,.06) 44%, transparent 72%)',
           animation: 'gw-flicker 5s ease-in-out infinite',
-          pointerEvents: 'none',
         }}
       />
       <div
+        className="absolute left-0 right-0 bottom-0 h-[42%] pointer-events-none"
         style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          bottom: 0,
-          height: '42%',
-          background:
-            'linear-gradient(180deg, transparent, rgba(46,30,16,.5) 36%, rgba(20,12,6,.92)), repeating-linear-gradient(90deg, rgba(0,0,0,.18) 0 3px, rgba(255,220,160,.016) 3px 9px)',
-          pointerEvents: 'none',
+          background: 'linear-gradient(180deg, transparent, rgba(46,30,16,.5) 36%, rgba(20,12,6,.92)), repeating-linear-gradient(90deg, rgba(0,0,0,.18) 0 3px, rgba(255,220,160,.016) 3px 9px)',
         }}
       />
       <div
+        className="absolute inset-0 pointer-events-none"
         style={{
-          position: 'absolute',
-          inset: 0,
-          background:
-            'radial-gradient(125% 115% at 50% 44%, transparent 42%, rgba(0,0,0,.6) 100%)',
-          pointerEvents: 'none',
+          background: 'radial-gradient(125% 115% at 50% 44%, transparent 42%, rgba(0,0,0,.6) 100%)',
         }}
       />
 
@@ -101,15 +84,7 @@ export default function Hub() {
       )}
 
       {/* Content area */}
-      <div
-        style={{
-          position: 'relative',
-          zIndex: 2,
-          flex: 1,
-          minHeight: 0,
-          overflow: 'hidden',
-        }}
-      >
+      <div className="relative z-20 flex-1 min-h-0 overflow-hidden">
         <ActiveTab />
       </div>
 

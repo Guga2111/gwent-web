@@ -10,31 +10,15 @@ export default function LeaderCard({ leaderUsed, onClick, disabled, side = 'bott
   const isClickable = !disabled && !leaderUsed
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'center',
-        padding: '8px 0',
-      }}
-    >
+    <div className="flex justify-center py-2">
       <div
         onClick={isClickable ? onClick : undefined}
+        className="leader-card-base"
         style={{
-          width: 70,
-          height: 92,
-          backgroundColor: 'var(--bg-card)',
-          border: '1px solid var(--border-gold)',
-          borderRadius: 4,
           transform: `rotate(${rotation}deg)`,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 4,
           cursor: isClickable ? 'pointer' : 'default',
           opacity: leaderUsed ? 0.5 : 1,
           filter: leaderUsed ? 'saturate(0.3)' : undefined,
-          transition: 'transform 0.15s',
         }}
         onMouseEnter={(e) => {
           if (isClickable) {
@@ -48,13 +32,8 @@ export default function LeaderCard({ leaderUsed, onClick, disabled, side = 'bott
         }}
       >
         <div
-          style={{
-            fontSize: 9,
-            fontFamily: 'var(--font-heading)',
-            color: 'var(--gold-light)',
-            textAlign: 'center',
-            padding: '0 4px',
-          }}
+          className="text-[9px] text-center text-[var(--gold-light)] px-1"
+          style={{ fontFamily: 'var(--font-heading)' }}
         >
           Líder
         </div>

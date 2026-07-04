@@ -1,7 +1,6 @@
 import { Settings, Coins, Gem } from 'lucide-react'
 import type { AuthUser } from '@/types/auth'
 import PlayerShield from './PlayerShield'
-
 import CurrencyBadge from './CurrencyBadge'
 
 interface TopHUDProps {
@@ -11,80 +10,44 @@ interface TopHUDProps {
 
 export default function TopHUD({ user, onSettingsClick }: TopHUDProps) {
   return (
-    <header
-      style={{
-        position: 'relative',
-        zIndex: 3,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '16px 30px 10px',
-        flexShrink: 0,
-      }}
-    >
+    <header className="relative z-30 flex items-center justify-between px-[30px] pt-4 pb-[10px] shrink-0">
       {/* Left: Avatar + Player info */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+      <div className="flex items-center gap-3.5">
         <PlayerShield level={34} />
         <div>
           <div
-            style={{
-              fontFamily: 'var(--font-heading)',
-              fontWeight: 700,
-              fontSize: 18,
-              color: 'var(--text-primary)',
-              letterSpacing: '.3px',
-            }}
+            className="font-bold text-lg text-[var(--text-primary)] tracking-[.3px]"
+            style={{ fontFamily: 'var(--font-heading)' }}
           >
             {user?.username ?? user?.email ?? 'Jogador'}
           </div>
           <div
-            style={{
-              fontFamily: 'var(--font-body)',
-              fontStyle: 'italic',
-              fontSize: 13,
-              color: 'var(--text-muted)',
-              marginTop: 1,
-            }}
+            className="italic text-[13px] text-[var(--text-muted)] mt-px"
+            style={{ fontFamily: 'var(--font-body)' }}
           >
             &laquo; aventureiro &raquo;
           </div>
         </div>
         <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            marginLeft: 6,
-            paddingLeft: 16,
-            borderLeft: '1px solid rgba(240,205,120,.16)',
-          }}
+          className="flex items-center gap-2 ml-1.5 pl-4"
+          style={{ borderLeft: '1px solid rgba(240,205,120,.16)' }}
         >
           <div
+            className="w-[15px] h-[18px]"
             style={{
-              width: 15,
-              height: 18,
               background: 'linear-gradient(180deg, var(--blue-light), var(--blue))',
               clipPath: 'polygon(0 0, 100% 0, 100% 64%, 50% 100%, 0 64%)',
             }}
           />
           <span
-            style={{
-              fontFamily: 'var(--font-heading)',
-              fontWeight: 600,
-              fontSize: 13,
-              color: 'var(--gold)',
-              letterSpacing: '.5px',
-            }}
+            className="font-semibold text-[13px] text-[var(--gold)] tracking-[.5px]"
+            style={{ fontFamily: 'var(--font-heading)' }}
           >
             Prata II
           </span>
           <span
-            style={{
-              fontFamily: 'var(--font-body)',
-              fontStyle: 'italic',
-              fontSize: 13,
-              color: 'var(--text-muted)',
-            }}
+            className="italic text-[13px] text-[var(--text-muted)]"
+            style={{ fontFamily: 'var(--font-body)' }}
           >
             · 2.480 PR
           </span>
@@ -92,44 +55,26 @@ export default function TopHUD({ user, onSettingsClick }: TopHUDProps) {
       </div>
 
       {/* Center: Logo */}
-      <div
-        style={{
-          position: 'absolute',
-          left: '50%',
-          top: 14,
-          transform: 'translateX(-50%)',
-          textAlign: 'center',
-          pointerEvents: 'none',
-        }}
-      >
+      <div className="absolute left-1/2 top-[14px] -translate-x-1/2 text-center pointer-events-none">
         <div
+          className="font-black text-[22px] tracking-[6px] text-[var(--gold-light)]"
           style={{
             fontFamily: 'var(--font-display)',
-            fontWeight: 900,
-            fontSize: 22,
-            letterSpacing: 6,
-            color: 'var(--gold-light)',
             textShadow: '0 1px 0 rgba(0,0,0,.7), 0 0 20px rgba(240,200,110,.3)',
           }}
         >
           GWENT
         </div>
         <div
-          style={{
-            fontFamily: 'var(--font-body)',
-            fontStyle: 'italic',
-            fontSize: 11,
-            letterSpacing: 1,
-            color: 'var(--text-muted)',
-            marginTop: 1,
-          }}
+          className="italic text-[11px] tracking-[1px] text-[var(--text-muted)] mt-px"
+          style={{ fontFamily: 'var(--font-body)' }}
         >
           a taverna do Continente
         </div>
       </div>
 
       {/* Right: Currencies + Settings */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+      <div className="flex items-center gap-[11px]">
         <CurrencyBadge
           count="1.450"
           label="coroas"
@@ -152,14 +97,7 @@ export default function TopHUD({ user, onSettingsClick }: TopHUDProps) {
         {/* Settings */}
         <button
           onClick={onSettingsClick}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            cursor: 'pointer',
-            color: 'var(--gold)',
-            padding: 8,
-            borderRadius: '50%',
-          }}
+          className="bg-transparent border-none cursor-pointer text-[var(--gold)] p-2 rounded-full"
         >
           <Settings size={18} strokeWidth={1.8} />
         </button>

@@ -35,37 +35,20 @@ export default function MulliganOverlay({ hand, onConfirm, mulligansRemaining }:
 
   return (
     <div className="board-overlay">
-      <h2
-        style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: 24,
-          color: 'var(--gold-light)',
-        }}
-      >
-        Escolha cartas para trocar
-      </h2>
+      <h2 className="overlay-title">Escolha cartas para trocar</h2>
 
-      <p
-        style={{
-          fontFamily: 'var(--font-body)',
-          fontSize: 14,
-          color: 'var(--text-secondary)',
-          fontStyle: 'italic',
-        }}
-      >
+      <p className="overlay-body">
         Você pode trocar até {mulligansRemaining} cartas
       </p>
 
-      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+      <div className="flex gap-3 flex-wrap justify-center">
         {cards.map((card) => (
           <div
             key={card.id}
             onClick={() => toggleCard(card.id)}
+            className="cursor-pointer rounded-md p-0.5"
             style={{
               border: selected.has(card.id) ? '2px solid var(--gold-light)' : '2px solid transparent',
-              borderRadius: 6,
-              padding: 2,
-              cursor: 'pointer',
             }}
           >
             <Card card={card} interactive={false} />

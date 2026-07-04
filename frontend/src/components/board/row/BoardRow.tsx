@@ -26,70 +26,38 @@ export default function BoardRow({ row, rowLabel, onCardClick, onRowClick, isPla
   return (
     <div
       onClick={onRowClick}
+      className="flex items-center flex-1 relative border-b border-[var(--border-subtle)] min-h-0 py-1"
       style={{
-        display: 'flex',
-        alignItems: 'center',
-        flex: 1,
-        position: 'relative',
         backgroundColor: ROW_TINTS[rowLabel] ?? 'transparent',
-        borderBottom: '1px solid var(--border-subtle)',
         outline: isPlacementTarget ? '2px solid var(--gold)' : 'none',
         outlineOffset: -2,
         cursor: onRowClick ? 'pointer' : 'default',
-        padding: '4px 0',
-        minHeight: 0,
         transition: 'outline 0.15s',
       }}
     >
       {/* Score badge */}
-      <div style={{ position: 'absolute', left: 4, zIndex: 2 }}>
+      <div className="absolute left-1 z-10">
         <CountBadge value={score} size={36} fontSize={13} />
       </div>
 
       {/* Horn slot */}
       <div
+        className="w-[34px] h-[72px] ml-7 border border-dashed border-[var(--border-subtle)] rounded-sm shrink-0 flex items-center justify-center"
         style={{
-          width: 34,
-          height: 72,
-          marginLeft: 28,
-          border: '1px dashed var(--border-subtle)',
-          borderRadius: 3,
           backgroundColor: row.hornActive ? 'rgba(218, 165, 32, 0.3)' : 'var(--bg-medium)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
         }}
       />
 
       {/* Row label */}
       <div
-        style={{
-          position: 'absolute',
-          right: 52,
-          fontSize: 9,
-          fontFamily: 'var(--font-ui)',
-          color: 'var(--text-muted)',
-          opacity: 0.5,
-          pointerEvents: 'none',
-        }}
+        className="absolute right-[52px] text-[9px] text-[var(--text-muted)] opacity-50 pointer-events-none"
+        style={{ fontFamily: 'var(--font-ui)' }}
       >
         {rowLabel}
       </div>
 
       {/* Cards area */}
-      <div
-        style={{
-          flex: 1,
-          display: 'flex',
-          justifyContent: 'center',
-          gap: 6,
-          padding: '0 8px',
-          overflowX: 'hidden',
-          alignItems: 'center',
-          minHeight: 0,
-        }}
-      >
+      <div className="flex-1 flex justify-center gap-1.5 px-2 overflow-x-hidden items-center min-h-0">
         {cards.map((card) => (
           <Card
             key={card.id}
@@ -101,17 +69,7 @@ export default function BoardRow({ row, rowLabel, onCardClick, onRowClick, isPla
       </div>
 
       {/* Right cap */}
-      <div
-        style={{
-          width: 46,
-          height: 72,
-          border: '1px dashed var(--border-subtle)',
-          borderRadius: 3,
-          flexShrink: 0,
-          marginLeft: 12,
-          marginRight: 4,
-        }}
-      />
+      <div className="w-[46px] h-[72px] border border-dashed border-[var(--border-subtle)] rounded-sm shrink-0 ml-3 mr-1" />
     </div>
   )
 }

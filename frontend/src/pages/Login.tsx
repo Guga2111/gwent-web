@@ -37,15 +37,10 @@ export default function Login() {
 
   return (
     <div className="flex h-full items-center justify-center">
-      <div className="w-full max-w-sm rounded-lg border p-8"
-        style={{
-          backgroundColor: 'var(--bg-card)',
-          borderColor: 'var(--border-gold)',
-        }}
-      >
+      <div className="w-full max-w-sm rounded-lg border border-[var(--border-gold)] p-8 bg-[var(--bg-card)]">
         <h1
-          className="mb-6 text-center text-2xl"
-          style={{ fontFamily: 'var(--font-display)', color: 'var(--gold-light)' }}
+          className="mb-6 text-center text-2xl text-[var(--gold-light)]"
+          style={{ fontFamily: 'var(--font-display)' }}
         >
           Gwent Online
         </h1>
@@ -57,12 +52,7 @@ export default function Login() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="rounded border px-3 py-2 outline-none focus:border-[var(--gold)]"
-            style={{
-              backgroundColor: 'var(--bg-medium)',
-              borderColor: 'var(--border-subtle)',
-              color: 'var(--text-primary)',
-            }}
+            className="rounded border border-[var(--border-subtle)] px-3 py-2 outline-none focus:border-[var(--gold)] bg-[var(--bg-medium)] text-[var(--text-primary)]"
           />
 
           {isRegister && (
@@ -72,12 +62,7 @@ export default function Login() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
-              className="rounded border px-3 py-2 outline-none focus:border-[var(--gold)]"
-              style={{
-                backgroundColor: 'var(--bg-medium)',
-                borderColor: 'var(--border-subtle)',
-                color: 'var(--text-primary)',
-              }}
+              className="rounded border border-[var(--border-subtle)] px-3 py-2 outline-none focus:border-[var(--gold)] bg-[var(--bg-medium)] text-[var(--text-primary)]"
             />
           )}
 
@@ -87,27 +72,18 @@ export default function Login() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="rounded border px-3 py-2 outline-none focus:border-[var(--gold)]"
-            style={{
-              backgroundColor: 'var(--bg-medium)',
-              borderColor: 'var(--border-subtle)',
-              color: 'var(--text-primary)',
-            }}
+            className="rounded border border-[var(--border-subtle)] px-3 py-2 outline-none focus:border-[var(--gold)] bg-[var(--bg-medium)] text-[var(--text-primary)]"
           />
 
           {error && (
-            <p className="text-sm" style={{ color: 'var(--red)' }}>{error}</p>
+            <p className="text-sm text-[var(--red)]">{error}</p>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="rounded py-2 font-semibold transition-colors disabled:opacity-50"
-            style={{
-              backgroundColor: 'var(--gold-dark)',
-              color: 'var(--bg-darkest)',
-              fontFamily: 'var(--font-heading)',
-            }}
+            className="rounded py-2 font-semibold transition-colors disabled:opacity-50 bg-[var(--gold-dark)] text-[var(--bg-darkest)]"
+            style={{ fontFamily: 'var(--font-heading)' }}
           >
             {loading ? '...' : isRegister ? 'Register' : 'Login'}
           </button>
@@ -115,8 +91,7 @@ export default function Login() {
 
         <button
           onClick={() => { setIsRegister(!isRegister); setError('') }}
-          className="mt-4 w-full text-center text-sm underline"
-          style={{ color: 'var(--text-secondary)' }}
+          className="mt-4 w-full text-center text-sm underline text-[var(--text-secondary)]"
         >
           {isRegister ? 'Already have an account? Login' : 'Need an account? Register'}
         </button>

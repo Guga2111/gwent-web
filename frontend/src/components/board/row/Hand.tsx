@@ -23,14 +23,7 @@ export default function Hand({ cards: rawCards, opponentHandSize, isPlayer, onCa
 
   if (!isPlayer) {
     return (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          padding: '6px 0',
-          minHeight: 114,
-        }}
-      >
+      <div className="flex justify-center py-1.5 min-h-[114px]">
         {Array.from({ length: count }, (_, i) => (
           <div
             key={i}
@@ -48,24 +41,14 @@ export default function Hand({ cards: rawCards, opponentHandSize, isPlayer, onCa
   }
 
   return (
-    <div style={{ textAlign: 'center', padding: '4px 0' }}>
+    <div className="text-center py-1">
       <div
-        style={{
-          fontSize: 10,
-          fontFamily: 'var(--font-ui)',
-          color: 'var(--text-muted)',
-          marginBottom: 2,
-        }}
+        className="text-[10px] text-[var(--text-muted)] mb-0.5"
+        style={{ fontFamily: 'var(--font-ui)' }}
       >
         Sua mão &middot; {count}
       </div>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          minHeight: 114,
-        }}
-      >
+      <div className="flex justify-center min-h-[114px]">
         {cards.map((card, i) => {
           const isHovered = hoveredIndex === i
           const isSelected = selectedCardId === card.id
