@@ -63,6 +63,8 @@ export interface GameStateDto {
   weatherCards: CardDto[]
   me: PlayerStateDto
   opponent: OpponentStateDto
+  winner: string | null
+  endReason: string | null
 }
 
 export interface CommandRequest {

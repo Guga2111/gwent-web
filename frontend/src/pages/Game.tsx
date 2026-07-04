@@ -253,6 +253,7 @@ export default function Game() {
           <GameOverOverlay
             myState={me}
             opponentState={opponent}
+            winner={gameState.winner}
             onBack={() => navigate('/hub')}
           />
         )}
