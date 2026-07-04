@@ -22,7 +22,7 @@ export default function Card({ card, onClick, interactive = false }: CardProps) 
   return (
     <div
       onClick={interactive ? onClick : undefined}
-      className={`card-base relative flex-col gap-0.5 p-1 transition-[transform,border-color] duration-150 ${
+      className={`card-base relative flex-col gap-0.5 p-1 transition-[translate,border-color] duration-150 ${
         interactive
           ? 'cursor-pointer hover:-translate-y-1.5 hover:border-[var(--gold-light)]'
           : 'cursor-default'

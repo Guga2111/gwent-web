@@ -51,39 +51,35 @@
 
 /* ── Base Reset ── */
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+    width: 100%;
+  }
 
-html,
-body,
-#root {
-  height: 100%;
-  width: 100%;
-}
+  body {
+    background-color: var(--bg-darkest);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-body {
-  background-color: var(--bg-darkest);
-  color: var(--text-primary);
-  font-family: var(--font-body);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+  h1, h2, h3 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+  }
 
-h1, h2, h3 {
-  font-family: var(--font-heading);
-  font-weight: 600;
-}
+  button {
+    cursor: pointer;
+    font-family: var(--font-ui);
+  }
 
-button {
-  cursor: pointer;
-  font-family: var(--font-ui);
-}
-
-input {
-  font-family: var(--font-ui);
+  input {
+    font-family: var(--font-ui);
+  }
 }
 
 /* ── Scrollbar ── */
