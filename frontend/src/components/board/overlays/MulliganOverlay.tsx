@@ -1,20 +1,21 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Card from '../card/Card'
 import PrimaryButton from '@/components/ui/PrimaryButton'
 import type { CardDto } from '@/types/game'
 
 interface MulliganOverlayProps {
   hand: CardDto[]
-  onMulligan: (cardId: string) => void
-  onConfirm: () => void
+  onConfirm: (cardIds: string[]) => void
   mulligansRemaining: number
 }
 
-export default function MulliganOverlay({ hand, onMulligan, onConfirm, mulligansRemaining }: MulliganOverlayProps) {
+export default function MulliganOverlay({ hand, onConfirm, mulligansRemaining }: MulliganOverlayProps) {
   const [selected, setSelected] = useState<Set<string>>(new Set())
+  const submittedRef = useRef(false)
   const cards = hand ?? []
 
   const toggleCard = (cardId: string) => {
+    if (submittedRef.current) return
     setSelected((prev) => {
       const next = new Set(prev)
       if (next.has(cardId)) {
@@ -27,8 +28,9 @@ export default function MulliganOverlay({ hand, onMulligan, onConfirm, mulligans
   }
 
   const handleConfirm = () => {
-    selected.forEach((cardId) => onMulligan(cardId))
-    onConfirm()
+    if (submittedRef.current) return
+    submittedRef.current = true
+    onConfirm([...selected])
   }
 
   return (
@@ -71,7 +73,7 @@ export default function MulliganOverlay({ hand, onMulligan, onConfirm, mulligans
         ))}
       </div>
 
-      <PrimaryButton onClick={handleConfirm}>Confirmar</PrimaryButton>
+      <PrimaryButton onClick={handleConfirm} disabled={submittedRef.current}>Confirmar</PrimaryButton>
     </div>
   )
 }

@@ -1,5 +1,6 @@
 package com.gwent.api.game;
 
+import com.gwent.api.game.dto.ActiveGameDto;
 import com.gwent.api.game.dto.CommandRequestDto;
 import com.gwent.api.game.dto.CreateGameDto;
 import com.gwent.api.game.dto.ErrorDto;
@@ -46,25 +47,38 @@ public class GameController {
         return ResponseEntity.ok(gameSessionService.getSession(gameId, principal.getName()));
     }
 
+    @GetMapping("/active")
+    public ResponseEntity<ActiveGameDto> getActiveGame(Principal principal) {
+        return gameSessionService.getActiveGame(principal.getName())
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
+    }
+
+    @PostMapping("/{gameId}/surrender")
+    public ResponseEntity<Void> surrender(@PathVariable UUID gameId, Principal principal) {
+        gameSessionService.surrender(gameId, principal.getName());
+        return ResponseEntity.ok().build();
+    }
+
     @MessageMapping("/games/{gameId}/command")
     public void handleCommand(@DestinationVariable UUID gameId, CommandRequestDto request, Principal principal) {
         String userId = principal != null ? principal.getName() : request.playerId();
         try {
             gameSessionService.execute(gameId, userId, request);
         } catch (GwentException e) {
-            broadcastError(gameId, "GAME_RULE_VIOLATION", e.getMessage());
+            sendErrorToPlayer(gameId, userId, "GAME_RULE_VIOLATION", e.getMessage());
         } catch (GameNotFoundException e) {
-            broadcastError(gameId, "GAME_NOT_FOUND", e.getMessage());
+            sendErrorToPlayer(gameId, userId, "GAME_NOT_FOUND", e.getMessage());
         } catch (PlayerNotInGameException e) {
-            broadcastError(gameId, "PLAYER_NOT_IN_GAME", e.getMessage());
+            sendErrorToPlayer(gameId, userId, "PLAYER_NOT_IN_GAME", e.getMessage());
         } catch (CardNotFoundException e) {
-            broadcastError(gameId, "CARD_NOT_FOUND", e.getMessage());
+            sendErrorToPlayer(gameId, userId, "CARD_NOT_FOUND", e.getMessage());
         }
     }
 
-    private void broadcastError(UUID gameId, String error, String message) {
+    private void sendErrorToPlayer(UUID gameId, String userId, String error, String message) {
         messagingTemplate.convertAndSend(
-                "/topic/games/" + gameId + "/errors",
+                "/topic/games/" + gameId + "/" + userId + "/errors",
                 new ErrorDto(error, message)
         );
     }

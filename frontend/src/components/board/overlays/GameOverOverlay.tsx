@@ -4,11 +4,12 @@ import PrimaryButton from '@/components/ui/PrimaryButton'
 interface GameOverOverlayProps {
   myState: PlayerStateDto
   opponentState: OpponentStateDto
+  winner: string | null
   onBack: () => void
 }
 
-export default function GameOverOverlay({ myState, opponentState, onBack }: GameOverOverlayProps) {
-  const won = myState.lives > opponentState.lives
+export default function GameOverOverlay({ myState, opponentState, winner, onBack }: GameOverOverlayProps) {
+  const won = winner === myState.playerId
 
   return (
     <div

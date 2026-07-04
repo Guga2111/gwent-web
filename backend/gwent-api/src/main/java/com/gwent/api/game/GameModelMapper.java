@@ -33,7 +33,11 @@ public class GameModelMapper {
                 state.getCurrentRound(),
                 state.getBoard().getActiveWeatherCards().stream().map(this::toCardDto).toList(),
                 toPlayerDto(meId, meState, meScore),
-                toOpponentDto(opponentId, opponentState, opponentScore)
+                toOpponentDto(opponentId, opponentState, opponentScore),
+                state.getWinner() != null
+                        ? (state.getWinner() == Turn.PLAYER_1 ? ctx.player1Id() : ctx.player2Id())
+                        : null,
+                state.getEndReason() != null ? state.getEndReason().name() : null
         );
     }
 
@@ -97,7 +101,10 @@ public class GameModelMapper {
         return switch (request.commandType()) {
             case PASS             -> new PassCommand();
             case USE_LEADER       -> new UseLeaderCommand();
-            case CONFIRM_MULLIGAN -> new ConfirmMulliganCommand(player);
+            case CONFIRM_MULLIGAN -> new ConfirmMulliganCommand(player,
+                    request.cardIds() != null
+                            ? request.cardIds().stream().map(id -> findCard(id, state.getPlayer(player).getHand())).toList()
+                            : List.of());
             case PLAY_CARD        -> new PlayCardCommand(
                     findCard(request.cardId(), state.getPlayer(player).getHand()),
                     RowType.valueOf(request.targetRow()));

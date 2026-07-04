@@ -46,6 +46,11 @@ public class GwentEngine {
         state.setPhase(GamePhase.PLAY);
     }
 
+    public void surrender(GameState state, Turn player) {
+        Turn opposite = player == Turn.PLAYER_1 ? Turn.PLAYER_2 : Turn.PLAYER_1;
+        state.finishGame(opposite, EndReason.SURRENDER);
+    }
+
     // --- Command handlers ---
 
     private void handlePlayCard(GameState state, PlayCardCommand command) {
@@ -116,13 +121,23 @@ public class GwentEngine {
     }
 
     private void handleConfirmMulligan(GameState state, ConfirmMulliganCommand command) {
-        // if both players confirmed → startPlay(state)
         Turn oppositePlayerTurn = command.player() == Turn.PLAYER_2 ? Turn.PLAYER_1 : Turn.PLAYER_2;
 
         PlayerState currentPlayer = state.getPlayer(command.player());
         PlayerState oppositePlayer = state.getPlayer(oppositePlayerTurn);
 
         if (state.getPhase() != GamePhase.REDRAW) throw new InvalidPhaseCommandException(GamePhase.REDRAW, state.getPhase());
+        if (currentPlayer.isMulliganConfirmed()) throw new PlayerAlreadyConfirmedMulliganException();
+
+        // Process mulligans atomically before confirming
+        for (Card card : command.cardsToReturn()) {
+            if (currentPlayer.getMulligansRemaining() == 0) break;
+            if (!currentPlayer.getHand().contains(card)) continue;
+            currentPlayer.removeFromHand(card);
+            currentPlayer.returnToDeck(card);
+            if (!currentPlayer.isDeckEmpty()) currentPlayer.drawCard();
+            currentPlayer.decrementMulligans();
+        }
 
         currentPlayer.confirmMulligan();
 
@@ -154,8 +169,7 @@ public class GwentEngine {
             throw new InvalidPhaseCommandException(GamePhase.PLAY, state.getPhase());
         if (!current.getGraveyard().contains(card))
             throw new CardNotInGraveyardException();
-        if (card.cardType() == CardType.SPECIAL || card.cardType() == CardType.WEATHER
-                || card.cardType() == CardType.LEADER)
+        if (card.cardType() != CardType.UNIT)
             throw new InvalidRowException();
 
         current.removeFromGraveyard(card);
@@ -189,8 +203,15 @@ public class GwentEngine {
             loser = state.getCurrentTurn();
         }
 
-        if (state.getPlayer1().isEliminated() || state.getPlayer2().isEliminated()) {
-            state.setPhase(GamePhase.GAME_OVER);
+        boolean p1Out = state.getPlayer1().isEliminated();
+        boolean p2Out = state.getPlayer2().isEliminated();
+
+        if (p1Out && p2Out) {
+            state.finishGame(null, EndReason.NORMAL);
+        } else if (p1Out) {
+            state.finishGame(Turn.PLAYER_2, EndReason.NORMAL);
+        } else if (p2Out) {
+            state.finishGame(Turn.PLAYER_1, EndReason.NORMAL);
         } else {
             startNewRound(state, loser);
         }

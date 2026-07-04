@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useGameStore } from '@/stores/gameStore'
 import { useAuthStore } from '@/stores/authStore'
 import { useWebSocket } from '@/hooks/useWebSocket'
-import { getGameState } from '@/api/game'
+import { surrender } from '@/api/game'
 import type { RowType } from '@/types/game'
 
 import PlayerPanel from '@/components/board/rail/PlayerPanel'
@@ -19,6 +19,7 @@ import ControlBar from '@/components/board/controls/ControlBar'
 import MulliganOverlay from '@/components/board/overlays/MulliganOverlay'
 import RoundEndOverlay from '@/components/board/overlays/RoundEndOverlay'
 import GameOverOverlay from '@/components/board/overlays/GameOverOverlay'
+import MedicOverlay from '@/components/board/overlays/MedicOverlay'
 
 export default function Game() {
   const { gameId } = useParams<{ gameId: string }>()
@@ -40,7 +41,6 @@ export default function Game() {
   useEffect(() => {
     if (!gameId) return
     setGameId(gameId)
-    getGameState(gameId).then(setGameState).catch(() => {})
     return () => reset()
   }, [gameId])
 
@@ -233,8 +233,7 @@ export default function Game() {
           <MulliganOverlay
             hand={me.hand}
             mulligansRemaining={me.mulligansRemaining}
-            onMulligan={(cardId) => sendCommand({ commandType: 'MULLIGAN', playerId, cardId })}
-            onConfirm={() => sendCommand({ commandType: 'CONFIRM_MULLIGAN', playerId })}
+            onConfirm={(cardIds) => sendCommand({ commandType: 'CONFIRM_MULLIGAN', playerId, cardIds })}
           />
         )}
         {gameState.phase === 'ROUND_END' && (
@@ -244,10 +243,17 @@ export default function Game() {
             opponentScore={opponent.score}
           />
         )}
+        {gameState.pendingAbility === 'MEDIC_CHOICE' && isMyTurn && (
+          <MedicOverlay
+            graveyard={me.graveyard}
+            onSelectCard={(cardId) => sendCommand({ commandType: 'RESOLVE_MEDIC', playerId, cardId })}
+          />
+        )}
         {gameState.phase === 'GAME_OVER' && (
           <GameOverOverlay
             myState={me}
             opponentState={opponent}
+            winner={gameState.winner}
             onBack={() => navigate('/hub')}
           />
         )}
@@ -268,7 +274,7 @@ export default function Game() {
         <DeckStack count={opponent.deckSize} label="Deck" />
         <GraveyardStack count={opponent.graveyard.length} />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <ControlBar onSurrender={() => {}} />
+          <ControlBar onSurrender={() => gameId && surrender(gameId).catch(() => {})} />
         </div>
         <GraveyardStack count={me.graveyard.length} />
         <DeckStack count={me.deckSize} label="Deck" />

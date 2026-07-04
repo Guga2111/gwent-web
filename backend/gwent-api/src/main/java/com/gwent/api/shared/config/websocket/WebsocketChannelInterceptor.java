@@ -80,13 +80,11 @@ public class WebsocketChannelInterceptor implements ChannelInterceptor {
     }
 
     private boolean isAuthorizedForTopic(Authentication user, String destination) {
-        // pattern: /topic/games/{gameId}/{playerEmail} or /topic/games/{gameId}/errors
+        // pattern: /topic/games/{gameId}/{playerEmail} or /topic/games/{gameId}/{playerEmail}/errors
         String[] segments = destination.substring("/topic/games/".length()).split("/");
         if (segments.length < 2) return false;
 
-        String lastSegment = segments[1];
-        if ("errors".equals(lastSegment)) return true;
-
-        return user.getName().equals(lastSegment);
+        String playerSegment = segments[1];
+        return user.getName().equals(playerSegment);
     }
 }

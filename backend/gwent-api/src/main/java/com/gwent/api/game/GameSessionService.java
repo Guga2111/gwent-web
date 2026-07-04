@@ -6,6 +6,7 @@ import com.gwent.api.game.dto.*;
 import com.gwent.api.game.exception.GameNotFoundException;
 import com.gwent.api.game.exception.GameNotWaitingException;
 import com.gwent.api.game.exception.PlayerNotInGameException;
+import com.gwent.engine.command.ResolveMedicCommand;
 import com.gwent.engine.core.GwentEngine;
 import com.gwent.engine.domain.*;
 import com.gwent.engine.state.GameState;
@@ -15,17 +16,17 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 @Service
 public class GameSessionService {
 
     private final GwentEngine engine = new GwentEngine();
     private final Map<UUID, SessionContext> sessions = new ConcurrentHashMap<>();
+    private final Map<UUID, Object> gameLocks = new ConcurrentHashMap<>();
+    private final Map<UUID, ScheduledFuture<?>> medicTimers = new ConcurrentHashMap<>();
     // 4 threads: sufficient for MVP. When scaling, replace with Spring TaskScheduler
     // (container-managed, configurable) or Redis TTL + keyspace notifications (zero threads).
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
@@ -56,43 +57,55 @@ public class GameSessionService {
     }
 
     public GameStateDto joinSession(UUID gameId, String userId) {
-        Game game = gameRepository.findById(gameId)
-                .orElseThrow(() -> new GameNotFoundException(gameId));
+        Object lock = gameLocks.computeIfAbsent(gameId, k -> new Object());
+        synchronized (lock) {
+            Game game = gameRepository.findById(gameId)
+                    .orElseThrow(() -> new GameNotFoundException(gameId));
 
-        if (game.getStatus() != GameStatus.WAITING) {
-            throw new GameNotWaitingException(gameId);
+            if (game.getStatus() != GameStatus.WAITING) {
+                throw new GameNotWaitingException(gameId);
+            }
+
+            game.setPlayer2Id(userId);
+
+            PlayerState player1 = new PlayerState(makeLeader(), makePresetDeck());
+            PlayerState player2 = new PlayerState(makeLeader(), makePresetDeck());
+            GameState gameState = new GameState(player1, player2);
+
+            engine.drawInitialCards(gameState, 10);
+            engine.resolveCoinFlip(gameState, Turn.PLAYER_1);
+
+            SessionContext ctx = new SessionContext(gameState, game.getPlayer1Id(), userId);
+            sessions.put(gameId, ctx);
+            scheduleMulliganTimeout(gameId, ctx);
+
+            broadcastState(gameId, ctx);
+            persist(gameId, ctx);
+
+            return toDto(gameId, ctx, Turn.PLAYER_2);
         }
-
-        game.setPlayer2Id(userId);
-
-        PlayerState player1 = new PlayerState(makeLeader(), makePresetDeck());
-        PlayerState player2 = new PlayerState(makeLeader(), makePresetDeck());
-        GameState gameState = new GameState(player1, player2);
-
-        engine.drawInitialCards(gameState, 10);
-        engine.resolveCoinFlip(gameState, Turn.PLAYER_1);
-
-        SessionContext ctx = new SessionContext(gameState, game.getPlayer1Id(), userId);
-        sessions.put(gameId, ctx);
-        scheduleMulliganTimeout(gameId, ctx);
-
-        broadcastState(gameId, ctx);
-        persist(gameId, ctx);
-
-        return toDto(gameId, ctx, Turn.PLAYER_2);
     }
 
     public GameStateDto execute(UUID gameId, String userId, CommandRequestDto request) {
-        SessionContext ctx = sessions.get(gameId);
-        if (ctx == null) throw new GameNotFoundException(gameId);
+        Object lock = gameLocks.computeIfAbsent(gameId, k -> new Object());
+        synchronized (lock) {
+            SessionContext ctx = sessions.get(gameId);
+            if (ctx == null) throw new GameNotFoundException(gameId);
 
-        Turn player = resolvePlayer(ctx, userId);
-        engine.execute(ctx.gameState(), mapper.toCommand(request, player, ctx.gameState()));
+            Turn player = resolvePlayer(ctx, userId);
+            engine.execute(ctx.gameState(), mapper.toCommand(request, player, ctx.gameState()));
 
-        broadcastState(gameId, ctx);
-        persist(gameId, ctx);
+            if (ctx.gameState().getPendingAbility() == PendingAbility.MEDIC_CHOICE) {
+                scheduleMedicTimeout(gameId, ctx);
+            } else {
+                cancelMedicTimer(gameId);
+            }
 
-        return toDto(gameId, ctx, player);
+            broadcastState(gameId, ctx);
+            persist(gameId, ctx);
+
+            return toDto(gameId, ctx, player);
+        }
     }
 
     public GameStateDto getSession(UUID gameId, String userId) {
@@ -114,6 +127,26 @@ public class GameSessionService {
         }
     }
 
+    public Optional<ActiveGameDto> getActiveGame(String userId) {
+        return gameRepository.findActiveGameForPlayer(GameStatus.IN_PROGRESS, userId)
+                .map(g -> new ActiveGameDto(g.getId()));
+    }
+
+    public void surrender(UUID gameId, String userId) {
+        Object lock = gameLocks.computeIfAbsent(gameId, k -> new Object());
+        synchronized (lock) {
+            SessionContext ctx = sessions.get(gameId);
+            if (ctx == null) throw new GameNotFoundException(gameId);
+
+            Turn player = resolvePlayer(ctx, userId);
+            engine.surrender(ctx.gameState(), player);
+
+            cancelMedicTimer(gameId);
+            broadcastState(gameId, ctx);
+            persist(gameId, ctx);
+        }
+    }
+
     // --- Player resolution ---
 
     private Turn resolvePlayer(SessionContext ctx, String userId) {
@@ -131,12 +164,44 @@ public class GameSessionService {
         messagingTemplate.convertAndSend("/topic/games/" + gameId + "/" + ctx.player2Id(), p2Dto);
     }
 
+    private void scheduleMedicTimeout(UUID gameId, SessionContext ctx) {
+        cancelMedicTimer(gameId);
+        medicTimers.put(gameId, scheduler.schedule(() -> {
+            Object lock = gameLocks.computeIfAbsent(gameId, k -> new Object());
+            synchronized (lock) {
+                if (ctx.gameState().getPendingAbility() == PendingAbility.MEDIC_CHOICE) {
+                    PlayerState current = ctx.gameState().getCurrentPlayer();
+                    Card randomUnit = current.getGraveyard().stream()
+                            .filter(c -> c.cardType() == CardType.UNIT)
+                            .findAny()
+                            .orElse(null);
+                    if (randomUnit != null) {
+                        engine.execute(ctx.gameState(), new ResolveMedicCommand(randomUnit));
+                        if (ctx.gameState().getPendingAbility() == PendingAbility.MEDIC_CHOICE) {
+                            scheduleMedicTimeout(gameId, ctx);
+                        }
+                        broadcastState(gameId, ctx);
+                        persist(gameId, ctx);
+                    }
+                }
+            }
+        }, 30, TimeUnit.SECONDS));
+    }
+
+    private void cancelMedicTimer(UUID gameId) {
+        ScheduledFuture<?> timer = medicTimers.remove(gameId);
+        if (timer != null) timer.cancel(false);
+    }
+
     private void scheduleMulliganTimeout(UUID gameId, SessionContext ctx) {
         scheduler.schedule(() -> {
-            if (ctx.gameState().getPhase() == GamePhase.REDRAW) {
-                engine.startPlay(ctx.gameState());
-                broadcastState(gameId, ctx);
-                persist(gameId, ctx);
+            Object lock = gameLocks.computeIfAbsent(gameId, k -> new Object());
+            synchronized (lock) {
+                if (ctx.gameState().getPhase() == GamePhase.REDRAW) {
+                    engine.startPlay(ctx.gameState());
+                    broadcastState(gameId, ctx);
+                    persist(gameId, ctx);
+                }
             }
         }, 30, TimeUnit.SECONDS);
     }
@@ -182,7 +247,7 @@ public class GameSessionService {
                 new Card("NR_MELEE_1",  "Swordsman",   Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.MELEE,  5),
                 new Card("NR_MELEE_2",  "Knight",      Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.MELEE,  6),
                 new Card("NR_MELEE_3",  "Foot Soldier",Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.MELEE,  4),
-                new Card("NR_MELEE_4",  "Guard",       Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.MELEE,  3),
+                new Card("NR_MELEE_4",  "Field Medic",  Faction.NORTHERN_REALMS, CardType.UNIT, Ability.MEDIC, null, RowType.MELEE,  1),
                 new Card("NR_MELEE_5",  "Cavalry",     Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.MELEE,  7),
                 new Card("NR_RANGED_1", "Archer",      Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.RANGED, 5),
                 new Card("NR_RANGED_2", "Crossbowman", Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.RANGED, 4),

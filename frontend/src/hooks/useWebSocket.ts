@@ -3,6 +3,7 @@ import { Client } from '@stomp/stompjs'
 import SockJS from 'sockjs-client'
 import { useGameStore } from '@/stores/gameStore'
 import { useAuthStore } from '@/stores/authStore'
+import { getGameState } from '@/api/game'
 import type { GameStateDto, CommandRequest } from '@/types/game'
 
 export function useWebSocket(gameId: string | null) {
@@ -16,24 +17,34 @@ export function useWebSocket(gameId: string | null) {
   useEffect(() => {
     if (!gameId || !user) return
 
+    let active = true
+
     const stompClient = new Client({
       webSocketFactory: () => new SockJS('/ws'),
+      connectHeaders: {
+        Authorization: `Bearer ${token}`,
+      },
       reconnectDelay: 5000,
       onConnect: () => {
+        if (!active) return
         setConnected(true)
+        getGameState(gameId).then(setGameState).catch(() => {})
         stompClient.subscribe(`/topic/games/${gameId}/${user.email}`, (message) => {
+          if (!active) return
           const state: GameStateDto = JSON.parse(message.body)
           setGameState(state)
         })
-        // TODO: adjust topic to match backend error handling config
-        stompClient.subscribe(`/topic/games/${gameId}/errors`, (message) => {
+        stompClient.subscribe(`/topic/games/${gameId}/${user.email}/errors`, (message) => {
+          if (!active) return
           setError(message.body)
         })
       },
       onDisconnect: () => {
+        if (!active) return
         setConnected(false)
       },
       onStompError: (frame) => {
+        if (!active) return
         console.error('STOMP error:', frame.headers['message'])
         setConnected(false)
       },
@@ -43,6 +54,7 @@ export function useWebSocket(gameId: string | null) {
     stompClient.activate()
 
     return () => {
+      active = false
       stompClient.deactivate()
       clientRef.current = null
       setConnected(false)
