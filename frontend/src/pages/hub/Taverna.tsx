@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Pencil } from 'lucide-react'
 import { createGame, joinGame } from '@/api/game'
+import { getUserDecks } from '@/api/deck'
 import MesaPrivadaModal from '@/components/hub/MesaPrivadaModal'
+import type { DeckDto } from '@/types/deck'
 
 const deckFan = [
   { rot: -2, x: 66, y: 10, z: 1 },
@@ -13,14 +15,21 @@ const deckFan = [
 
 export default function Taverna() {
   const [modalOpen, setModalOpen] = useState(false)
+  const [activeDeck, setActiveDeck] = useState<DeckDto | null>(null)
 
-  async function handleCreateGame(): Promise<string> {
-    const { gameId } = await createGame()
+  useEffect(() => {
+    getUserDecks().then((decks) => {
+      if (decks.length > 0) setActiveDeck(decks[0])
+    }).catch(() => {})
+  }, [])
+
+  async function handleCreateGame(deckId: string): Promise<string> {
+    const { gameId } = await createGame(deckId)
     return gameId
   }
 
-  async function handleJoinGame(code: string): Promise<void> {
-    await joinGame(code)
+  async function handleJoinGame(code: string, deckId: string): Promise<void> {
+    await joinGame(code, deckId)
   }
 
   return (
@@ -190,7 +199,9 @@ export default function Taverna() {
             className="italic text-[12.5px] text-[var(--text-muted)]"
             style={{ fontFamily: 'var(--font-body)' }}
           >
-            Vanguarda do Norte · 25
+            {activeDeck
+              ? `${activeDeck.name} · ${activeDeck.cards.reduce((sum, e) => sum + e.quantity, 0)}`
+              : 'Nenhum baralho'}
           </span>
           <button
             className="flex items-center gap-[5px] px-[11px] py-1 rounded-[5px] text-[11px] font-semibold tracking-[.5px] border-none cursor-pointer text-[var(--gold-light)]"
@@ -345,6 +356,7 @@ export default function Taverna() {
         onClose={() => setModalOpen(false)}
         onCreateGame={handleCreateGame}
         onJoinGame={handleJoinGame}
+        defaultDeckId={activeDeck?.id ?? null}
       />
     </div>
   )

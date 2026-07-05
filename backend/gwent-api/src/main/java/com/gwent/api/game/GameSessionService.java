@@ -4,6 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gwent.api.catalog.CardCatalogRepository;
 import com.gwent.api.catalog.CardEntity;
+import com.gwent.api.deck.Deck;
+import com.gwent.api.deck.DeckRepository;
+import com.gwent.api.deck.exception.DeckNotFoundException;
 import com.gwent.api.game.dto.*;
 import com.gwent.api.game.exception.GameNotFoundException;
 import com.gwent.api.game.exception.GameNotWaitingException;
@@ -40,30 +43,33 @@ public class GameSessionService {
     private final SimpMessagingTemplate messagingTemplate;
     private final GameModelMapper mapper;
     private final CardCatalogRepository cardCatalogRepository;
+    private final DeckRepository deckRepository;
 
     public GameSessionService(GameRepository gameRepository, ObjectMapper objectMapper,
                               SimpMessagingTemplate messagingTemplate, GameModelMapper mapper,
-                              CardCatalogRepository cardCatalogRepository) {
+                              CardCatalogRepository cardCatalogRepository, DeckRepository deckRepository) {
         this.gameRepository = gameRepository;
         this.objectMapper = objectMapper;
         this.messagingTemplate = messagingTemplate;
         this.mapper = mapper;
         this.cardCatalogRepository = cardCatalogRepository;
+        this.deckRepository = deckRepository;
     }
 
-    public CreateGameDto createSession(String userId) {
+    public CreateGameDto createSession(String userId, UUID deckId) {
         UUID gameId = UUID.randomUUID();
 
         Game game = new Game();
         game.setId(gameId);
         game.setPlayer1Id(userId);
+        game.setPlayer1DeckId(deckId);
         game.setStatus(GameStatus.WAITING);
         gameRepository.save(game);
 
         return new CreateGameDto(gameId, userId);
     }
 
-    public GameStateDto joinSession(UUID gameId, String userId) {
+    public GameStateDto joinSession(UUID gameId, String userId, UUID deckId) {
         Object lock = gameLocks.computeIfAbsent(gameId, k -> new Object());
         synchronized (lock) {
             Game game = gameRepository.findById(gameId)
@@ -74,9 +80,10 @@ public class GameSessionService {
             }
 
             game.setPlayer2Id(userId);
+            game.setPlayer2DeckId(deckId);
 
-            PlayerState player1 = new PlayerState(buildLeader(Faction.NORTHERN_REALMS), buildDeck(Faction.NORTHERN_REALMS));
-            PlayerState player2 = new PlayerState(buildLeader(Faction.NORTHERN_REALMS), buildDeck(Faction.NORTHERN_REALMS));
+            PlayerState player1 = new PlayerState(buildLeaderFromDeckId(game.getPlayer1DeckId()), buildDeckFromDeckId(game.getPlayer1DeckId()));
+            PlayerState player2 = new PlayerState(buildLeaderFromDeckId(deckId), buildDeckFromDeckId(deckId));
             GameState gameState = new GameState(player1, player2);
 
             engine.drawInitialCards(gameState, 10);
@@ -242,27 +249,30 @@ public class GameSessionService {
         }
     }
 
-    // --- Catalog-backed deck building ---
+    // --- Deck-ID-backed deck building ---
 
-    private Card buildLeader(Faction faction) {
-        return cardCatalogRepository.findByFaction(faction).stream()
-                .filter(e -> e.getCardType() == CardType.LEADER)
-                .findFirst()
-                .map(e -> toEngineCard(e, e.getId()))
-                .orElseThrow(() -> new IllegalStateException("No leader found for faction: " + faction));
+    private Card buildLeaderFromDeckId(UUID deckId) {
+        Deck deck = deckRepository.findById(deckId)
+                .orElseThrow(() -> new DeckNotFoundException(deckId));
+        CardEntity leader = cardCatalogRepository.findById(deck.getLeaderId())
+                .orElseThrow(() -> new IllegalStateException("Leader card not found: " + deck.getLeaderId()));
+        return toEngineCard(leader, leader.getId());
     }
 
-    private List<Card> buildDeck(Faction faction) {
-        List<Card> deck = new ArrayList<>();
-        for (CardEntity template : cardCatalogRepository.findByFaction(faction)) {
-            if (template.getCardType() == CardType.LEADER || template.getDeckCopies() == 0) continue;
-            for (int i = 1; i <= template.getDeckCopies(); i++) {
-                String id = template.getDeckCopies() > 1 ? template.getId() + "_" + i : template.getId();
-                deck.add(toEngineCard(template, id));
+    private List<Card> buildDeckFromDeckId(UUID deckId) {
+        Deck deck = deckRepository.findById(deckId)
+                .orElseThrow(() -> new DeckNotFoundException(deckId));
+        List<Card> cards = new ArrayList<>();
+        for (var entry : deck.getCards()) {
+            CardEntity template = cardCatalogRepository.findById(entry.getCardId())
+                    .orElseThrow(() -> new IllegalStateException("Card not found: " + entry.getCardId()));
+            for (int i = 1; i <= entry.getQuantity(); i++) {
+                String instanceId = entry.getQuantity() > 1 ? entry.getCardId() + "_" + i : entry.getCardId();
+                cards.add(toEngineCard(template, instanceId));
             }
         }
-        Collections.shuffle(deck);
-        return deck;
+        Collections.shuffle(cards);
+        return cards;
     }
 
     private Card toEngineCard(CardEntity e, String id) {

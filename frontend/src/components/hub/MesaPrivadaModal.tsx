@@ -1,16 +1,19 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { X, Plus, LogIn } from 'lucide-react'
 import PrimaryButton from '@/components/ui/PrimaryButton'
+import { getUserDecks } from '@/api/deck'
+import type { DeckDto } from '@/types/deck'
 
 interface MesaPrivadaModalProps {
   open: boolean
   onClose: () => void
-  onCreateGame: () => Promise<string>
-  onJoinGame: (code: string) => Promise<void>
+  onCreateGame: (deckId: string) => Promise<string>
+  onJoinGame: (code: string, deckId: string) => Promise<void>
+  defaultDeckId: string | null
 }
 
-export default function MesaPrivadaModal({ open, onClose, onCreateGame, onJoinGame }: MesaPrivadaModalProps) {
+export default function MesaPrivadaModal({ open, onClose, onCreateGame, onJoinGame, defaultDeckId }: MesaPrivadaModalProps) {
   const navigate = useNavigate()
 
   const [createdId, setCreatedId] = useState('')
@@ -18,6 +21,20 @@ export default function MesaPrivadaModal({ open, onClose, onCreateGame, onJoinGa
   const [showJoinInput, setShowJoinInput] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [decks, setDecks] = useState<DeckDto[]>([])
+  const [selectedDeckId, setSelectedDeckId] = useState<string | null>(defaultDeckId)
+
+  useEffect(() => {
+    if (!open) return
+    getUserDecks().then((d) => {
+      setDecks(d)
+      if (!selectedDeckId && d.length > 0) setSelectedDeckId(d[0].id)
+    }).catch(() => {})
+  }, [open])
+
+  useEffect(() => {
+    if (defaultDeckId) setSelectedDeckId(defaultDeckId)
+  }, [defaultDeckId])
 
   if (!open) return null
 
@@ -35,10 +52,14 @@ export default function MesaPrivadaModal({ open, onClose, onCreateGame, onJoinGa
   }
 
   async function handleCreate() {
+    if (!selectedDeckId) {
+      setError('Selecione um baralho antes de criar a partida')
+      return
+    }
     setError('')
     setLoading(true)
     try {
-      const gameId = await onCreateGame()
+      const gameId = await onCreateGame(selectedDeckId)
       setCreatedId(gameId)
     } catch {
       setError('Falha ao criar partida')
@@ -49,10 +70,14 @@ export default function MesaPrivadaModal({ open, onClose, onCreateGame, onJoinGa
 
   async function handleJoin() {
     if (!joinCode.trim()) return
+    if (!selectedDeckId) {
+      setError('Selecione um baralho antes de entrar na partida')
+      return
+    }
     setError('')
     setLoading(true)
     try {
-      await onJoinGame(joinCode.trim())
+      await onJoinGame(joinCode.trim(), selectedDeckId)
       navigate(`/game/${joinCode.trim()}`)
     } catch {
       setError('Falha ao entrar na partida')
@@ -101,6 +126,39 @@ export default function MesaPrivadaModal({ open, onClose, onCreateGame, onJoinGa
             Uma Amistosa entre Amigos
           </h2>
         </div>
+
+        {/* Deck selector */}
+        {decks.length > 0 && (
+          <div className="mb-5">
+            <div
+              className="text-[10px] tracking-[2px] uppercase font-bold text-[var(--gold)] mb-1.5"
+              style={{ fontFamily: 'var(--font-heading)' }}
+            >
+              Baralho
+            </div>
+            <select
+              value={selectedDeckId ?? ''}
+              onChange={(e) => setSelectedDeckId(e.target.value)}
+              className="w-full px-3 py-2 rounded-[7px] border-none outline-none text-sm text-[var(--text-primary)] bg-[var(--bg-darkest)] cursor-pointer"
+              style={{
+                fontFamily: 'var(--font-ui)',
+                boxShadow: 'inset 0 0 0 1px var(--border-gold)',
+              }}
+            >
+              {decks.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name} ({d.cards.reduce((s, c) => s + c.quantity, 0)} cartas)
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {decks.length === 0 && (
+          <p className="text-[13px] text-center text-[var(--gold)] mb-4 italic" style={{ fontFamily: 'var(--font-body)' }}>
+            Crie um baralho na Forja antes de jogar
+          </p>
+        )}
 
         {error && (
           <p className="text-[13px] text-center text-[var(--red)] mb-4">{error}</p>

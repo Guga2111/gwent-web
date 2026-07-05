@@ -5,13 +5,13 @@ interface CreateGameResponse {
   gameId: string
 }
 
-export async function createGame(): Promise<CreateGameResponse> {
-  const response = await client.post<CreateGameResponse>('/api/games')
+export async function createGame(deckId: string): Promise<CreateGameResponse> {
+  const response = await client.post<CreateGameResponse>('/api/games', { deckId })
   return response.data
 }
 
-export async function joinGame(gameId: string): Promise<void> {
-  await client.post(`/api/games/${gameId}/join`)
+export async function joinGame(gameId: string, deckId: string): Promise<void> {
+  await client.post(`/api/games/${gameId}/join`, { deckId })
 }
 
 export async function getGameState(gameId: string): Promise<GameStateDto> {

@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface CardCatalogRepository extends JpaRepository<CardEntity, String> {
     List<CardEntity> findByFaction(Faction faction);
+    List<CardEntity> findByFactionIn(List<Faction> factions);
 }
