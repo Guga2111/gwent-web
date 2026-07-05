@@ -234,7 +234,7 @@ public class GwentEngine {
     // --- Helpers ---
 
     private void autoPassIfHandEmpty(PlayerState player) {
-        if (player.getHand().isEmpty() && !player.isPassed()) {
+        if (player.getHand().isEmpty() && player.isLeaderUsed() && !player.isPassed()) {
             player.pass();
         }
     }
