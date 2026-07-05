@@ -2,6 +2,8 @@ package com.gwent.api.game;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gwent.api.catalog.CardCatalogRepository;
+import com.gwent.api.catalog.CardEntity;
 import com.gwent.api.game.dto.*;
 import com.gwent.api.game.exception.GameNotFoundException;
 import com.gwent.api.game.exception.GameNotWaitingException;
@@ -14,6 +16,8 @@ import com.gwent.engine.state.PlayerState;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -35,13 +39,16 @@ public class GameSessionService {
     private final ObjectMapper objectMapper;
     private final SimpMessagingTemplate messagingTemplate;
     private final GameModelMapper mapper;
+    private final CardCatalogRepository cardCatalogRepository;
 
     public GameSessionService(GameRepository gameRepository, ObjectMapper objectMapper,
-                              SimpMessagingTemplate messagingTemplate, GameModelMapper mapper) {
+                              SimpMessagingTemplate messagingTemplate, GameModelMapper mapper,
+                              CardCatalogRepository cardCatalogRepository) {
         this.gameRepository = gameRepository;
         this.objectMapper = objectMapper;
         this.messagingTemplate = messagingTemplate;
         this.mapper = mapper;
+        this.cardCatalogRepository = cardCatalogRepository;
     }
 
     public CreateGameDto createSession(String userId) {
@@ -68,8 +75,8 @@ public class GameSessionService {
 
             game.setPlayer2Id(userId);
 
-            PlayerState player1 = new PlayerState(makeLeader(), makePresetDeck());
-            PlayerState player2 = new PlayerState(makeLeader(), makePresetDeck());
+            PlayerState player1 = new PlayerState(buildLeader(Faction.NORTHERN_REALMS), buildDeck(Faction.NORTHERN_REALMS));
+            PlayerState player2 = new PlayerState(buildLeader(Faction.NORTHERN_REALMS), buildDeck(Faction.NORTHERN_REALMS));
             GameState gameState = new GameState(player1, player2);
 
             engine.drawInitialCards(gameState, 10);
@@ -235,30 +242,31 @@ public class GameSessionService {
         }
     }
 
-    // --- Preset data ---
+    // --- Catalog-backed deck building ---
 
-    private Card makeLeader() {
-        return new Card("FOLTEST", "Foltest", Faction.NORTHERN_REALMS,
-                CardType.LEADER, null, LeaderAbility.SIEGE_MASTER, null, null);
+    private Card buildLeader(Faction faction) {
+        return cardCatalogRepository.findByFaction(faction).stream()
+                .filter(e -> e.getCardType() == CardType.LEADER)
+                .findFirst()
+                .map(e -> toEngineCard(e, e.getId()))
+                .orElseThrow(() -> new IllegalStateException("No leader found for faction: " + faction));
     }
 
-    private List<Card> makePresetDeck() {
-        return List.of(
-                new Card("NR_MELEE_1",  "Swordsman",   Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.MELEE,  5),
-                new Card("NR_MELEE_2",  "Knight",      Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.MELEE,  6),
-                new Card("NR_MELEE_3",  "Foot Soldier",Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.MELEE,  4),
-                new Card("NR_MELEE_4",  "Field Medic",  Faction.NORTHERN_REALMS, CardType.UNIT, Ability.MEDIC, null, RowType.MELEE,  1),
-                new Card("NR_MELEE_5",  "Cavalry",     Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.MELEE,  7),
-                new Card("NR_RANGED_1", "Archer",      Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.RANGED, 5),
-                new Card("NR_RANGED_2", "Crossbowman", Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.RANGED, 4),
-                new Card("NR_RANGED_3", "Rifleman",    Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.RANGED, 6),
-                new Card("NR_RANGED_4", "Scout",       Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.RANGED, 3),
-                new Card("NR_RANGED_5", "Marksman",    Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.RANGED, 7),
-                new Card("NR_SIEGE_1",  "Catapult",    Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.SIEGE,  8),
-                new Card("NR_SIEGE_2",  "Ballista",    Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.SIEGE,  6),
-                new Card("NR_SIEGE_3",  "Trebuchet",   Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.SIEGE,  7),
-                new Card("NR_SIEGE_4",  "Ram",         Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.SIEGE,  5),
-                new Card("NR_SIEGE_5",  "Siege Tower", Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.SIEGE,  9)
-        );
+    private List<Card> buildDeck(Faction faction) {
+        List<Card> deck = new ArrayList<>();
+        for (CardEntity template : cardCatalogRepository.findByFaction(faction)) {
+            if (template.getCardType() == CardType.LEADER || template.getDeckCopies() == 0) continue;
+            for (int i = 1; i <= template.getDeckCopies(); i++) {
+                String id = template.getDeckCopies() > 1 ? template.getId() + "_" + i : template.getId();
+                deck.add(toEngineCard(template, id));
+            }
+        }
+        Collections.shuffle(deck);
+        return deck;
+    }
+
+    private Card toEngineCard(CardEntity e, String id) {
+        return new Card(id, e.getName(), e.getFaction(), e.getCardType(),
+                e.getAbility(), e.getLeaderAbility(), e.getRowType(), e.getBasePower());
     }
 }

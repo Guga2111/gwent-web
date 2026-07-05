@@ -78,8 +78,9 @@ public class GwentEngine {
 
         abilityResolver.resolve(state, card, targetRow);
 
-        if (state.getPendingAbility() == null && !state.getOpponent().isPassed()) {
-            state.switchTurn();
+        if (state.getPendingAbility() == null) {
+            autoPassIfHandEmpty(state.getCurrentPlayer());
+            resolveAfterAction(state);
         }
     }
 
@@ -177,8 +178,9 @@ public class GwentEngine {
         state.setPendingAbility(null);
         abilityResolver.resolve(state, card, card.rowType());
 
-        if (state.getPendingAbility() == null && !state.getOpponent().isPassed()) {
-            state.switchTurn();
+        if (state.getPendingAbility() == null) {
+            autoPassIfHandEmpty(state.getCurrentPlayer());
+            resolveAfterAction(state);
         }
     }
 
@@ -230,6 +232,23 @@ public class GwentEngine {
     }
 
     // --- Helpers ---
+
+    private void autoPassIfHandEmpty(PlayerState player) {
+        if (player.getHand().isEmpty() && !player.isPassed()) {
+            player.pass();
+        }
+    }
+
+    private void resolveAfterAction(GameState state) {
+        PlayerState current = state.getCurrentPlayer();
+        PlayerState opponent = state.getOpponent();
+        if (current.isPassed() && opponent.isPassed()) {
+            resolveRound(state);
+        } else if (current.isPassed() || !opponent.isPassed()) {
+            state.switchTurn();
+        }
+        // else: opponent already passed, current can still play → no switch
+    }
 
     private void validateRowCompatibility(Card card, RowType targetRow) {
         if (card.cardType() == CardType.WEATHER || card.cardType() == CardType.SPECIAL) return;
