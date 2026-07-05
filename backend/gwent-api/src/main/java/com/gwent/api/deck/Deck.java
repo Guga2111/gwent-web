@@ -31,7 +31,7 @@ public class Deck {
 
     private String leaderId;
 
-    @ElementCollection
+    @ElementCollection(fetch = jakarta.persistence.FetchType.EAGER)
     @CollectionTable(name = "deck_cards", joinColumns = @JoinColumn(name = "deck_id"))
     private List<DeckCardEntry> cards = new ArrayList<>();
 
