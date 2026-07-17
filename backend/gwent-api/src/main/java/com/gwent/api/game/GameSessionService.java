@@ -11,6 +11,7 @@ import com.gwent.api.game.dto.*;
 import com.gwent.api.game.exception.GameNotFoundException;
 import com.gwent.api.game.exception.GameNotWaitingException;
 import com.gwent.api.game.exception.PlayerNotInGameException;
+import com.gwent.engine.command.ResolveLeaderCommand;
 import com.gwent.engine.command.ResolveMedicCommand;
 import com.gwent.engine.core.GwentEngine;
 import com.gwent.engine.domain.*;
@@ -34,6 +35,7 @@ public class GameSessionService {
     private final Map<UUID, SessionContext> sessions = new ConcurrentHashMap<>();
     private final Map<UUID, Object> gameLocks = new ConcurrentHashMap<>();
     private final Map<UUID, ScheduledFuture<?>> medicTimers = new ConcurrentHashMap<>();
+    private final Map<UUID, ScheduledFuture<?>> leaderTimers = new ConcurrentHashMap<>();
     // 4 threads: sufficient for MVP. When scaling, replace with Spring TaskScheduler
     // (container-managed, configurable) or Redis TTL + keyspace notifications (zero threads).
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
@@ -109,13 +111,24 @@ public class GameSessionService {
             Turn player = resolvePlayer(ctx, userId);
             engine.execute(ctx.gameState(), mapper.toCommand(request, player, ctx.gameState()));
 
-            if (ctx.gameState().getPendingAbility() == PendingAbility.MEDIC_CHOICE) {
+            PendingAbility pending = ctx.gameState().getPendingAbility();
+            if (pending == PendingAbility.MEDIC_CHOICE) {
                 scheduleMedicTimeout(gameId, ctx);
+                cancelLeaderTimer(gameId);
+            } else if (pending != null && pending.name().startsWith("LEADER_")) {
+                scheduleLeaderTimeout(gameId, ctx);
+                cancelMedicTimer(gameId);
             } else {
                 cancelMedicTimer(gameId);
+                cancelLeaderTimer(gameId);
             }
 
             broadcastState(gameId, ctx);
+
+            if (ctx.gameState().getRevealedCards() != null) {
+                ctx.gameState().setRevealedCards(null);
+            }
+
             persist(gameId, ctx);
 
             return toDto(gameId, ctx, player);
@@ -156,6 +169,7 @@ public class GameSessionService {
             engine.surrender(ctx.gameState(), player);
 
             cancelMedicTimer(gameId);
+            cancelLeaderTimer(gameId);
             broadcastState(gameId, ctx);
             persist(gameId, ctx);
         }
@@ -205,6 +219,49 @@ public class GameSessionService {
     private void cancelMedicTimer(UUID gameId) {
         ScheduledFuture<?> timer = medicTimers.remove(gameId);
         if (timer != null) timer.cancel(false);
+    }
+
+    private void scheduleLeaderTimeout(UUID gameId, SessionContext ctx) {
+        cancelLeaderTimer(gameId);
+        leaderTimers.put(gameId, scheduler.schedule(() -> {
+            Object lock = gameLocks.computeIfAbsent(gameId, k -> new Object());
+            synchronized (lock) {
+                PendingAbility pending = ctx.gameState().getPendingAbility();
+                if (pending == null || !pending.name().startsWith("LEADER_")) return;
+
+                Card randomCard = resolveRandomLeaderCard(ctx.gameState(), pending);
+                if (randomCard != null) {
+                    engine.execute(ctx.gameState(), new ResolveLeaderCommand(randomCard));
+                    PendingAbility newPending = ctx.gameState().getPendingAbility();
+                    if (newPending != null && newPending.name().startsWith("LEADER_")) {
+                        scheduleLeaderTimeout(gameId, ctx);
+                    }
+                    broadcastState(gameId, ctx);
+                    if (ctx.gameState().getRevealedCards() != null) {
+                        ctx.gameState().setRevealedCards(null);
+                    }
+                    persist(gameId, ctx);
+                }
+            }
+        }, 30, TimeUnit.SECONDS));
+    }
+
+    private void cancelLeaderTimer(UUID gameId) {
+        ScheduledFuture<?> timer = leaderTimers.remove(gameId);
+        if (timer != null) timer.cancel(false);
+    }
+
+    private Card resolveRandomLeaderCard(GameState state, PendingAbility pending) {
+        PlayerState current = state.getCurrentPlayer();
+        return switch (pending) {
+            case LEADER_GRAVEYARD_PICK -> current.getGraveyard().stream()
+                    .filter(c -> c.cardType() == CardType.UNIT).findAny().orElse(null);
+            case LEADER_OPPONENT_GRAVEYARD_PICK -> state.getOpponent().getGraveyard().stream()
+                    .filter(c -> c.cardType() == CardType.UNIT).findAny().orElse(null);
+            case LEADER_DECK_PICK -> current.getDeck().stream().findAny().orElse(null);
+            case LEADER_HAND_DISCARD -> current.getHand().stream().findAny().orElse(null);
+            default -> null;
+        };
     }
 
     private void scheduleMulliganTimeout(UUID gameId, SessionContext ctx) {

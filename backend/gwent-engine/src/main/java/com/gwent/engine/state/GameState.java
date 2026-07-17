@@ -5,6 +5,8 @@ import com.gwent.engine.exception.state.InvalidPhaseTransitionException;
 import com.gwent.engine.exception.state.RoundLimitExceededException;
 import com.gwent.engine.exception.state.TurnNotSetException;
 
+import java.util.List;
+
 public class GameState {
     private final Board board;
     private final PlayerState player1;
@@ -13,6 +15,9 @@ public class GameState {
     private int currentRound;
     private GamePhase phase;
     private PendingAbility pendingAbility;
+    private LeaderAbility pendingLeaderAbility;
+    private int pendingAbilityCount;
+    private List<Card> revealedCards;
     private Turn winner;
     private EndReason endReason;
 
@@ -61,6 +66,30 @@ public class GameState {
 
     public void setPendingAbility(PendingAbility pendingAbility) {
         this.pendingAbility = pendingAbility;
+    }
+
+    public LeaderAbility getPendingLeaderAbility() {
+        return pendingLeaderAbility;
+    }
+
+    public void setPendingLeaderAbility(LeaderAbility pendingLeaderAbility) {
+        this.pendingLeaderAbility = pendingLeaderAbility;
+    }
+
+    public int getPendingAbilityCount() {
+        return pendingAbilityCount;
+    }
+
+    public void setPendingAbilityCount(int pendingAbilityCount) {
+        this.pendingAbilityCount = pendingAbilityCount;
+    }
+
+    public List<Card> getRevealedCards() {
+        return revealedCards;
+    }
+
+    public void setRevealedCards(List<Card> revealedCards) {
+        this.revealedCards = revealedCards;
     }
 
     public void setCurrentTurn (Turn currentTurn) {
