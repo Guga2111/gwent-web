@@ -3,13 +3,16 @@
 ## Prioridade 1 — Seguranca (bloqueia producao)
 
 1. **WebSocket ChannelInterceptor** — validar JWT no CONNECT e restringir SUBSCRIBE ao topico do proprio jogador
-2. **Broadcast de erros via WebSocket** — hoje o backend lanca excecoes mas nao envia para `/topic/games/{gameId}/errors`. O frontend ja escuta esse topico mas nunca recebe nada
 
 ## Prioridade 2 — Completar o loop de jogo
 
-3. **MedicOverlay no frontend** — a engine ja seta `pendingAbility = MEDIC_CHOICE` mas o front nao tem UI para o jogador escolher qual carta restaurar do cemiterio
-4. **Surrender funcional** — o botao existe mas faz `onClick={() => {}}`
-5. **Reconexao WebSocket** — se o jogador desconecta, perde a sessao. Precisa de retry + recarregar estado via `GET /api/games/{gameId}`
+2. **MedicOverlay no frontend** — a engine ja seta `pendingAbility = MEDIC_CHOICE` mas o front nao tem UI para o jogador escolher qual carta restaurar do cemiterio
+
+### Ja implementados nesta branch
+
+- **Broadcast de erros via WebSocket** — backend lanca excecoes para `/topic/games/{gameId}/{userId}/errors`; frontend ja assina o topico correto
+- **Surrender funcional** — `api/game.ts` tem `surrender()`, `ControlBar.tsx` recebe `onSurrender`, `Game.tsx` passa o handler
+- **Reconexao WebSocket** — STOMP `reconnectDelay: 5000` + `getGameState()` no `onConnect`
 
 ## Prioridade 3 — Conteudo
 
@@ -19,31 +22,30 @@
 
 ## Prioridade 4 — Engine (lider abilities restantes)
 
-9. **11 leader abilities faltando** — varias precisam de um sistema de `pendingAbility` com player choice (o framework ja existe, falta expandir)
-10. **Board modifier system** — necessario para NORTH_COMMANDER, HOPE_OF_THE_AEN_SEIDHE
-
-### Leader abilities implementadas (5/16)
+### Leader abilities implementadas (17/18)
 
 - SIEGE_MASTER (Northern Realms)
 - WHITE_FLAME (Nilfgaard)
 - DESTROYER_OF_WORLDS (Monsters)
 - DAISY_OF_THE_VALLEY (Scoia'tael)
 - KING_BRAN (Skellige)
+- BRINGER_OF_DEATH (Monsters)
+- INVADER_OF_THE_NORTH (Nilfgaard)
+- LORD_COMMANDER (Northern Realms)
+- QUEEN_OF_DOL_BLATHANNA (Scoia'tael)
+- EMPEROR_OF_NILFGAARD (Nilfgaard)
+- KING_OF_THE_WILD_HUNT (Monsters)
+- RELENTLESS (Nilfgaard)
+- KING_OF_TEMERIA (Northern Realms)
+- COMMANDER_OF_THE_RED_RIDERS (Monsters)
+- CLAN_AN_CRAITE (Skellige)
+- NORTH_COMMANDER (Northern Realms)
+- HOPE_OF_THE_AEN_SEIDHE (Scoia'tael)
 
-### Leader abilities pendentes (11)
+### Leader abilities pendentes (1)
 
-- NORTH_COMMANDER — requer board modifier system
-- KING_OF_TEMERIA — requer player choice / pendingAbility
-- LORD_COMMANDER — destroi unidade siege inimiga se score da row >= 10
-- EMPEROR_OF_NILFGAARD — ver 3 cartas do oponente (responsabilidade da API)
-- INVADER_OF_THE_NORTH — cancela leader ability do oponente
-- RELENTLESS — puxa carta do cemiterio do oponente (requer player choice)
-- BRINGER_OF_DEATH — pega carta weather do deck
-- COMMANDER_OF_THE_RED_RIDERS — pega qualquer carta, depois descarta (requer player choice)
-- KING_OF_THE_WILD_HUNT — restaura carta do cemiterio (requer pendingAbility)
-- QUEEN_OF_DOL_BLATHANNA — destroi unidade melee mais forte se score >= 10
-- PUREBLOOD_ELF / HOPE_OF_THE_AEN_SEIDHE — requer board modifier system
-- CLAN_AN_CRAITE — restaura 2 cartas do cemiterio (requer dois pendingAbility)
+- PUREBLOOD_ELF — requer troca de turno mid-pending (complexidade alta)
+
 
 ## Prioridade 5 — Polish
 
