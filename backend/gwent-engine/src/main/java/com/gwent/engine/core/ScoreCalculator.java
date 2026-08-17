@@ -50,7 +50,7 @@ public class ScoreCalculator {
         return total;
     }
 
-    int calculateCardPower (Card card, BoardRow row) {
+    public int calculateCardPower (Card card, BoardRow row) {
         Map<String, Long> countByName = row.getCards().stream()
                 .collect(Collectors.groupingBy(Card::name, Collectors.counting()));
 
