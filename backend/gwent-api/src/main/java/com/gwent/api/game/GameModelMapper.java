@@ -36,7 +36,8 @@ public class GameModelMapper {
                         ? (state.getWinner() == Turn.PLAYER_1 ? ctx.player1Id() : ctx.player2Id())
                         : null,
                 state.getEndReason() != null ? state.getEndReason().name() : null,
-                resolveRevealedCards(state, perspective)
+                resolveRevealedCards(state, perspective),
+                resolveDeckCards(state, perspective, meState)
         );
     }
 
@@ -141,6 +142,12 @@ public class GameModelMapper {
                 .filter(c -> c.id().equals(cardId))
                 .findFirst()
                 .orElseThrow(() -> new CardNotFoundException(cardId));
+    }
+
+    private List<CardDto> resolveDeckCards(GameState state, Turn perspective, PlayerState meState) {
+        if (state.getPendingAbility() != PendingAbility.LEADER_DECK_PICK) return null;
+        if (state.getCurrentTurn() != perspective) return null;
+        return meState.getDeck().stream().map(this::toCardDto).toList();
     }
 
     private List<CardDto> resolveRevealedCards(GameState state, Turn perspective) {

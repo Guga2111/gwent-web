@@ -15,5 +15,6 @@ public record GameStateDto(
         OpponentStateDto opponent,
         String winner,
         String endReason,
-        List<CardDto> revealedCards
+        List<CardDto> revealedCards,
+        List<CardDto> deckCards
 ) {}
