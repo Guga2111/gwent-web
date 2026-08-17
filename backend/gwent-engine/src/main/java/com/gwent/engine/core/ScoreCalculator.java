@@ -9,7 +9,7 @@ import com.gwent.engine.state.PlayerState;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-class ScoreCalculator {
+public class ScoreCalculator {
 
     public ScoreCalculator () {}
 

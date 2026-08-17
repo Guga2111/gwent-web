@@ -30,10 +30,15 @@ export default function Card({ card, onClick, interactive = false }: CardProps) 
     >
       {card.basePower != null && (
         <div
-          className="text-sm leading-none text-[var(--gold-light)]"
-          style={{ fontFamily: 'var(--font-heading)' }}
+          className="text-sm leading-none"
+          style={{
+            fontFamily: 'var(--font-heading)',
+            color: card.currentPower != null && card.currentPower !== card.basePower
+              ? card.currentPower > card.basePower ? 'var(--green)' : 'var(--red)'
+              : 'var(--gold-light)',
+          }}
         >
-          {card.basePower}
+          {card.currentPower ?? card.basePower}
         </div>
       )}
       <div
