@@ -20,6 +20,8 @@ import MulliganOverlay from '@/components/board/overlays/MulliganOverlay'
 import RoundEndOverlay from '@/components/board/overlays/RoundEndOverlay'
 import GameOverOverlay from '@/components/board/overlays/GameOverOverlay'
 import MedicOverlay from '@/components/board/overlays/MedicOverlay'
+import LeaderOverlay from '@/components/board/overlays/LeaderOverlay'
+import RevealedCardsOverlay from '@/components/board/overlays/RevealedCardsOverlay'
 
 export default function Game() {
   const { gameId } = useParams<{ gameId: string }>()
@@ -34,6 +36,14 @@ export default function Game() {
   const user = useAuthStore((s) => s.user)
 
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
+  const [showRevealedCards, setShowRevealedCards] = useState(false)
+
+  // Show revealed cards overlay when backend sends them (EMPEROR_OF_NILFGAARD)
+  useEffect(() => {
+    if (gameState?.revealedCards && gameState.revealedCards.length > 0) {
+      setShowRevealedCards(true)
+    }
+  }, [gameState?.revealedCards])
 
   const { sendCommand } = useWebSocket(gameId ?? null)
 
@@ -200,6 +210,40 @@ export default function Game() {
           <MedicOverlay
             graveyard={me.graveyard}
             onSelectCard={(cardId) => sendCommand({ commandType: 'RESOLVE_MEDIC', playerId, cardId })}
+          />
+        )}
+        {gameState.pendingAbility === 'LEADER_GRAVEYARD_PICK' && isMyTurn && (
+          <LeaderOverlay
+            pendingType="LEADER_GRAVEYARD_PICK"
+            cards={me.graveyard}
+            onSelectCard={(cardId) => sendCommand({ commandType: 'RESOLVE_LEADER', playerId, cardId })}
+          />
+        )}
+        {gameState.pendingAbility === 'LEADER_OPPONENT_GRAVEYARD_PICK' && isMyTurn && (
+          <LeaderOverlay
+            pendingType="LEADER_OPPONENT_GRAVEYARD_PICK"
+            cards={opponent.graveyard}
+            onSelectCard={(cardId) => sendCommand({ commandType: 'RESOLVE_LEADER', playerId, cardId })}
+          />
+        )}
+        {gameState.pendingAbility === 'LEADER_DECK_PICK' && isMyTurn && gameState.deckCards && (
+          <LeaderOverlay
+            pendingType="LEADER_DECK_PICK"
+            cards={gameState.deckCards}
+            onSelectCard={(cardId) => sendCommand({ commandType: 'RESOLVE_LEADER', playerId, cardId })}
+          />
+        )}
+        {gameState.pendingAbility === 'LEADER_HAND_DISCARD' && isMyTurn && (
+          <LeaderOverlay
+            pendingType="LEADER_HAND_DISCARD"
+            cards={me.hand}
+            onSelectCard={(cardId) => sendCommand({ commandType: 'RESOLVE_LEADER', playerId, cardId })}
+          />
+        )}
+        {showRevealedCards && gameState.revealedCards && gameState.revealedCards.length > 0 && (
+          <RevealedCardsOverlay
+            cards={gameState.revealedCards}
+            onDismiss={() => setShowRevealedCards(false)}
           />
         )}
         {gameState.phase === 'GAME_OVER' && (

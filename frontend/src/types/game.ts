@@ -19,6 +19,7 @@ export interface BoardRowDto {
   cards: CardDto[]
   hornActive: boolean
   weatherActive: boolean
+  leaderBonusPower: number
 }
 
 export interface PlayerStateDto {
@@ -63,12 +64,14 @@ export interface GameStateDto {
   weatherCards: CardDto[]
   me: PlayerStateDto
   opponent: OpponentStateDto
+  revealedCards: CardDto[] | null
+  deckCards: CardDto[] | null
   winner: string | null
   endReason: string | null
 }
 
 export interface CommandRequest {
-  commandType: 'PLAY_CARD' | 'PASS' | 'MULLIGAN' | 'USE_LEADER' | 'RESOLVE_MEDIC' | 'CONFIRM_MULLIGAN'
+  commandType: 'PLAY_CARD' | 'PASS' | 'MULLIGAN' | 'USE_LEADER' | 'RESOLVE_MEDIC' | 'CONFIRM_MULLIGAN' | 'RESOLVE_LEADER'
   playerId?: string
   cardId?: string
   targetRow?: string

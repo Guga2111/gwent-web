@@ -3,8 +3,10 @@ package com.gwent.api.game;
 import com.gwent.api.game.dto.ActiveGameDto;
 import com.gwent.api.game.dto.CommandRequestDto;
 import com.gwent.api.game.dto.CreateGameDto;
+import com.gwent.api.game.dto.CreateGameRequest;
 import com.gwent.api.game.dto.ErrorDto;
 import com.gwent.api.game.dto.GameStateDto;
+import com.gwent.api.game.dto.JoinGameRequest;
 import com.gwent.api.game.exception.CardNotFoundException;
 import com.gwent.api.game.exception.GameNotFoundException;
 import com.gwent.api.game.exception.PlayerNotInGameException;
@@ -32,14 +34,14 @@ public class GameController {
     }
 
     @PostMapping
-    public ResponseEntity<CreateGameDto> createGame(Principal principal) {
+    public ResponseEntity<CreateGameDto> createGame(@RequestBody CreateGameRequest request, Principal principal) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(gameSessionService.createSession(principal.getName()));
+                .body(gameSessionService.createSession(principal.getName(), request.deckId()));
     }
 
     @PostMapping("/{gameId}/join")
-    public ResponseEntity<GameStateDto> joinGame(@PathVariable UUID gameId, Principal principal) {
-        return ResponseEntity.ok(gameSessionService.joinSession(gameId, principal.getName()));
+    public ResponseEntity<GameStateDto> joinGame(@PathVariable UUID gameId, @RequestBody JoinGameRequest request, Principal principal) {
+        return ResponseEntity.ok(gameSessionService.joinSession(gameId, principal.getName(), request.deckId()));
     }
 
     @GetMapping("/{gameId}")

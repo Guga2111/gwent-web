@@ -1,36 +1,39 @@
-package com.gwent.api.game;
+package com.gwent.api.deck;
 
+import com.gwent.engine.domain.Faction;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "games")
+@Table(name = "decks")
 @Getter
 @Setter
 @NoArgsConstructor
-public class Game {
+public class Deck {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    private String player1Id;
+    private String userId;
 
-    private String player2Id;
-
-    private UUID player1DeckId;
-
-    private UUID player2DeckId;
-
-    @Column(columnDefinition = "TEXT")
-    private String stateJson;
+    private String name;
 
     @Enumerated(EnumType.STRING)
-    private GameStatus status;
+    private Faction faction;
+
+    private String leaderId;
+
+    @ElementCollection(fetch = jakarta.persistence.FetchType.EAGER)
+    @CollectionTable(name = "deck_cards", joinColumns = @JoinColumn(name = "deck_id"))
+    private List<DeckCardEntry> cards = new ArrayList<>();
 
     @Setter(lombok.AccessLevel.NONE)
     private LocalDateTime createdAt;

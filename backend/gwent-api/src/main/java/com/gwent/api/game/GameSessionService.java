@@ -2,10 +2,16 @@ package com.gwent.api.game;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gwent.api.catalog.CardCatalogRepository;
+import com.gwent.api.catalog.CardEntity;
+import com.gwent.api.deck.Deck;
+import com.gwent.api.deck.DeckRepository;
+import com.gwent.api.deck.exception.DeckNotFoundException;
 import com.gwent.api.game.dto.*;
 import com.gwent.api.game.exception.GameNotFoundException;
 import com.gwent.api.game.exception.GameNotWaitingException;
 import com.gwent.api.game.exception.PlayerNotInGameException;
+import com.gwent.engine.command.ResolveLeaderCommand;
 import com.gwent.engine.command.ResolveMedicCommand;
 import com.gwent.engine.core.GwentEngine;
 import com.gwent.engine.domain.*;
@@ -14,6 +20,8 @@ import com.gwent.engine.state.PlayerState;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -27,6 +35,7 @@ public class GameSessionService {
     private final Map<UUID, SessionContext> sessions = new ConcurrentHashMap<>();
     private final Map<UUID, Object> gameLocks = new ConcurrentHashMap<>();
     private final Map<UUID, ScheduledFuture<?>> medicTimers = new ConcurrentHashMap<>();
+    private final Map<UUID, ScheduledFuture<?>> leaderTimers = new ConcurrentHashMap<>();
     // 4 threads: sufficient for MVP. When scaling, replace with Spring TaskScheduler
     // (container-managed, configurable) or Redis TTL + keyspace notifications (zero threads).
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
@@ -35,28 +44,34 @@ public class GameSessionService {
     private final ObjectMapper objectMapper;
     private final SimpMessagingTemplate messagingTemplate;
     private final GameModelMapper mapper;
+    private final CardCatalogRepository cardCatalogRepository;
+    private final DeckRepository deckRepository;
 
     public GameSessionService(GameRepository gameRepository, ObjectMapper objectMapper,
-                              SimpMessagingTemplate messagingTemplate, GameModelMapper mapper) {
+                              SimpMessagingTemplate messagingTemplate, GameModelMapper mapper,
+                              CardCatalogRepository cardCatalogRepository, DeckRepository deckRepository) {
         this.gameRepository = gameRepository;
         this.objectMapper = objectMapper;
         this.messagingTemplate = messagingTemplate;
         this.mapper = mapper;
+        this.cardCatalogRepository = cardCatalogRepository;
+        this.deckRepository = deckRepository;
     }
 
-    public CreateGameDto createSession(String userId) {
+    public CreateGameDto createSession(String userId, UUID deckId) {
         UUID gameId = UUID.randomUUID();
 
         Game game = new Game();
         game.setId(gameId);
         game.setPlayer1Id(userId);
+        game.setPlayer1DeckId(deckId);
         game.setStatus(GameStatus.WAITING);
         gameRepository.save(game);
 
         return new CreateGameDto(gameId, userId);
     }
 
-    public GameStateDto joinSession(UUID gameId, String userId) {
+    public GameStateDto joinSession(UUID gameId, String userId, UUID deckId) {
         Object lock = gameLocks.computeIfAbsent(gameId, k -> new Object());
         synchronized (lock) {
             Game game = gameRepository.findById(gameId)
@@ -67,9 +82,10 @@ public class GameSessionService {
             }
 
             game.setPlayer2Id(userId);
+            game.setPlayer2DeckId(deckId);
 
-            PlayerState player1 = new PlayerState(makeLeader(), makePresetDeck());
-            PlayerState player2 = new PlayerState(makeLeader(), makePresetDeck());
+            PlayerState player1 = new PlayerState(buildLeaderFromDeckId(game.getPlayer1DeckId()), buildDeckFromDeckId(game.getPlayer1DeckId()));
+            PlayerState player2 = new PlayerState(buildLeaderFromDeckId(deckId), buildDeckFromDeckId(deckId));
             GameState gameState = new GameState(player1, player2);
 
             engine.drawInitialCards(gameState, 10);
@@ -95,13 +111,24 @@ public class GameSessionService {
             Turn player = resolvePlayer(ctx, userId);
             engine.execute(ctx.gameState(), mapper.toCommand(request, player, ctx.gameState()));
 
-            if (ctx.gameState().getPendingAbility() == PendingAbility.MEDIC_CHOICE) {
+            PendingAbility pending = ctx.gameState().getPendingAbility();
+            if (pending == PendingAbility.MEDIC_CHOICE) {
                 scheduleMedicTimeout(gameId, ctx);
+                cancelLeaderTimer(gameId);
+            } else if (pending != null && pending.name().startsWith("LEADER_")) {
+                scheduleLeaderTimeout(gameId, ctx);
+                cancelMedicTimer(gameId);
             } else {
                 cancelMedicTimer(gameId);
+                cancelLeaderTimer(gameId);
             }
 
             broadcastState(gameId, ctx);
+
+            if (ctx.gameState().getRevealedCards() != null) {
+                ctx.gameState().setRevealedCards(null);
+            }
+
             persist(gameId, ctx);
 
             return toDto(gameId, ctx, player);
@@ -142,6 +169,7 @@ public class GameSessionService {
             engine.surrender(ctx.gameState(), player);
 
             cancelMedicTimer(gameId);
+            cancelLeaderTimer(gameId);
             broadcastState(gameId, ctx);
             persist(gameId, ctx);
         }
@@ -193,6 +221,49 @@ public class GameSessionService {
         if (timer != null) timer.cancel(false);
     }
 
+    private void scheduleLeaderTimeout(UUID gameId, SessionContext ctx) {
+        cancelLeaderTimer(gameId);
+        leaderTimers.put(gameId, scheduler.schedule(() -> {
+            Object lock = gameLocks.computeIfAbsent(gameId, k -> new Object());
+            synchronized (lock) {
+                PendingAbility pending = ctx.gameState().getPendingAbility();
+                if (pending == null || !pending.name().startsWith("LEADER_")) return;
+
+                Card randomCard = resolveRandomLeaderCard(ctx.gameState(), pending);
+                if (randomCard != null) {
+                    engine.execute(ctx.gameState(), new ResolveLeaderCommand(randomCard));
+                    PendingAbility newPending = ctx.gameState().getPendingAbility();
+                    if (newPending != null && newPending.name().startsWith("LEADER_")) {
+                        scheduleLeaderTimeout(gameId, ctx);
+                    }
+                    broadcastState(gameId, ctx);
+                    if (ctx.gameState().getRevealedCards() != null) {
+                        ctx.gameState().setRevealedCards(null);
+                    }
+                    persist(gameId, ctx);
+                }
+            }
+        }, 30, TimeUnit.SECONDS));
+    }
+
+    private void cancelLeaderTimer(UUID gameId) {
+        ScheduledFuture<?> timer = leaderTimers.remove(gameId);
+        if (timer != null) timer.cancel(false);
+    }
+
+    private Card resolveRandomLeaderCard(GameState state, PendingAbility pending) {
+        PlayerState current = state.getCurrentPlayer();
+        return switch (pending) {
+            case LEADER_GRAVEYARD_PICK -> current.getGraveyard().stream()
+                    .filter(c -> c.cardType() == CardType.UNIT).findAny().orElse(null);
+            case LEADER_OPPONENT_GRAVEYARD_PICK -> state.getOpponent().getGraveyard().stream()
+                    .filter(c -> c.cardType() == CardType.UNIT).findAny().orElse(null);
+            case LEADER_DECK_PICK -> current.getDeck().stream().findAny().orElse(null);
+            case LEADER_HAND_DISCARD -> current.getHand().stream().findAny().orElse(null);
+            default -> null;
+        };
+    }
+
     private void scheduleMulliganTimeout(UUID gameId, SessionContext ctx) {
         scheduler.schedule(() -> {
             Object lock = gameLocks.computeIfAbsent(gameId, k -> new Object());
@@ -235,30 +306,34 @@ public class GameSessionService {
         }
     }
 
-    // --- Preset data ---
+    // --- Deck-ID-backed deck building ---
 
-    private Card makeLeader() {
-        return new Card("FOLTEST", "Foltest", Faction.NORTHERN_REALMS,
-                CardType.LEADER, null, LeaderAbility.SIEGE_MASTER, null, null);
+    private Card buildLeaderFromDeckId(UUID deckId) {
+        Deck deck = deckRepository.findById(deckId)
+                .orElseThrow(() -> new DeckNotFoundException(deckId));
+        CardEntity leader = cardCatalogRepository.findById(deck.getLeaderId())
+                .orElseThrow(() -> new IllegalStateException("Leader card not found: " + deck.getLeaderId()));
+        return toEngineCard(leader, leader.getId());
     }
 
-    private List<Card> makePresetDeck() {
-        return List.of(
-                new Card("NR_MELEE_1",  "Swordsman",   Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.MELEE,  5),
-                new Card("NR_MELEE_2",  "Knight",      Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.MELEE,  6),
-                new Card("NR_MELEE_3",  "Foot Soldier",Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.MELEE,  4),
-                new Card("NR_MELEE_4",  "Field Medic",  Faction.NORTHERN_REALMS, CardType.UNIT, Ability.MEDIC, null, RowType.MELEE,  1),
-                new Card("NR_MELEE_5",  "Cavalry",     Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.MELEE,  7),
-                new Card("NR_RANGED_1", "Archer",      Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.RANGED, 5),
-                new Card("NR_RANGED_2", "Crossbowman", Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.RANGED, 4),
-                new Card("NR_RANGED_3", "Rifleman",    Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.RANGED, 6),
-                new Card("NR_RANGED_4", "Scout",       Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.RANGED, 3),
-                new Card("NR_RANGED_5", "Marksman",    Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.RANGED, 7),
-                new Card("NR_SIEGE_1",  "Catapult",    Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.SIEGE,  8),
-                new Card("NR_SIEGE_2",  "Ballista",    Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.SIEGE,  6),
-                new Card("NR_SIEGE_3",  "Trebuchet",   Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.SIEGE,  7),
-                new Card("NR_SIEGE_4",  "Ram",         Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.SIEGE,  5),
-                new Card("NR_SIEGE_5",  "Siege Tower", Faction.NORTHERN_REALMS, CardType.UNIT, null, null, RowType.SIEGE,  9)
-        );
+    private List<Card> buildDeckFromDeckId(UUID deckId) {
+        Deck deck = deckRepository.findById(deckId)
+                .orElseThrow(() -> new DeckNotFoundException(deckId));
+        List<Card> cards = new ArrayList<>();
+        for (var entry : deck.getCards()) {
+            CardEntity template = cardCatalogRepository.findById(entry.getCardId())
+                    .orElseThrow(() -> new IllegalStateException("Card not found: " + entry.getCardId()));
+            for (int i = 1; i <= entry.getQuantity(); i++) {
+                String instanceId = entry.getQuantity() > 1 ? entry.getCardId() + "_" + i : entry.getCardId();
+                cards.add(toEngineCard(template, instanceId));
+            }
+        }
+        Collections.shuffle(cards);
+        return cards;
+    }
+
+    private Card toEngineCard(CardEntity e, String id) {
+        return new Card(id, e.getName(), e.getFaction(), e.getCardType(),
+                e.getAbility(), e.getLeaderAbility(), e.getRowType(), e.getBasePower());
     }
 }

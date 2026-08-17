@@ -3,9 +3,7 @@ package com.gwent.api.game;
 import com.gwent.api.game.dto.*;
 import com.gwent.api.game.exception.CardNotFoundException;
 import com.gwent.engine.command.*;
-import com.gwent.engine.domain.Card;
-import com.gwent.engine.domain.RowType;
-import com.gwent.engine.domain.Turn;
+import com.gwent.engine.domain.*;
 import com.gwent.engine.state.BoardRow;
 import com.gwent.engine.state.GameState;
 import com.gwent.engine.state.PlayerState;
@@ -37,7 +35,9 @@ public class GameModelMapper {
                 state.getWinner() != null
                         ? (state.getWinner() == Turn.PLAYER_1 ? ctx.player1Id() : ctx.player2Id())
                         : null,
-                state.getEndReason() != null ? state.getEndReason().name() : null
+                state.getEndReason() != null ? state.getEndReason().name() : null,
+                resolveRevealedCards(state, perspective),
+                resolveDeckCards(state, perspective, meState)
         );
     }
 
@@ -93,7 +93,8 @@ public class GameModelMapper {
         return new BoardRowDto(
                 row.getCards().stream().map(this::toCardDto).toList(),
                 row.isHornActive(),
-                row.isWeatherActive()
+                row.isWeatherActive(),
+                row.getLeaderBonusPower()
         );
     }
 
@@ -113,6 +114,19 @@ public class GameModelMapper {
                     findCard(request.cardId(), state.getPlayer(player).getHand()));
             case RESOLVE_MEDIC    -> new ResolveMedicCommand(
                     findCard(request.cardId(), state.getPlayer(player).getGraveyard()));
+            case RESOLVE_LEADER   -> {
+                Card card = switch (state.getPendingAbility()) {
+                    case LEADER_GRAVEYARD_PICK -> findCard(request.cardId(), state.getPlayer(player).getGraveyard());
+                    case LEADER_OPPONENT_GRAVEYARD_PICK -> {
+                        Turn opponentTurn = player == Turn.PLAYER_1 ? Turn.PLAYER_2 : Turn.PLAYER_1;
+                        yield findCard(request.cardId(), state.getPlayer(opponentTurn).getGraveyard());
+                    }
+                    case LEADER_DECK_PICK -> findCardInDeck(request.cardId(), state.getPlayer(player));
+                    case LEADER_HAND_DISCARD -> findCard(request.cardId(), state.getPlayer(player).getHand());
+                    default -> throw new IllegalStateException("No pending leader ability");
+                };
+                yield new ResolveLeaderCommand(card);
+            }
         };
     }
 
@@ -121,5 +135,25 @@ public class GameModelMapper {
                 .filter(c -> c.id().equals(cardId))
                 .findFirst()
                 .orElseThrow(() -> new CardNotFoundException(cardId));
+    }
+
+    private Card findCardInDeck(String cardId, PlayerState player) {
+        return player.getDeck().stream()
+                .filter(c -> c.id().equals(cardId))
+                .findFirst()
+                .orElseThrow(() -> new CardNotFoundException(cardId));
+    }
+
+    private List<CardDto> resolveDeckCards(GameState state, Turn perspective, PlayerState meState) {
+        if (state.getPendingAbility() != PendingAbility.LEADER_DECK_PICK) return null;
+        if (state.getCurrentTurn() != perspective) return null;
+        return meState.getDeck().stream().map(this::toCardDto).toList();
+    }
+
+    private List<CardDto> resolveRevealedCards(GameState state, Turn perspective) {
+        if (state.getRevealedCards() == null || state.getRevealedCards().isEmpty()) return null;
+        // Only show revealed cards to the current player (the one who used the leader)
+        if (state.getCurrentTurn() != perspective) return null;
+        return state.getRevealedCards().stream().map(this::toCardDto).toList();
     }
 }

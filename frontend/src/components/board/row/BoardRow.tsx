@@ -48,6 +48,16 @@ export default function BoardRow({ row, rowLabel, onCardClick, onRowClick, isPla
         }}
       />
 
+      {/* Leader bonus power indicator */}
+      {row.leaderBonusPower > 0 && (
+        <div
+          className="absolute left-[70px] top-0.5 text-[9px] text-[var(--gold-light)] pointer-events-none"
+          style={{ fontFamily: 'var(--font-ui)' }}
+        >
+          +{row.leaderBonusPower}
+        </div>
+      )}
+
       {/* Row label */}
       <div
         className="absolute right-[52px] text-[9px] text-[var(--text-muted)] opacity-50 pointer-events-none"
