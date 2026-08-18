@@ -3,6 +3,7 @@ package com.gwent.api.game;
 import com.gwent.api.game.dto.*;
 import com.gwent.api.game.exception.CardNotFoundException;
 import com.gwent.engine.command.*;
+import com.gwent.engine.core.ScoreCalculator;
 import com.gwent.engine.domain.*;
 import com.gwent.engine.state.BoardRow;
 import com.gwent.engine.state.GameState;
@@ -14,6 +15,8 @@ import java.util.UUID;
 
 @Component
 public class GameModelMapper {
+
+    private final ScoreCalculator scoreCalculator = new ScoreCalculator();
 
     public GameStateDto toGameStateDto(UUID gameId, SessionContext ctx, Turn perspective, int meScore, int opponentScore) {
         GameState state = ctx.gameState();
@@ -82,6 +85,20 @@ public class GameModelMapper {
                 card.id(),
                 card.name(),
                 card.basePower(),
+                null,
+                card.cardType().name(),
+                card.rowType() != null ? card.rowType().name() : null,
+                card.ability() != null ? card.ability().name() : null,
+                card.faction().name()
+        );
+    }
+
+    private CardDto toCardDtoOnBoard(Card card, BoardRow row) {
+        return new CardDto(
+                card.id(),
+                card.name(),
+                card.basePower(),
+                scoreCalculator.calculateCardPower(card, row),
                 card.cardType().name(),
                 card.rowType() != null ? card.rowType().name() : null,
                 card.ability() != null ? card.ability().name() : null,
@@ -91,7 +108,7 @@ public class GameModelMapper {
 
     public BoardRowDto toBoardRowDto(BoardRow row) {
         return new BoardRowDto(
-                row.getCards().stream().map(this::toCardDto).toList(),
+                row.getCards().stream().map(c -> toCardDtoOnBoard(c, row)).toList(),
                 row.isHornActive(),
                 row.isWeatherActive(),
                 row.getLeaderBonusPower()

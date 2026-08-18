@@ -9,6 +9,7 @@ export interface CardDto {
   id: string
   name: string
   basePower: number | null
+  currentPower: number | null
   cardType: CardType
   rowType: RowType | null
   ability: Ability | null

@@ -1,55 +1,59 @@
 # Proximos Passos
 
-## Prioridade 1 — Seguranca (bloqueia producao)
-
-1. **WebSocket ChannelInterceptor** — validar JWT no CONNECT e restringir SUBSCRIBE ao topico do proprio jogador
-
-## Prioridade 2 — Completar o loop de jogo
-
-2. **MedicOverlay no frontend** — a engine ja seta `pendingAbility = MEDIC_CHOICE` mas o front nao tem UI para o jogador escolher qual carta restaurar do cemiterio
-
-### Ja implementados nesta branch
-
-- **Broadcast de erros via WebSocket** — backend lanca excecoes para `/topic/games/{gameId}/{userId}/errors`; frontend ja assina o topico correto
-- **Surrender funcional** — `api/game.ts` tem `surrender()`, `ControlBar.tsx` recebe `onSurrender`, `Game.tsx` passa o handler
-- **Reconexao WebSocket** — STOMP `reconnectDelay: 5000` + `getGameState()` no `onConnect`
-
-## Prioridade 3 — Conteudo
-
-6. **Catalogo de cartas + seed** — substituir `makePresetDeck()` por cartas persistidas no banco, separadas por faccao
-7. **Deck builder (DeckForge)** — pagina stub, precisa de backend (CRUD de decks) + frontend
-8. **Selecao de faccao/deck ao criar jogo** — hoje todos jogam com o mesmo deck Northern Realms
-
-## Prioridade 4 — Engine (lider abilities restantes)
+## Prioridade 1 — Engine (leader ability pendente)
 
 ### Leader abilities implementadas (17/18)
 
-- SIEGE_MASTER (Northern Realms)
-- WHITE_FLAME (Nilfgaard)
-- DESTROYER_OF_WORLDS (Monsters)
-- DAISY_OF_THE_VALLEY (Scoia'tael)
-- KING_BRAN (Skellige)
-- BRINGER_OF_DEATH (Monsters)
-- INVADER_OF_THE_NORTH (Nilfgaard)
-- LORD_COMMANDER (Northern Realms)
-- QUEEN_OF_DOL_BLATHANNA (Scoia'tael)
-- EMPEROR_OF_NILFGAARD (Nilfgaard)
-- KING_OF_THE_WILD_HUNT (Monsters)
-- RELENTLESS (Nilfgaard)
-- KING_OF_TEMERIA (Northern Realms)
-- COMMANDER_OF_THE_RED_RIDERS (Monsters)
-- CLAN_AN_CRAITE (Skellige)
-- NORTH_COMMANDER (Northern Realms)
-- HOPE_OF_THE_AEN_SEIDHE (Scoia'tael)
+Todas implementadas no engine (`LeaderAbilityResolver`), API (`GameModelMapper`) e frontend (`LeaderOverlay`, `RevealedCardsOverlay`).
 
-### Leader abilities pendentes (1)
+### Leader ability pendente (1)
 
-- PUREBLOOD_ELF — requer troca de turno mid-pending (complexidade alta)
+- **PUREBLOOD_ELF** — requer troca de turno mid-pending (complexidade alta); no-op com TODO em `LeaderAbilityResolver.java`
 
 
-## Prioridade 5 — Polish
+## Prioridade 2 — Faction Passives (engine)
 
-11. **Tooltips de habilidades nas cartas**
-12. **Animacoes de jogada/pontuacao**
-13. **Leaderboard e estatisticas**
-14. **Countdown visual nos overlays** — mostrar timer regressivo no MulliganOverlay (30s) e MedicOverlay (30s). O backend ja aplica timeout automatico, mas o frontend nao exibe contagem
+Cada faccao tem uma habilidade passiva que se aplica automaticamente no fim/inicio de round, sem interacao do jogador (exceto Scoia'tael).
+
+### Engine hooks necessarios
+
+- **`resolveRound()`** — apos calcular scores e determinar loser, antes de `startNewRound()`
+- **`startNewRound()`** — antes e depois de `clearRows()`
+
+### Criar `FactionPassiveResolver` em `gwent-engine/core/`
+
+Seguir o padrao de `LeaderAbilityResolver`. Faccao derivada de `player.getLeader().faction()`.
+
+### Passivas por faccao
+
+| Faccao | Passiva | Hook | Logica |
+|---|---|---|---|
+| **Northern Realms** | Comprar 1 carta ao vencer um round | Apos determinar winner em `resolveRound` | Se NR ganhou e deck nao vazio → `winner.drawCard()` |
+| **Nilfgaard** | Vencer empates (se scores iguais, Nilfgaard nao perde vida) | Dentro do branch `else` (tie) em `resolveRound` | Se um jogador e Nilfgaard e o outro nao: apenas o nao-Nilfgaard perde vida. Mirror match: empate normal |
+| **Monsters** | Manter 1 unidade aleatoria no campo ao fim do round | Antes/depois de `clearRows()` em `startNewRound` | Escolher 1 UNIT (nao HERO) aleatorio das rows do Monsters player; remover da row antes de `clearRows()`; re-adicionar apos a limpeza. Guardar `(Card, RowType)` pois AGILE precisa da row real |
+| **Scoia'tael** | Escolher quem comeca cada round | Requer `PendingAbility.SCOIA_ROUND_START` | Apos fim de round (antes de `startNewRound`), se um jogador e Scoia'tael: setar pending ability; frontend exibe prompt "voce quer comecar ou dar a vez ao oponente?"; resolver com `RESOLVE_FACTION` command |
+| **Skellige** | Ressuscitar 2 unidades do cemiterio no inicio de cada round | Apos `clearRows()` em `startNewRound` | Escolher ate 2 UNIT (nao HERO) aleatorios do cemiterio e adicionar a mao do jogador Skellige |
+
+### Observacoes de implementacao
+
+- `BoardRow.clear()` ja reseta `leaderBonusPower` — nao precisa limpar manualmente antes de re-adicionar carta dos Monsters
+- `BoardRow.addCard()` valida `rowType` — guardar a row real de cartas AGILE ao extrair
+- Scoia'tael e a unica passiva que requer interacao (novo `PendingAbility` + frontend overlay simples com 2 botoes)
+- Testar com mirror match Nilfgaard vs Nilfgaard para garantir tie normal
+
+### Arquivos a modificar
+
+- `gwent-engine/core/GwentEngine.java` — hooks em `resolveRound` e `startNewRound`
+- `gwent-engine/core/FactionPassiveResolver.java` — novo arquivo
+- `gwent-engine/domain/PendingAbility.java` — adicionar `SCOIA_ROUND_START` (se implementar Scoia'tael)
+- `gwent-api/.../GameModelMapper.java` — expor pending ability no DTO (ja existe campo `pendingAbility`)
+- Frontend — overlay simples para Scoia'tael (se implementar)
+
+---
+
+## Prioridade 3 — Polish
+
+1. **Countdown visual nos overlays** — mostrar timer regressivo no MulliganOverlay (30s) e MedicOverlay (30s). O backend ja aplica timeout automatico, mas o frontend nao exibe contagem
+2. **Tooltips de habilidades nas cartas**
+3. **Animacoes de jogada/pontuacao**
+4. **Leaderboard e estatisticas** — requer modelo de dados de historico de partidas

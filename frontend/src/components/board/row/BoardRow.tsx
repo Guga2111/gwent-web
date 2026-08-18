@@ -21,7 +21,7 @@ const ROW_TINTS: Record<string, string> = {
 
 export default function BoardRow({ row, rowLabel, onCardClick, onRowClick, isPlacementTarget, interactive }: BoardRowProps) {
   const cards = row.cards ?? []
-  const score = cards.reduce((sum, c) => sum + (c.basePower ?? 0), 0)
+  const score = cards.reduce((sum, c) => sum + (c.currentPower ?? c.basePower ?? 0), 0)
 
   return (
     <div

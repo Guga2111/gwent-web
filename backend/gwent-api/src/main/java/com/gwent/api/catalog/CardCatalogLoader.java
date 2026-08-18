@@ -74,6 +74,10 @@ public class CardCatalogLoader implements ApplicationRunner {
             card("NG_BLACK_ARCHER",  "Black Infantry Archer",             Faction.NILFGAARD, CardType.UNIT, Ability.TIGHT_BOND,   null, RowType.RANGED,  3, 3),
             card("NG_SIEGE_ENGINEER","Siege Engineer",                    Faction.NILFGAARD, CardType.UNIT, null,                 null, RowType.SIEGE,   6, 1),
             card("NG_ZERRIKANIAN",   "Heavy Zerrikanian Fire Scorpion",   Faction.NILFGAARD, CardType.UNIT, null,                 null, RowType.SIEGE,  10, 1),
+            card("NG_ALBRICH",       "Albrich",                           Faction.NILFGAARD, CardType.UNIT, Ability.SPY,          null, RowType.RANGED,  2, 1),
+            card("NG_VANHEMAR",      "Vanhemar",                          Faction.NILFGAARD, CardType.UNIT, null,                 null, RowType.RANGED,  4, 1),
+            card("NG_SWEERS",        "Sweers",                            Faction.NILFGAARD, CardType.UNIT, Ability.SPY,          null, RowType.MELEE,   2, 1),
+            card("NG_YOUNG_EMISSARY","Young Emissary",                    Faction.NILFGAARD, CardType.UNIT, Ability.SPY,          null, RowType.RANGED,  5, 2),
 
             // ── MONSTERS ─────────────────────────────────────────────────────
 
@@ -100,6 +104,8 @@ public class CardCatalogLoader implements ApplicationRunner {
             card("MO_CRONE_WEAVESS",    "Crone: Weavess",   Faction.MONSTER, CardType.UNIT, Ability.MUSTER, null, RowType.MELEE,  5, 1),
             card("MO_VAMPIRE_KATAKAN",  "Vampire: Katakan", Faction.MONSTER, CardType.UNIT, Ability.MUSTER, null, RowType.RANGED, 5, 1),
             card("MO_FOGLET",           "Foglet",           Faction.MONSTER, CardType.UNIT, null,           null, RowType.RANGED, 2, 2),
+            card("MO_ICE_GIANT",        "Ice Giant",        Faction.MONSTER, CardType.UNIT, null,           null, RowType.SIEGE,  9, 1),
+            card("MO_HARPY",            "Harpy",            Faction.MONSTER, CardType.UNIT, null,           null, RowType.RANGED, 2, 2),
 
             // ── SCOIA'TAEL ───────────────────────────────────────────────────
 
