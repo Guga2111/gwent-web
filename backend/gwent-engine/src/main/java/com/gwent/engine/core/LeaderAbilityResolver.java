@@ -232,7 +232,6 @@ class LeaderAbilityResolver {
 
     // Scoia'tael: move agile units to the most maximezed points row - TODO: Review this
     private void handleHopeOfTheAenSeidhe(GameState state) {
-        // 0. Pegar o player que ta fazendo a açao
         PlayerState current = state.getCurrentPlayer();
         // 1. Coletar as cartas que nao sao agile
         List<Card> meleeNotAgileCards = current.getMeleeRow().getCards().stream()
@@ -243,7 +242,7 @@ class LeaderAbilityResolver {
                 .filter(c -> c.ability() != Ability.AGILE)
                 .toList();
 
-        // 3. Somar os pontos de melee e ranged sem considerar as cartas com tipo agile
+        // 2. Somar os pontos de melee e ranged sem considerar as cartas com tipo agile
         int meleeNotAgilePoints = meleeNotAgileCards.stream()
                 .mapToInt(c -> scoreCalculator.calculateCardPower(c, current.getMeleeRow()))
                 .sum();
@@ -251,8 +250,8 @@ class LeaderAbilityResolver {
         int rangedNotAgilePoints = rangedNotAgileCards.stream()
                 .mapToInt(c -> scoreCalculator.calculateCardPower(c, current.getRangedRow()))
                 .sum();
-        // 4. Verificar qual tem a maior pontuaçao
-        // 5. Mover as cartas do tipo AGILE para a qual tiver a maior pontuacao
+
+        // 3. Mover as cartas do tipo AGILE para a qual tiver a maior pontuacao
         if (meleeNotAgilePoints > rangedNotAgilePoints) {
             List<Card> agileCardsToAdd = current.getRangedRow().getCards().stream()
                     .filter(c -> c.ability() == Ability.AGILE)
