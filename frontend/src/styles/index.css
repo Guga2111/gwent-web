@@ -1,0 +1,220 @@
+@import "tailwindcss";
+
+/* ── Medieval Theme ── */
+
+:root {
+  /* Background tones */
+  --bg-darkest: #0d0a07;
+  --bg-dark: #1a1410;
+  --bg-medium: #2a2118;
+  --bg-card: #332a20;
+  --bg-hover: #3d3228;
+
+  /* Gold palette */
+  --gold-light: #f6dd97;
+  --gold: #caa057;
+  --gold-dark: #a07830;
+  --gold-dim: #7a5c24;
+
+  /* Text */
+  --text-primary: #e8dcc8;
+  --text-secondary: #b0a08a;
+  --text-muted: #7a6c5a;
+
+  /* Accents */
+  --red: #c44;
+  --green: #5a8a3c;
+  --blue: #4a7a9c;
+  --blue-light: #c8def0;
+  --blue-dim: #5e7790;
+  --blue-dark: #16314d;
+
+  /* Parchment (quest cards, "coming soon" stubs) */
+  --parchment-light: #e9d6a6;
+  --parchment-mid: #dcc795;
+  --parchment-dark: #cbb279;
+  --parchment-text: #3d2b14;
+  --parchment-heading: #5a3f1c;
+  --parchment-muted: #7a5e34;
+  --parchment-accent: #7a5620;
+
+  /* Borders */
+  --border-subtle: #3a3020;
+  --border-gold: #6a5530;
+
+  /* Fonts */
+  --font-display: "Cinzel Decorative", serif;
+  --font-heading: "Cinzel", serif;
+  --font-body: "IM Fell English", serif;
+  --font-ui: "Barlow", sans-serif;
+}
+
+/* ── Base Reset ── */
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+    width: 100%;
+  }
+
+  body {
+    background-color: var(--bg-darkest);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+  }
+
+  button {
+    cursor: pointer;
+    font-family: var(--font-ui);
+  }
+
+  input {
+    font-family: var(--font-ui);
+  }
+}
+
+/* ── Scrollbar ── */
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-gold);
+  border-radius: 3px;
+}
+
+/* ── Utility Classes ── */
+
+.gold-glow {
+  text-shadow: 0 0 10px rgba(202, 160, 87, 0.4);
+}
+
+.card-shadow {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), 0 0 1px rgba(202, 160, 87, 0.2);
+}
+
+/* ── Component Classes ── */
+
+@layer components {
+  /* Game card base (72×106) */
+  .card-base {
+    width: 72px;
+    height: 106px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-gold);
+    border-radius: 4px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Leader card base (70×92) */
+  .leader-card-base {
+    width: 70px;
+    height: 92px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-gold);
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    transition: transform 0.15s;
+  }
+
+  /* Overlay heading (used in mulligan, medic, etc.) */
+  .overlay-title {
+    font-size: 24px;
+    color: var(--gold-light);
+    font-family: var(--font-display);
+  }
+
+  /* Overlay body text */
+  .overlay-body {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-style: italic;
+    font-family: var(--font-body);
+  }
+
+  /* Tiny muted label (deck label, row label, etc.) */
+  .label-muted {
+    font-size: 9px;
+    color: var(--text-muted);
+    font-family: var(--font-heading);
+  }
+}
+
+/* ── Keyframe Animations ── */
+
+/* ── Board Overlay Backdrop ── */
+
+.board-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(13, 10, 7, 0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  z-index: 50;
+}
+
+@keyframes gw-flicker {
+  0%, 100% { opacity: 0.82; }
+  40% { opacity: 1; }
+  55% { opacity: 0.72; }
+  72% { opacity: 0.96; }
+}
+
+@keyframes gw-glow {
+  0%, 100% {
+    box-shadow:
+      inset 0 2px 0 rgba(255, 240, 200, 0.5),
+      inset 0 -3px 6px rgba(90, 55, 15, 0.6),
+      0 0 0 1px rgba(40, 24, 8, 0.8),
+      0 14px 30px rgba(0, 0, 0, 0.6),
+      0 0 30px rgba(240, 200, 110, 0.25);
+  }
+  50% {
+    box-shadow:
+      inset 0 2px 0 rgba(255, 240, 200, 0.6),
+      inset 0 -3px 6px rgba(90, 55, 15, 0.6),
+      0 0 0 1px rgba(40, 24, 8, 0.8),
+      0 14px 36px rgba(0, 0, 0, 0.65),
+      0 0 52px rgba(240, 200, 110, 0.55);
+  }
+}
+
+@keyframes gw-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes tb-turn {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(202, 160, 87, 0.3);
+    border-color: var(--gold-dim);
+  }
+  50% {
+    box-shadow: 0 0 18px rgba(202, 160, 87, 0.6);
+    border-color: var(--gold);
+  }
+}
