@@ -66,29 +66,10 @@ class AbilityResolverTest {
     // --- MEDIC ---
 
     @Test
-    void shouldSetPendingAbilityWhenMedicIsPlayedAndGraveyardHasUnits() {
-        player1.addToGraveyard(makeUnit("dead", "Dead Unit", 4, RowType.MELEE));
-
+    void shouldSetPendingAbilityWhenMedicIsPlayed() {
         resolver.resolve(state, makeUnit("medic", "Medic", 5, RowType.MELEE, Ability.MEDIC), RowType.MELEE);
 
         assertEquals(PendingAbility.MEDIC_CHOICE, state.getPendingAbility());
-    }
-
-    @Test
-    void shouldSkipMedicWhenGraveyardIsEmpty() {
-        resolver.resolve(state, makeUnit("medic", "Medic", 5, RowType.MELEE, Ability.MEDIC), RowType.MELEE);
-
-        assertNull(state.getPendingAbility());
-    }
-
-    @Test
-    void shouldSkipMedicWhenGraveyardHasOnlyNonUnitCards() {
-        player1.addToGraveyard(makeHero("hero", "Hero", 10, RowType.MELEE));
-        player1.addToGraveyard(new Card("spec", "Special", Faction.NEUTRAL, CardType.SPECIAL, null, null, null, null));
-
-        resolver.resolve(state, makeUnit("medic", "Medic", 5, RowType.MELEE, Ability.MEDIC), RowType.MELEE);
-
-        assertNull(state.getPendingAbility());
     }
 
     // --- MUSTER ---

@@ -39,11 +39,7 @@ class AbilityResolver {
     }
 
     private void handleMedic(GameState state) {
-        boolean hasRevivableCards = state.getCurrentPlayer().getGraveyard().stream()
-                .anyMatch(c -> c.cardType() == CardType.UNIT);
-        if (hasRevivableCards) {
-            state.setPendingAbility(PendingAbility.MEDIC_CHOICE);
-        }
+        state.setPendingAbility(PendingAbility.MEDIC_CHOICE);
     }
 
     private void handleMuster(GameState state, Card card, RowType targetRow) {

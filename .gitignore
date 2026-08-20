@@ -1,7 +1,2 @@
 # Claude
 CLAUDE.md
-
-# Secrets
-.env
-backend/.env
-frontend/src/assets/*
