@@ -1,11 +1,11 @@
 package com.gwent.engine.core;
 
-import com.gwent.engine.command.PassCommand;
 import com.gwent.engine.command.ResolveLeaderCommand;
 import com.gwent.engine.command.UseLeaderCommand;
 import com.gwent.engine.domain.*;
-import com.gwent.engine.exception.command.CardNotInDeckException;
 import com.gwent.engine.exception.command.CardNotInGraveyardException;
+import com.gwent.engine.exception.command.CardNotInHandException;
+import com.gwent.engine.exception.command.DeckInsufficientCardsException;
 import com.gwent.engine.exception.command.InvalidRowException;
 import com.gwent.engine.state.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,209 +25,37 @@ class LeaderAbilityResolverTest {
     }
 
     // =========================================================
-    // SIEGE_MASTER (Northern Realms)
+    // SIEGE_MASTER (Northern Realms) — horn on siege row
     // =========================================================
 
     @Test
-    void shouldClearSiegeWeatherFromBothSidesWhenSiegeMasterUsed() {
+    void shouldActivateHornOnSiegeRowWhenSiegeMasterUsed() {
         PlayerState p1 = playerWithLeader(LeaderAbility.SIEGE_MASTER);
-        PlayerState p2 = playerWithLeader(LeaderAbility.SIEGE_MASTER);
-        p1.getSiegeRow().setWeatherActive(true);
-        p2.getSiegeRow().setWeatherActive(true);
-        GameState state = makePlayState(p1, p2);
-
-        engine.execute(state, new UseLeaderCommand());
-
-        assertFalse(p1.getSiegeRow().isWeatherActive());
-        assertFalse(p2.getSiegeRow().isWeatherActive());
-    }
-
-    @Test
-    void shouldNotClearOtherRowsWhenSiegeMasterUsed() {
-        PlayerState p1 = playerWithLeader(LeaderAbility.SIEGE_MASTER);
-        p1.getMeleeRow().setWeatherActive(true);
-        p1.getRangedRow().setWeatherActive(true);
         GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.SIEGE_MASTER));
 
         engine.execute(state, new UseLeaderCommand());
 
-        assertTrue(p1.getMeleeRow().isWeatherActive());
-        assertTrue(p1.getRangedRow().isWeatherActive());
+        assertTrue(p1.getSiegeRow().isHornActive());
     }
 
-    // =========================================================
-    // WHITE_FLAME (Nilfgaard)
-    // =========================================================
-
     @Test
-    void shouldMoveWeatherCardFromDeckToHandWhenWhiteFlameUsed() {
-        Card weatherCard = makeWeatherCard("frost", Ability.FROST);
-        Card normalCard = makeUnit("u1", "Unit", 5, RowType.MELEE);
-        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.WHITE_FLAME), List.of(weatherCard, normalCard));
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.WHITE_FLAME));
+    void shouldNotActivateHornOnOtherRowsWhenSiegeMasterUsed() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.SIEGE_MASTER);
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.SIEGE_MASTER));
 
         engine.execute(state, new UseLeaderCommand());
 
-        assertTrue(p1.getHand().contains(weatherCard));
-        assertFalse(p1.getDeck().contains(weatherCard));
-    }
-
-    @Test
-    void shouldDoNothingWhenNoWeatherCardInDeckForWhiteFlame() {
-        Card normalCard = makeUnit("u1", "Unit", 5, RowType.MELEE);
-        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.WHITE_FLAME), List.of(normalCard));
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.WHITE_FLAME));
-
-        engine.execute(state, new UseLeaderCommand());
-
-        assertTrue(p1.getHand().isEmpty());
-        assertEquals(1, p1.getDeck().size());
-    }
-
-    @Test
-    void shouldPickFirstWeatherCardWhenMultipleExistForWhiteFlame() {
-        Card frost = makeWeatherCard("frost", Ability.FROST);
-        Card fog = makeWeatherCard("fog", Ability.FOG);
-        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.WHITE_FLAME), List.of(frost, fog));
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.WHITE_FLAME));
-
-        engine.execute(state, new UseLeaderCommand());
-
-        assertEquals(1, p1.getHand().size());
-        assertEquals(1, p1.getDeck().size());
+        assertFalse(p1.getMeleeRow().isHornActive());
+        assertFalse(p1.getRangedRow().isHornActive());
     }
 
     // =========================================================
-    // DAISY_OF_THE_VALLEY (Scoia'tael) — same logic as WHITE_FLAME
+    // WHITE_FLAME (Nilfgaard) — cancel opponent's leader
     // =========================================================
 
     @Test
-    void shouldMoveWeatherCardFromDeckToHandWhenDaisyOfTheValleyUsed() {
-        Card weatherCard = makeWeatherCard("rain", Ability.RAIN);
-        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.DAISY_OF_THE_VALLEY), List.of(weatherCard));
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.DAISY_OF_THE_VALLEY));
-
-        engine.execute(state, new UseLeaderCommand());
-
-        assertTrue(p1.getHand().contains(weatherCard));
-        assertTrue(p1.getDeck().isEmpty());
-    }
-
-    // =========================================================
-    // BRINGER_OF_DEATH (Monsters) — same logic as WHITE_FLAME
-    // =========================================================
-
-    @Test
-    void shouldMoveWeatherCardFromDeckToHandWhenBringerOfDeathUsed() {
-        Card weatherCard = makeWeatherCard("fog", Ability.FOG);
-        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.BRINGER_OF_DEATH), List.of(weatherCard));
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.BRINGER_OF_DEATH));
-
-        engine.execute(state, new UseLeaderCommand());
-
-        assertTrue(p1.getHand().contains(weatherCard));
-        assertTrue(p1.getDeck().isEmpty());
-    }
-
-    @Test
-    void shouldDoNothingWhenNoWeatherCardInDeckForBringerOfDeath() {
-        Card normalCard = makeUnit("u1", "Unit", 5, RowType.MELEE);
-        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.BRINGER_OF_DEATH), List.of(normalCard));
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.BRINGER_OF_DEATH));
-
-        engine.execute(state, new UseLeaderCommand());
-
-        assertTrue(p1.getHand().isEmpty());
-        assertEquals(1, p1.getDeck().size());
-    }
-
-    // =========================================================
-    // DESTROYER_OF_WORLDS (Monsters)
-    // =========================================================
-
-    @Test
-    void shouldDiscardTwoCardsAndDrawOneWhenDestroyerOfWorldsUsed() {
-        Card discard1 = makeUnit("d1", "Discard1", 3, RowType.MELEE);
-        Card discard2 = makeUnit("d2", "Discard2", 4, RowType.MELEE);
-        Card keep = makeUnit("keep", "Keep", 5, RowType.MELEE);
-        Card fromDeck = makeUnit("deck", "FromDeck", 6, RowType.RANGED);
-        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.DESTROYER_OF_WORLDS), List.of(fromDeck));
-        p1.addToHand(discard1);
-        p1.addToHand(discard2);
-        p1.addToHand(keep);
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.DESTROYER_OF_WORLDS));
-
-        engine.execute(state, new UseLeaderCommand());
-
-        assertEquals(2, p1.getGraveyard().size());
-        assertEquals(2, p1.getHand().size()); // keep + fromDeck
-    }
-
-    @Test
-    void shouldDiscardOnlyAvailableCardsWhenHandHasLessThanTwoForDestroyerOfWorlds() {
-        Card onlyCard = makeUnit("u1", "Only", 3, RowType.MELEE);
-        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.DESTROYER_OF_WORLDS), List.of());
-        p1.addToHand(onlyCard);
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.DESTROYER_OF_WORLDS));
-
-        engine.execute(state, new UseLeaderCommand());
-
-        assertEquals(1, p1.getGraveyard().size());
-        assertTrue(p1.getHand().isEmpty());
-    }
-
-    @Test
-    void shouldNotDrawWhenDeckIsEmptyForDestroyerOfWorlds() {
-        Card discard1 = makeUnit("d1", "Discard1", 3, RowType.MELEE);
-        Card discard2 = makeUnit("d2", "Discard2", 4, RowType.MELEE);
-        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.DESTROYER_OF_WORLDS), List.of());
-        p1.addToHand(discard1);
-        p1.addToHand(discard2);
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.DESTROYER_OF_WORLDS));
-
-        engine.execute(state, new UseLeaderCommand());
-
-        assertEquals(2, p1.getGraveyard().size());
-        assertTrue(p1.getHand().isEmpty());
-    }
-
-    // =========================================================
-    // KING_BRAN (Skellige)
-    // =========================================================
-
-    @Test
-    void shouldMoveAllGraveyardCardsBackToDeckWhenKingBranUsed() {
-        Card g1 = makeUnit("g1", "Ghost1", 3, RowType.MELEE);
-        Card g2 = makeUnit("g2", "Ghost2", 4, RowType.RANGED);
-        PlayerState p1 = playerWithLeader(LeaderAbility.KING_BRAN);
-        p1.addToGraveyard(g1);
-        p1.addToGraveyard(g2);
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.KING_BRAN));
-
-        engine.execute(state, new UseLeaderCommand());
-
-        assertTrue(p1.getGraveyard().isEmpty());
-        assertTrue(p1.getDeck().contains(g1));
-        assertTrue(p1.getDeck().contains(g2));
-    }
-
-    @Test
-    void shouldDoNothingWhenGraveyardIsEmptyForKingBran() {
-        PlayerState p1 = playerWithLeader(LeaderAbility.KING_BRAN);
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.KING_BRAN));
-
-        assertDoesNotThrow(() -> engine.execute(state, new UseLeaderCommand()));
-        assertTrue(p1.getGraveyard().isEmpty());
-        assertTrue(p1.getDeck().isEmpty());
-    }
-
-    // =========================================================
-    // INVADER_OF_THE_NORTH (Nilfgaard)
-    // =========================================================
-
-    @Test
-    void shouldMarkOpponentLeaderAsUsedWhenInvaderOfTheNorthUsed() {
-        PlayerState p1 = playerWithLeader(LeaderAbility.INVADER_OF_THE_NORTH);
+    void shouldMarkOpponentLeaderAsUsedWhenWhiteFlameUsed() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.WHITE_FLAME);
         PlayerState p2 = playerWithLeader(LeaderAbility.SIEGE_MASTER);
         GameState state = makePlayState(p1, p2);
 
@@ -237,8 +65,8 @@ class LeaderAbilityResolverTest {
     }
 
     @Test
-    void shouldDoNothingWhenOpponentLeaderAlreadyUsedForInvaderOfTheNorth() {
-        PlayerState p1 = playerWithLeader(LeaderAbility.INVADER_OF_THE_NORTH);
+    void shouldDoNothingWhenOpponentLeaderAlreadyUsedForWhiteFlame() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.WHITE_FLAME);
         PlayerState p2 = playerWithLeader(LeaderAbility.SIEGE_MASTER);
         p2.useLeader();
         GameState state = makePlayState(p1, p2);
@@ -248,69 +76,278 @@ class LeaderAbilityResolverTest {
     }
 
     // =========================================================
-    // LORD_COMMANDER (Northern Realms) — destroy strongest in siege row
+    // DAISY_OF_THE_VALLEY (Scoia'tael) — draw first card from deck
     // =========================================================
 
     @Test
-    void shouldDestroyStrongestUnitInSiegeRowWhenScoreAtLeast10() {
-        PlayerState p1 = playerWithLeader(LeaderAbility.LORD_COMMANDER);
-        PlayerState p2 = playerWithLeader(LeaderAbility.LORD_COMMANDER);
-        Card strong = makeUnit("s1", "Strong", 7, RowType.SIEGE);
-        Card weak = makeUnit("w1", "Weak", 3, RowType.SIEGE);
-        p2.getSiegeRow().addCard(strong);
-        p2.getSiegeRow().addCard(weak);
-        GameState state = makePlayState(p1, p2);
+    void shouldDrawFirstCardFromDeckWhenDaisyOfTheValleyUsed() {
+        Card deckCard = makeUnit("d1", "DeckUnit", 5, RowType.MELEE);
+        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.DAISY_OF_THE_VALLEY), List.of(deckCard));
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.DAISY_OF_THE_VALLEY));
 
         engine.execute(state, new UseLeaderCommand());
 
-        assertFalse(p2.getSiegeRow().getCards().contains(strong));
-        assertTrue(p2.getSiegeRow().getCards().contains(weak));
-        assertTrue(p2.getGraveyard().contains(strong));
+        assertTrue(p1.getHand().contains(deckCard));
+        assertTrue(p1.getDeck().isEmpty());
     }
 
     @Test
-    void shouldNotDestroyWhenSiegeRowScoreBelow10() {
-        PlayerState p1 = playerWithLeader(LeaderAbility.LORD_COMMANDER);
-        PlayerState p2 = playerWithLeader(LeaderAbility.LORD_COMMANDER);
-        Card unit = makeUnit("u1", "Unit", 5, RowType.SIEGE);
-        p2.getSiegeRow().addCard(unit);
-        GameState state = makePlayState(p1, p2);
+    void shouldThrowWhenDeckEmptyForDaisyOfTheValley() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.DAISY_OF_THE_VALLEY);
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.DAISY_OF_THE_VALLEY));
+
+        assertThrows(DeckInsufficientCardsException.class, () ->
+                engine.execute(state, new UseLeaderCommand()));
+    }
+
+    // =========================================================
+    // BRINGER_OF_DEATH (Monsters) — graveyard to hand pending
+    // =========================================================
+
+    @Test
+    void shouldSetGraveyardToHandPendingWhenBringerOfDeathUsed() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.BRINGER_OF_DEATH);
+        p1.addToGraveyard(makeUnit("g1", "Ghost", 5, RowType.MELEE));
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.BRINGER_OF_DEATH));
 
         engine.execute(state, new UseLeaderCommand());
 
-        assertTrue(p2.getSiegeRow().getCards().contains(unit));
-        assertTrue(p2.getGraveyard().isEmpty());
+        assertEquals(PendingAbility.LEADER_GRAVEYARD_TO_HAND, state.getPendingAbility());
+        assertEquals(LeaderAbility.BRINGER_OF_DEATH, state.getPendingLeaderAbility());
     }
 
     @Test
-    void shouldNotDestroyHeroCardsInSiegeRow() {
-        PlayerState p1 = playerWithLeader(LeaderAbility.LORD_COMMANDER);
-        PlayerState p2 = playerWithLeader(LeaderAbility.LORD_COMMANDER);
-        Card hero = makeHero("h1", "Hero", 10, RowType.SIEGE);
-        p2.getSiegeRow().addCard(hero);
-        GameState state = makePlayState(p1, p2);
+    void shouldMoveCardFromGraveyardToHandWhenBringerOfDeathResolved() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.BRINGER_OF_DEATH);
+        Card unit = makeUnit("g1", "Ghost", 5, RowType.MELEE);
+        p1.addToGraveyard(unit);
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.BRINGER_OF_DEATH));
 
         engine.execute(state, new UseLeaderCommand());
+        engine.execute(state, new ResolveLeaderCommand(unit));
 
-        assertTrue(p2.getSiegeRow().getCards().contains(hero));
-        assertTrue(p2.getGraveyard().isEmpty());
+        assertTrue(p1.getHand().contains(unit));
+        assertFalse(p1.getGraveyard().contains(unit));
+        assertNull(state.getPendingAbility());
     }
 
     @Test
-    void shouldDestroyFirstStrongestOnTieInSiegeRow() {
-        PlayerState p1 = playerWithLeader(LeaderAbility.LORD_COMMANDER);
-        PlayerState p2 = playerWithLeader(LeaderAbility.LORD_COMMANDER);
-        Card first = makeUnit("f1", "First", 5, RowType.SIEGE);
-        Card second = makeUnit("s1", "Second", 5, RowType.SIEGE);
-        p2.getSiegeRow().addCard(first);
-        p2.getSiegeRow().addCard(second);
+    void shouldDoNothingWhenGraveyardHasNoUnitsForBringerOfDeath() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.BRINGER_OF_DEATH);
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.BRINGER_OF_DEATH));
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertNull(state.getPendingAbility());
+    }
+
+    @Test
+    void shouldThrowWhenResolvingBringerOfDeathWithCardNotInGraveyard() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.BRINGER_OF_DEATH);
+        Card inGraveyard = makeUnit("g1", "InGrave", 5, RowType.MELEE);
+        Card notInGraveyard = makeUnit("n1", "NotInGrave", 5, RowType.MELEE);
+        p1.addToGraveyard(inGraveyard);
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.BRINGER_OF_DEATH));
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertThrows(CardNotInGraveyardException.class, () ->
+                engine.execute(state, new ResolveLeaderCommand(notInGraveyard)));
+    }
+
+    @Test
+    void shouldThrowWhenResolvingBringerOfDeathWithNonUnitCard() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.BRINGER_OF_DEATH);
+        Card hero = makeHero("h1", "Hero", 10, RowType.MELEE);
+        Card unit = makeUnit("u1", "Unit", 3, RowType.MELEE);
+        p1.addToGraveyard(hero);
+        p1.addToGraveyard(unit);
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.BRINGER_OF_DEATH));
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertThrows(InvalidRowException.class, () ->
+                engine.execute(state, new ResolveLeaderCommand(hero)));
+    }
+
+    // =========================================================
+    // DESTROYER_OF_WORLDS (Monsters) — discard pending + draw
+    // =========================================================
+
+    @Test
+    void shouldSetHandDiscardPendingWhenDestroyerOfWorldsUsed() {
+        Card c1 = makeUnit("c1", "Card1", 3, RowType.MELEE);
+        Card c2 = makeUnit("c2", "Card2", 4, RowType.MELEE);
+        PlayerState p1 = playerWithLeader(LeaderAbility.DESTROYER_OF_WORLDS);
+        p1.addToHand(c1);
+        p1.addToHand(c2);
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.DESTROYER_OF_WORLDS));
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertEquals(PendingAbility.LEADER_HAND_DISCARD, state.getPendingAbility());
+        assertEquals(LeaderAbility.DESTROYER_OF_WORLDS, state.getPendingLeaderAbility());
+        assertEquals(2, state.getPendingAbilityCount());
+    }
+
+    @Test
+    void shouldDiscardCardsSequentiallyAndDrawOneAfterAllDiscards() {
+        Card c1 = makeUnit("c1", "Card1", 3, RowType.MELEE);
+        Card c2 = makeUnit("c2", "Card2", 4, RowType.MELEE);
+        Card keep = makeUnit("keep", "Keep", 5, RowType.MELEE);
+        Card deckCard = makeUnit("deck", "FromDeck", 6, RowType.RANGED);
+        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.DESTROYER_OF_WORLDS), List.of(deckCard));
+        p1.addToHand(c1);
+        p1.addToHand(c2);
+        p1.addToHand(keep);
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.DESTROYER_OF_WORLDS));
+
+        engine.execute(state, new UseLeaderCommand());
+
+        // first discard
+        engine.execute(state, new ResolveLeaderCommand(c1));
+        assertTrue(p1.getGraveyard().contains(c1));
+        assertEquals(PendingAbility.LEADER_HAND_DISCARD, state.getPendingAbility());
+        assertEquals(1, state.getPendingAbilityCount());
+
+        // second discard — draws 1 from deck after
+        engine.execute(state, new ResolveLeaderCommand(c2));
+        assertTrue(p1.getGraveyard().contains(c2));
+        assertNull(state.getPendingAbility());
+        assertTrue(p1.getHand().contains(keep));
+        assertTrue(p1.getHand().contains(deckCard));
+    }
+
+    @Test
+    void shouldSetPendingCountTo1WhenHandHasOnlyOneCard() {
+        Card onlyCard = makeUnit("u1", "Only", 3, RowType.MELEE);
+        PlayerState p1 = playerWithLeader(LeaderAbility.DESTROYER_OF_WORLDS);
+        p1.addToHand(onlyCard);
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.DESTROYER_OF_WORLDS));
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertEquals(1, state.getPendingAbilityCount());
+    }
+
+    @Test
+    void shouldDoNothingWhenHandIsEmptyForDestroyerOfWorlds() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.DESTROYER_OF_WORLDS);
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.DESTROYER_OF_WORLDS));
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertNull(state.getPendingAbility());
+    }
+
+    @Test
+    void shouldNotDrawWhenDeckIsEmptyAfterDiscards() {
+        Card c1 = makeUnit("c1", "Card1", 3, RowType.MELEE);
+        Card c2 = makeUnit("c2", "Card2", 4, RowType.MELEE);
+        PlayerState p1 = playerWithLeader(LeaderAbility.DESTROYER_OF_WORLDS);
+        p1.addToHand(c1);
+        p1.addToHand(c2);
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.DESTROYER_OF_WORLDS));
+
+        engine.execute(state, new UseLeaderCommand());
+        engine.execute(state, new ResolveLeaderCommand(c1));
+        engine.execute(state, new ResolveLeaderCommand(c2));
+
+        assertEquals(2, p1.getGraveyard().size());
+        assertTrue(p1.getHand().isEmpty());
+        assertNull(state.getPendingAbility());
+    }
+
+    @Test
+    void shouldThrowWhenDiscardingCardNotInHand() {
+        Card c1 = makeUnit("c1", "Card1", 3, RowType.MELEE);
+        Card notInHand = makeUnit("n1", "NotInHand", 5, RowType.MELEE);
+        PlayerState p1 = playerWithLeader(LeaderAbility.DESTROYER_OF_WORLDS);
+        p1.addToHand(c1);
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.DESTROYER_OF_WORLDS));
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertThrows(CardNotInHandException.class, () ->
+                engine.execute(state, new ResolveLeaderCommand(notInHand)));
+    }
+
+    // =========================================================
+    // INVADER_OF_THE_NORTH (Nilfgaard) — revive 1 from graveyard for both
+    // =========================================================
+
+    @Test
+    void shouldReviveUnitFromGraveyardForBothPlayers() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.INVADER_OF_THE_NORTH);
+        PlayerState p2 = playerWithLeader(LeaderAbility.INVADER_OF_THE_NORTH);
+        Card g1 = makeUnit("g1", "Ghost1", 5, RowType.MELEE);
+        Card g2 = makeUnit("g2", "Ghost2", 4, RowType.RANGED);
+        p1.addToGraveyard(g1);
+        p2.addToGraveyard(g2);
         GameState state = makePlayState(p1, p2);
 
         engine.execute(state, new UseLeaderCommand());
 
-        assertFalse(p2.getSiegeRow().getCards().contains(first));
-        assertTrue(p2.getSiegeRow().getCards().contains(second));
-        assertTrue(p2.getGraveyard().contains(first));
+        assertTrue(p1.getHand().contains(g1));
+        assertFalse(p1.getGraveyard().contains(g1));
+        assertTrue(p2.getHand().contains(g2));
+        assertFalse(p2.getGraveyard().contains(g2));
+    }
+
+    @Test
+    void shouldThrowWhenNoUnitsInGraveyardForInvaderOfTheNorth() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.INVADER_OF_THE_NORTH);
+        PlayerState p2 = playerWithLeader(LeaderAbility.INVADER_OF_THE_NORTH);
+        GameState state = makePlayState(p1, p2);
+
+        assertThrows(CardNotInGraveyardException.class, () ->
+                engine.execute(state, new UseLeaderCommand()));
+    }
+
+    @Test
+    void shouldThrowWhenOnlyOnePlayerHasUnitsInGraveyardForInvaderOfTheNorth() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.INVADER_OF_THE_NORTH);
+        PlayerState p2 = playerWithLeader(LeaderAbility.INVADER_OF_THE_NORTH);
+        p1.addToGraveyard(makeUnit("g1", "Ghost", 5, RowType.MELEE));
+        // p2 has no units in graveyard
+        GameState state = makePlayState(p1, p2);
+
+        assertThrows(CardNotInGraveyardException.class, () ->
+                engine.execute(state, new UseLeaderCommand()));
+    }
+
+    // =========================================================
+    // LORD_COMMANDER (Northern Realms) — clear all weather
+    // =========================================================
+
+    @Test
+    void shouldClearAllWeatherFromAllRowsForBothPlayers() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.LORD_COMMANDER);
+        PlayerState p2 = playerWithLeader(LeaderAbility.LORD_COMMANDER);
+        p1.getMeleeRow().setWeatherActive(true);
+        p1.getRangedRow().setWeatherActive(true);
+        p1.getSiegeRow().setWeatherActive(true);
+        p2.getMeleeRow().setWeatherActive(true);
+        p2.getRangedRow().setWeatherActive(true);
+        p2.getSiegeRow().setWeatherActive(true);
+        GameState state = makePlayState(p1, p2);
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertFalse(p1.getMeleeRow().isWeatherActive());
+        assertFalse(p1.getRangedRow().isWeatherActive());
+        assertFalse(p1.getSiegeRow().isWeatherActive());
+        assertFalse(p2.getMeleeRow().isWeatherActive());
+        assertFalse(p2.getRangedRow().isWeatherActive());
+        assertFalse(p2.getSiegeRow().isWeatherActive());
+    }
+
+    @Test
+    void shouldNotThrowWhenNoWeatherActiveForLordCommander() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.LORD_COMMANDER);
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.LORD_COMMANDER));
+
+        assertDoesNotThrow(() -> engine.execute(state, new UseLeaderCommand()));
     }
 
     // =========================================================
@@ -411,78 +448,6 @@ class LeaderAbilityResolverTest {
     }
 
     // =========================================================
-    // KING_OF_THE_WILD_HUNT (Monsters) — restore 1 unit from graveyard
-    // =========================================================
-
-    @Test
-    void shouldSetPendingAbilityWhenKingOfTheWildHuntUsedWithUnitsInGraveyard() {
-        PlayerState p1 = playerWithLeader(LeaderAbility.KING_OF_THE_WILD_HUNT);
-        p1.addToGraveyard(makeUnit("g1", "Ghost", 5, RowType.MELEE));
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.KING_OF_THE_WILD_HUNT));
-
-        engine.execute(state, new UseLeaderCommand());
-
-        assertEquals(PendingAbility.LEADER_GRAVEYARD_PICK, state.getPendingAbility());
-        assertEquals(LeaderAbility.KING_OF_THE_WILD_HUNT, state.getPendingLeaderAbility());
-        assertEquals(Turn.PLAYER_1, state.getCurrentTurn());
-    }
-
-    @Test
-    void shouldRestoreUnitFromGraveyardWhenKingOfTheWildHuntResolved() {
-        PlayerState p1 = playerWithLeader(LeaderAbility.KING_OF_THE_WILD_HUNT);
-        Card unit = makeUnit("g1", "Ghost", 5, RowType.MELEE);
-        p1.addToGraveyard(unit);
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.KING_OF_THE_WILD_HUNT));
-
-        engine.execute(state, new UseLeaderCommand());
-        engine.execute(state, new ResolveLeaderCommand(unit));
-
-        assertTrue(p1.getMeleeRow().getCards().contains(unit));
-        assertFalse(p1.getGraveyard().contains(unit));
-        assertNull(state.getPendingAbility());
-    }
-
-    @Test
-    void shouldDoNothingWhenGraveyardHasNoUnitsForKingOfTheWildHunt() {
-        PlayerState p1 = playerWithLeader(LeaderAbility.KING_OF_THE_WILD_HUNT);
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.KING_OF_THE_WILD_HUNT));
-
-        engine.execute(state, new UseLeaderCommand());
-
-        assertNull(state.getPendingAbility());
-        assertEquals(Turn.PLAYER_2, state.getCurrentTurn());
-    }
-
-    @Test
-    void shouldThrowWhenResolvingGraveyardPickWithNonUnitCard() {
-        PlayerState p1 = playerWithLeader(LeaderAbility.KING_OF_THE_WILD_HUNT);
-        Card hero = makeHero("h1", "Hero", 10, RowType.MELEE);
-        Card unit = makeUnit("u1", "Unit", 3, RowType.MELEE);
-        p1.addToGraveyard(hero);
-        p1.addToGraveyard(unit);
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.KING_OF_THE_WILD_HUNT));
-
-        engine.execute(state, new UseLeaderCommand());
-
-        assertThrows(InvalidRowException.class, () ->
-                engine.execute(state, new ResolveLeaderCommand(hero)));
-    }
-
-    @Test
-    void shouldThrowWhenResolvingGraveyardPickWithCardNotInGraveyard() {
-        PlayerState p1 = playerWithLeader(LeaderAbility.KING_OF_THE_WILD_HUNT);
-        Card inGraveyard = makeUnit("g1", "InGrave", 5, RowType.MELEE);
-        Card notInGraveyard = makeUnit("n1", "NotInGrave", 5, RowType.MELEE);
-        p1.addToGraveyard(inGraveyard);
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.KING_OF_THE_WILD_HUNT));
-
-        engine.execute(state, new UseLeaderCommand());
-
-        assertThrows(CardNotInGraveyardException.class, () ->
-                engine.execute(state, new ResolveLeaderCommand(notInGraveyard)));
-    }
-
-    // =========================================================
     // RELENTLESS (Nilfgaard) — pick from opponent graveyard
     // =========================================================
 
@@ -543,323 +508,391 @@ class LeaderAbilityResolverTest {
     }
 
     // =========================================================
-    // KING_OF_TEMERIA (Northern Realms) — pick from deck, play immediately
+    // KING_OF_THE_WILD_HUNT (Monsters) — pick weather from deck
     // =========================================================
 
     @Test
-    void shouldSetDeckPickPendingWhenKingOfTemeriaUsed() {
-        Card deckCard = makeUnit("d1", "DeckUnit", 5, RowType.MELEE);
-        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.KING_OF_TEMERIA), List.of(deckCard));
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.KING_OF_TEMERIA));
+    void shouldPickFirstWeatherCardFromDeckWhenKingOfTheWildHuntUsed() {
+        Card weather = makeWeatherCard("frost", Ability.FROST);
+        Card unit = makeUnit("u1", "Unit", 5, RowType.MELEE);
+        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.KING_OF_THE_WILD_HUNT), List.of(unit, weather));
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.KING_OF_THE_WILD_HUNT));
 
         engine.execute(state, new UseLeaderCommand());
 
-        assertEquals(PendingAbility.LEADER_DECK_PICK, state.getPendingAbility());
-        assertEquals(LeaderAbility.KING_OF_TEMERIA, state.getPendingLeaderAbility());
+        assertTrue(p1.getHand().contains(weather));
+        assertFalse(p1.getDeck().contains(weather));
+        assertTrue(p1.getDeck().contains(unit));
     }
 
     @Test
-    void shouldPlayCardImmediatelyWhenKingOfTemeriaResolved() {
-        Card deckCard = makeUnit("d1", "DeckUnit", 5, RowType.SIEGE);
-        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.KING_OF_TEMERIA), List.of(deckCard));
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.KING_OF_TEMERIA));
-
-        engine.execute(state, new UseLeaderCommand());
-        engine.execute(state, new ResolveLeaderCommand(deckCard));
-
-        assertTrue(p1.getSiegeRow().getCards().contains(deckCard));
-        assertNull(state.getPendingAbility());
-    }
-
-    @Test
-    void shouldDoNothingWhenDeckIsEmptyForKingOfTemeria() {
-        PlayerState p1 = playerWithLeader(LeaderAbility.KING_OF_TEMERIA);
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.KING_OF_TEMERIA));
+    void shouldDoNothingWhenNoWeatherInDeckForKingOfTheWildHunt() {
+        Card unit = makeUnit("u1", "Unit", 5, RowType.MELEE);
+        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.KING_OF_THE_WILD_HUNT), List.of(unit));
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.KING_OF_THE_WILD_HUNT));
 
         engine.execute(state, new UseLeaderCommand());
 
-        assertNull(state.getPendingAbility());
-        assertEquals(Turn.PLAYER_2, state.getCurrentTurn());
-    }
-
-    @Test
-    void shouldThrowWhenResolvingDeckPickWithCardNotInDeck() {
-        Card deckCard = makeUnit("d1", "DeckUnit", 5, RowType.MELEE);
-        Card notInDeck = makeUnit("n1", "NotInDeck", 5, RowType.MELEE);
-        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.KING_OF_TEMERIA), List.of(deckCard));
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.KING_OF_TEMERIA));
-
-        engine.execute(state, new UseLeaderCommand());
-
-        assertThrows(CardNotInDeckException.class, () ->
-                engine.execute(state, new ResolveLeaderCommand(notInDeck)));
-    }
-
-    @Test
-    void shouldPlayWeatherCardFromDeckWhenKingOfTemeriaResolved() {
-        Card weatherCard = makeWeatherCard("frost", Ability.FROST);
-        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.KING_OF_TEMERIA), List.of(weatherCard));
-        PlayerState p2 = playerWithLeader(LeaderAbility.KING_OF_TEMERIA);
-        GameState state = makePlayState(p1, p2);
-
-        engine.execute(state, new UseLeaderCommand());
-        engine.execute(state, new ResolveLeaderCommand(weatherCard));
-
-        assertTrue(state.getPlayer1().getMeleeRow().isWeatherActive());
-        assertTrue(state.getPlayer2().getMeleeRow().isWeatherActive());
+        assertTrue(p1.getHand().isEmpty());
+        assertEquals(1, p1.getDeck().size());
     }
 
     // =========================================================
-    // COMMANDER_OF_THE_RED_RIDERS (Monsters) — pick from deck, then discard
+    // KING_OF_TEMERIA (Northern Realms) — pick FOG from deck
     // =========================================================
 
     @Test
-    void shouldSetDeckPickPendingWhenCommanderOfTheRedRidersUsed() {
-        Card deckCard = makeUnit("d1", "DeckUnit", 5, RowType.MELEE);
-        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.COMMANDER_OF_THE_RED_RIDERS), List.of(deckCard));
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.COMMANDER_OF_THE_RED_RIDERS));
+    void shouldPickFogCardFromDeckWhenKingOfTemeriaUsed() {
+        Card fog = makeWeatherCard("fog", Ability.FOG);
+        Card frost = makeWeatherCard("frost", Ability.FROST);
+        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.KING_OF_TEMERIA), List.of(frost, fog));
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.KING_OF_TEMERIA));
 
         engine.execute(state, new UseLeaderCommand());
 
-        assertEquals(PendingAbility.LEADER_DECK_PICK, state.getPendingAbility());
-        assertEquals(LeaderAbility.COMMANDER_OF_THE_RED_RIDERS, state.getPendingLeaderAbility());
+        assertTrue(p1.getHand().contains(fog));
+        assertFalse(p1.getHand().contains(frost));
+        assertFalse(p1.getDeck().contains(fog));
     }
 
     @Test
-    void shouldAddCardToHandAndTransitionToDiscardAfterDeckPick() {
-        Card deckCard = makeUnit("d1", "DeckUnit", 5, RowType.MELEE);
-        Card handCard = makeUnit("h1", "HandUnit", 3, RowType.MELEE);
-        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.COMMANDER_OF_THE_RED_RIDERS), List.of(deckCard));
-        p1.addToHand(handCard);
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.COMMANDER_OF_THE_RED_RIDERS));
+    void shouldDoNothingWhenNoFogInDeckForKingOfTemeria() {
+        Card frost = makeWeatherCard("frost", Ability.FROST);
+        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.KING_OF_TEMERIA), List.of(frost));
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.KING_OF_TEMERIA));
 
         engine.execute(state, new UseLeaderCommand());
-        engine.execute(state, new ResolveLeaderCommand(deckCard));
 
-        assertTrue(p1.getHand().contains(deckCard));
-        assertEquals(PendingAbility.LEADER_HAND_DISCARD, state.getPendingAbility());
+        assertTrue(p1.getHand().isEmpty());
+        assertEquals(1, p1.getDeck().size());
     }
 
-    @Test
-    void shouldDiscardCardFromHandAndClearPending() {
-        Card deckCard = makeUnit("d1", "DeckUnit", 5, RowType.MELEE);
-        Card handCard = makeUnit("h1", "HandUnit", 3, RowType.MELEE);
-        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.COMMANDER_OF_THE_RED_RIDERS), List.of(deckCard));
-        p1.addToHand(handCard);
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.COMMANDER_OF_THE_RED_RIDERS));
-
-        engine.execute(state, new UseLeaderCommand());
-        engine.execute(state, new ResolveLeaderCommand(deckCard)); // pick from deck
-        engine.execute(state, new ResolveLeaderCommand(handCard)); // discard from hand
-
-        assertFalse(p1.getHand().contains(handCard));
-        assertTrue(p1.getGraveyard().contains(handCard));
-        assertNull(state.getPendingAbility());
-    }
+    // =========================================================
+    // COMMANDER_OF_THE_RED_RIDERS (Monsters) — horn on melee row
+    // =========================================================
 
     @Test
-    void shouldDoNothingWhenDeckIsEmptyForCommanderOfTheRedRiders() {
+    void shouldActivateHornOnMeleeRowWhenCommanderOfTheRedRidersUsed() {
         PlayerState p1 = playerWithLeader(LeaderAbility.COMMANDER_OF_THE_RED_RIDERS);
         GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.COMMANDER_OF_THE_RED_RIDERS));
 
         engine.execute(state, new UseLeaderCommand());
 
-        assertNull(state.getPendingAbility());
+        assertTrue(p1.getMeleeRow().isHornActive());
     }
 
-    // =========================================================
-    // CLAN_AN_CRAITE (Skellige) — restore 2 units from graveyard
-    // =========================================================
-
     @Test
-    void shouldSetGraveyardPickWithCount2WhenClanAnCraiteUsed() {
-        PlayerState p1 = playerWithLeader(LeaderAbility.CLAN_AN_CRAITE);
-        p1.addToGraveyard(makeUnit("g1", "Ghost1", 5, RowType.MELEE));
-        p1.addToGraveyard(makeUnit("g2", "Ghost2", 4, RowType.RANGED));
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.CLAN_AN_CRAITE));
+    void shouldNotActivateHornOnOtherRowsWhenCommanderOfTheRedRidersUsed() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.COMMANDER_OF_THE_RED_RIDERS);
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.COMMANDER_OF_THE_RED_RIDERS));
 
         engine.execute(state, new UseLeaderCommand());
 
-        assertEquals(PendingAbility.LEADER_GRAVEYARD_PICK, state.getPendingAbility());
-        assertEquals(LeaderAbility.CLAN_AN_CRAITE, state.getPendingLeaderAbility());
-        assertEquals(2, state.getPendingAbilityCount());
+        assertFalse(p1.getRangedRow().isHornActive());
+        assertFalse(p1.getSiegeRow().isHornActive());
     }
 
+    // =========================================================
+    // CLAN_AN_CRAITE (Skellige) — all graveyard to deck for both + shuffle
+    // =========================================================
+
     @Test
-    void shouldRestoreTwoUnitsSequentiallyFromGraveyard() {
+    void shouldMoveAllGraveyardCardsToDeckForBothPlayers() {
         PlayerState p1 = playerWithLeader(LeaderAbility.CLAN_AN_CRAITE);
+        PlayerState p2 = playerWithLeader(LeaderAbility.CLAN_AN_CRAITE);
         Card g1 = makeUnit("g1", "Ghost1", 5, RowType.MELEE);
         Card g2 = makeUnit("g2", "Ghost2", 4, RowType.RANGED);
+        Card g3 = makeUnit("g3", "Ghost3", 3, RowType.SIEGE);
         p1.addToGraveyard(g1);
         p1.addToGraveyard(g2);
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.CLAN_AN_CRAITE));
-
-        engine.execute(state, new UseLeaderCommand());
-
-        // first pick
-        engine.execute(state, new ResolveLeaderCommand(g1));
-        assertTrue(p1.getMeleeRow().getCards().contains(g1));
-        assertEquals(PendingAbility.LEADER_GRAVEYARD_PICK, state.getPendingAbility());
-        assertEquals(1, state.getPendingAbilityCount());
-
-        // second pick
-        engine.execute(state, new ResolveLeaderCommand(g2));
-        assertTrue(p1.getRangedRow().getCards().contains(g2));
-        assertNull(state.getPendingAbility());
-    }
-
-    @Test
-    void shouldRestoreOnlyOneUnitWhenGraveyardHasOnlyOneForClanAnCraite() {
-        PlayerState p1 = playerWithLeader(LeaderAbility.CLAN_AN_CRAITE);
-        Card g1 = makeUnit("g1", "Ghost1", 5, RowType.MELEE);
-        p1.addToGraveyard(g1);
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.CLAN_AN_CRAITE));
-
-        engine.execute(state, new UseLeaderCommand());
-
-        assertEquals(1, state.getPendingAbilityCount());
-
-        engine.execute(state, new ResolveLeaderCommand(g1));
-        assertTrue(p1.getMeleeRow().getCards().contains(g1));
-        assertNull(state.getPendingAbility());
-    }
-
-    @Test
-    void shouldDoNothingWhenGraveyardHasNoUnitsForClanAnCraite() {
-        PlayerState p1 = playerWithLeader(LeaderAbility.CLAN_AN_CRAITE);
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.CLAN_AN_CRAITE));
-
-        engine.execute(state, new UseLeaderCommand());
-
-        assertNull(state.getPendingAbility());
-    }
-
-    // =========================================================
-    // NORTH_COMMANDER (Northern Realms) — +1 to siege units
-    // =========================================================
-
-    @Test
-    void shouldSetLeaderBonusPowerOnSiegeRow() {
-        PlayerState p1 = playerWithLeader(LeaderAbility.NORTH_COMMANDER);
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.NORTH_COMMANDER));
-
-        engine.execute(state, new UseLeaderCommand());
-
-        assertEquals(1, p1.getSiegeRow().getLeaderBonusPower());
-        assertEquals(0, p1.getMeleeRow().getLeaderBonusPower());
-        assertEquals(0, p1.getRangedRow().getLeaderBonusPower());
-    }
-
-    @Test
-    void shouldIncreaseScoreWithLeaderBonusPower() {
-        PlayerState p1 = playerWithLeader(LeaderAbility.NORTH_COMMANDER);
-        Card unit = makeUnit("u1", "Unit", 5, RowType.SIEGE);
-        p1.getSiegeRow().addCard(unit);
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.NORTH_COMMANDER));
-
-        engine.execute(state, new UseLeaderCommand());
-
-        assertEquals(6, engine.calculateScore(p1));
-    }
-
-    @Test
-    void shouldNotApplyLeaderBonusPowerToHeroCards() {
-        PlayerState p1 = playerWithLeader(LeaderAbility.NORTH_COMMANDER);
-        Card hero = makeHero("h1", "Hero", 10, RowType.SIEGE);
-        p1.getSiegeRow().addCard(hero);
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.NORTH_COMMANDER));
-
-        engine.execute(state, new UseLeaderCommand());
-
-        assertEquals(10, engine.calculateScore(p1));
-    }
-
-    @Test
-    void shouldApplyLeaderBonusToEachUnitInSiegeRow() {
-        PlayerState p1 = playerWithLeader(LeaderAbility.NORTH_COMMANDER);
-        Card u1 = makeUnit("u1", "Unit1", 3, RowType.SIEGE);
-        Card u2 = makeUnit("u2", "Unit2", 4, RowType.SIEGE);
-        p1.getSiegeRow().addCard(u1);
-        p1.getSiegeRow().addCard(u2);
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.NORTH_COMMANDER));
-
-        engine.execute(state, new UseLeaderCommand());
-
-        assertEquals(9, engine.calculateScore(p1));
-    }
-
-    @Test
-    void shouldReduceToOneWhenWeatherActiveEvenWithLeaderBonus() {
-        PlayerState p1 = playerWithLeader(LeaderAbility.NORTH_COMMANDER);
-        Card unit = makeUnit("u1", "Unit", 5, RowType.SIEGE);
-        p1.getSiegeRow().addCard(unit);
-        p1.getSiegeRow().setWeatherActive(true);
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.NORTH_COMMANDER));
-
-        engine.execute(state, new UseLeaderCommand());
-
-        assertEquals(1, engine.calculateScore(p1));
-    }
-
-    @Test
-    void shouldResetLeaderBonusPowerBetweenRounds() {
-        PlayerState p1 = playerWithLeader(LeaderAbility.NORTH_COMMANDER);
-        PlayerState p2 = playerWithLeader(LeaderAbility.NORTH_COMMANDER);
+        p2.addToGraveyard(g3);
         GameState state = makePlayState(p1, p2);
 
         engine.execute(state, new UseLeaderCommand());
-        assertEquals(1, p1.getSiegeRow().getLeaderBonusPower());
 
-        // both pass → round ends → new round starts → rows cleared
-        engine.execute(state, new PassCommand()); // p2 passes
-        engine.execute(state, new PassCommand()); // p1 passes (turn switched to p1 after UseLeader)
-
-        assertEquals(0, p1.getSiegeRow().getLeaderBonusPower());
-    }
-
-    // =========================================================
-    // HOPE_OF_THE_AEN_SEIDHE (Scoia'tael) — +1 to melee and ranged
-    // =========================================================
-
-    @Test
-    void shouldSetLeaderBonusPowerOnMeleeAndRangedRows() {
-        PlayerState p1 = playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE);
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE));
-
-        engine.execute(state, new UseLeaderCommand());
-
-        assertEquals(1, p1.getMeleeRow().getLeaderBonusPower());
-        assertEquals(1, p1.getRangedRow().getLeaderBonusPower());
-        assertEquals(0, p1.getSiegeRow().getLeaderBonusPower());
+        assertTrue(p1.getGraveyard().isEmpty());
+        assertTrue(p2.getGraveyard().isEmpty());
+        assertTrue(p1.getDeck().contains(g1));
+        assertTrue(p1.getDeck().contains(g2));
+        assertTrue(p2.getDeck().contains(g3));
     }
 
     @Test
-    void shouldIncreaseScoreInMeleeAndRangedWithLeaderBonus() {
-        PlayerState p1 = playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE);
-        Card meleeUnit = makeUnit("m1", "MeleeUnit", 4, RowType.MELEE);
-        Card rangedUnit = makeUnit("r1", "RangedUnit", 3, RowType.RANGED);
-        Card siegeUnit = makeUnit("s1", "SiegeUnit", 5, RowType.SIEGE);
-        p1.getMeleeRow().addCard(meleeUnit);
-        p1.getRangedRow().addCard(rangedUnit);
-        p1.getSiegeRow().addCard(siegeUnit);
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE));
-
-        engine.execute(state, new UseLeaderCommand());
-
-        assertEquals(14, engine.calculateScore(p1));
-    }
-
-    // =========================================================
-    // PUREBLOOD_ELF — should not throw (no-op)
-    // =========================================================
-
-    @Test
-    void shouldNotThrowForPurebloodElf() {
-        PlayerState p1 = playerWithLeader(LeaderAbility.PUREBLOOD_ELF);
-        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.PUREBLOOD_ELF));
+    void shouldDoNothingWhenBothGraveyardsEmptyForClanAnCraite() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.CLAN_AN_CRAITE);
+        PlayerState p2 = playerWithLeader(LeaderAbility.CLAN_AN_CRAITE);
+        GameState state = makePlayState(p1, p2);
 
         assertDoesNotThrow(() -> engine.execute(state, new UseLeaderCommand()));
-        assertTrue(p1.isLeaderUsed());
+        assertTrue(p1.getDeck().isEmpty());
+        assertTrue(p2.getDeck().isEmpty());
+    }
+
+    // =========================================================
+    // PUREBLOOD_ELF (Scoia'tael) — pick frost and play via board
+    // =========================================================
+
+    @Test
+    void shouldPickFrostFromDeckAndPlayViaBoardWhenPurebloodElfUsed() {
+        Card frost = makeWeatherCard("frost", Ability.FROST);
+        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.PUREBLOOD_ELF), List.of(frost));
+        PlayerState p2 = playerWithLeader(LeaderAbility.PUREBLOOD_ELF);
+        GameState state = makePlayState(p1, p2);
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertFalse(p1.getDeck().contains(frost));
+        assertFalse(p1.getHand().contains(frost));
+        assertTrue(state.getBoard().getActiveWeatherCards().contains(frost));
+    }
+
+    @Test
+    void shouldDoNothingWhenNoFrostInDeckForPurebloodElf() {
+        Card fog = makeWeatherCard("fog", Ability.FOG);
+        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.PUREBLOOD_ELF), List.of(fog));
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.PUREBLOOD_ELF));
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertTrue(p1.getDeck().contains(fog));
+        assertTrue(state.getBoard().getActiveWeatherCards().isEmpty());
+    }
+
+    // =========================================================
+    // KING_BRAN (Skellige) — graveyard to deck
+    // =========================================================
+
+    @Test
+    void shouldMoveAllGraveyardCardsBackToDeckWhenKingBranUsed() {
+        Card g1 = makeUnit("g1", "Ghost1", 3, RowType.MELEE);
+        Card g2 = makeUnit("g2", "Ghost2", 4, RowType.RANGED);
+        PlayerState p1 = playerWithLeader(LeaderAbility.KING_BRAN);
+        p1.addToGraveyard(g1);
+        p1.addToGraveyard(g2);
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.KING_BRAN));
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertTrue(p1.getGraveyard().isEmpty());
+        assertTrue(p1.getDeck().contains(g1));
+        assertTrue(p1.getDeck().contains(g2));
+    }
+
+    @Test
+    void shouldDoNothingWhenGraveyardIsEmptyForKingBran() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.KING_BRAN);
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.KING_BRAN));
+
+        assertDoesNotThrow(() -> engine.execute(state, new UseLeaderCommand()));
+        assertTrue(p1.getGraveyard().isEmpty());
+        assertTrue(p1.getDeck().isEmpty());
+    }
+
+    // =========================================================
+    // SON_OF_MEDELL (Northern Realms) — destroy strongest in ranged row
+    // =========================================================
+
+    @Test
+    void shouldDestroyStrongestUnitInRangedRowWhenScoreAtLeast10() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.SON_OF_MEDELL);
+        PlayerState p2 = playerWithLeader(LeaderAbility.SON_OF_MEDELL);
+        Card strong = makeUnit("s1", "Strong", 7, RowType.RANGED);
+        Card weak = makeUnit("w1", "Weak", 4, RowType.RANGED);
+        p2.getRangedRow().addCard(strong);
+        p2.getRangedRow().addCard(weak);
+        GameState state = makePlayState(p1, p2);
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertFalse(p2.getRangedRow().getCards().contains(strong));
+        assertTrue(p2.getRangedRow().getCards().contains(weak));
+        assertTrue(p2.getGraveyard().contains(strong));
+    }
+
+    @Test
+    void shouldNotDestroyWhenRangedRowScoreBelow10ForSonOfMedell() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.SON_OF_MEDELL);
+        PlayerState p2 = playerWithLeader(LeaderAbility.SON_OF_MEDELL);
+        Card unit = makeUnit("u1", "Unit", 5, RowType.RANGED);
+        p2.getRangedRow().addCard(unit);
+        GameState state = makePlayState(p1, p2);
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertTrue(p2.getRangedRow().getCards().contains(unit));
+        assertTrue(p2.getGraveyard().isEmpty());
+    }
+
+    @Test
+    void shouldNotDestroyHeroCardsInRangedRowForSonOfMedell() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.SON_OF_MEDELL);
+        PlayerState p2 = playerWithLeader(LeaderAbility.SON_OF_MEDELL);
+        Card hero = makeHero("h1", "Hero", 10, RowType.RANGED);
+        p2.getRangedRow().addCard(hero);
+        GameState state = makePlayState(p1, p2);
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertTrue(p2.getRangedRow().getCards().contains(hero));
+        assertTrue(p2.getGraveyard().isEmpty());
+    }
+
+    // =========================================================
+    // STEEL_FORGED (Northern Realms) — destroy strongest in siege row
+    // =========================================================
+
+    @Test
+    void shouldDestroyStrongestUnitInSiegeRowWhenScoreAtLeast10() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.STEEL_FORGED);
+        PlayerState p2 = playerWithLeader(LeaderAbility.STEEL_FORGED);
+        Card strong = makeUnit("s1", "Strong", 7, RowType.SIEGE);
+        Card weak = makeUnit("w1", "Weak", 3, RowType.SIEGE);
+        p2.getSiegeRow().addCard(strong);
+        p2.getSiegeRow().addCard(weak);
+        GameState state = makePlayState(p1, p2);
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertFalse(p2.getSiegeRow().getCards().contains(strong));
+        assertTrue(p2.getSiegeRow().getCards().contains(weak));
+        assertTrue(p2.getGraveyard().contains(strong));
+    }
+
+    @Test
+    void shouldNotDestroyWhenSiegeRowScoreBelow10ForSteelForged() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.STEEL_FORGED);
+        PlayerState p2 = playerWithLeader(LeaderAbility.STEEL_FORGED);
+        Card unit = makeUnit("u1", "Unit", 5, RowType.SIEGE);
+        p2.getSiegeRow().addCard(unit);
+        GameState state = makePlayState(p1, p2);
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertTrue(p2.getSiegeRow().getCards().contains(unit));
+        assertTrue(p2.getGraveyard().isEmpty());
+    }
+
+    @Test
+    void shouldNotDestroyHeroCardsInSiegeRowForSteelForged() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.STEEL_FORGED);
+        PlayerState p2 = playerWithLeader(LeaderAbility.STEEL_FORGED);
+        Card hero = makeHero("h1", "Hero", 10, RowType.SIEGE);
+        p2.getSiegeRow().addCard(hero);
+        GameState state = makePlayState(p1, p2);
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertTrue(p2.getSiegeRow().getCards().contains(hero));
+        assertTrue(p2.getGraveyard().isEmpty());
+    }
+
+    // =========================================================
+    // IMPERIAL_MAJESTY (Nilfgaard) — pick rain and play via board
+    // =========================================================
+
+    @Test
+    void shouldPickRainFromDeckAndPlayViaBoardWhenImperialMajestyUsed() {
+        Card rain = makeWeatherCard("rain", Ability.RAIN);
+        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.IMPERIAL_MAJESTY), List.of(rain));
+        PlayerState p2 = playerWithLeader(LeaderAbility.IMPERIAL_MAJESTY);
+        GameState state = makePlayState(p1, p2);
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertFalse(p1.getDeck().contains(rain));
+        assertTrue(state.getBoard().getActiveWeatherCards().contains(rain));
+    }
+
+    @Test
+    void shouldDoNothingWhenNoRainInDeckForImperialMajesty() {
+        Card frost = makeWeatherCard("frost", Ability.FROST);
+        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.IMPERIAL_MAJESTY), List.of(frost));
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.IMPERIAL_MAJESTY));
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertTrue(p1.getDeck().contains(frost));
+        assertTrue(state.getBoard().getActiveWeatherCards().isEmpty());
+    }
+
+    // =========================================================
+    // THE_BEATIFUL (Scoia'tael) — horn on ranged row
+    // =========================================================
+
+    @Test
+    void shouldActivateHornOnRangedRowWhenTheBeatifulUsed() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.THE_BEATIFUL);
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.THE_BEATIFUL));
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertTrue(p1.getRangedRow().isHornActive());
+    }
+
+    @Test
+    void shouldNotActivateHornOnOtherRowsWhenTheBeatifulUsed() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.THE_BEATIFUL);
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.THE_BEATIFUL));
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertFalse(p1.getMeleeRow().isHornActive());
+        assertFalse(p1.getSiegeRow().isHornActive());
+    }
+
+    // =========================================================
+    // HOPE_OF_THE_AEN_SEIDHE (Scoia'tael) — move agile to best row
+    // =========================================================
+
+    @Test
+    void shouldMoveAgileCardsToMeleeWhenMeleeHasHigherNonAgileScore() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE);
+        Card meleeUnit = makeUnit("m1", "MeleeUnit", 8, RowType.MELEE);
+        Card rangedUnit = makeUnit("r1", "RangedUnit", 3, RowType.RANGED);
+        Card agile = makeAgileUnit("a1", "Agile", 5);
+        p1.getMeleeRow().addCard(meleeUnit);
+        p1.getRangedRow().addCard(rangedUnit);
+        p1.getRangedRow().addCard(agile);
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE));
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertTrue(p1.getMeleeRow().getCards().contains(agile));
+        assertFalse(p1.getRangedRow().getCards().contains(agile));
+    }
+
+    @Test
+    void shouldMoveAgileCardsToRangedWhenRangedHasHigherNonAgileScore() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE);
+        Card meleeUnit = makeUnit("m1", "MeleeUnit", 3, RowType.MELEE);
+        Card rangedUnit = makeUnit("r1", "RangedUnit", 8, RowType.RANGED);
+        Card agile = makeAgileUnit("a1", "Agile", 5);
+        p1.getMeleeRow().addCard(meleeUnit);
+        p1.getMeleeRow().addCard(agile);
+        p1.getRangedRow().addCard(rangedUnit);
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE));
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertTrue(p1.getRangedRow().getCards().contains(agile));
+        assertFalse(p1.getMeleeRow().getCards().contains(agile));
+    }
+
+    @Test
+    void shouldNotMoveAgileCardsWhenNonAgileScoresAreTied() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE);
+        Card meleeUnit = makeUnit("m1", "MeleeUnit", 5, RowType.MELEE);
+        Card rangedUnit = makeUnit("r1", "RangedUnit", 5, RowType.RANGED);
+        Card agileInMelee = makeAgileUnit("a1", "Agile", 3);
+        p1.getMeleeRow().addCard(meleeUnit);
+        p1.getMeleeRow().addCard(agileInMelee);
+        p1.getRangedRow().addCard(rangedUnit);
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE));
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertTrue(p1.getMeleeRow().getCards().contains(agileInMelee));
+        assertFalse(p1.getRangedRow().getCards().contains(agileInMelee));
     }
 
     // =========================================================
@@ -880,6 +913,10 @@ class LeaderAbilityResolverTest {
 
     private Card makeWeatherCard(String id, Ability ability) {
         return new Card(id, ability.name(), Faction.NEUTRAL, CardType.WEATHER, ability, null, null, null);
+    }
+
+    private Card makeAgileUnit(String id, String name, int power) {
+        return new Card(id, name, Faction.NEUTRAL, CardType.UNIT, Ability.AGILE, null, RowType.MELEE, power);
     }
 
     private PlayerState playerWithLeader(LeaderAbility ability) {

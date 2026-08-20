@@ -191,6 +191,7 @@ public class GwentEngine {
 
         switch (state.getPendingAbility()) {
             case LEADER_GRAVEYARD_PICK          -> resolveLeaderGraveyardPick(state, command.card());
+            case LEADER_GRAVEYARD_TO_HAND       -> resolveLeaderGraveyardToHand(state, command.card());
             case LEADER_OPPONENT_GRAVEYARD_PICK -> resolveLeaderOpponentGraveyardPick(state, command.card());
             case LEADER_DECK_PICK               -> resolveLeaderDeckPick(state, command.card());
             case LEADER_HAND_DISCARD            -> resolveLeaderHandDiscard(state, command.card());
@@ -267,6 +268,21 @@ public class GwentEngine {
         }
     }
 
+    private void resolveLeaderGraveyardToHand(GameState state, Card card) {
+        PlayerState current = state.getCurrentPlayer();
+        if (!current.getGraveyard().contains(card))
+            throw new CardNotInGraveyardException();
+        if (card.cardType() != CardType.UNIT)
+            throw new InvalidRowException();
+
+        current.removeFromGraveyard(card);
+        current.addToHand(card);
+        clearLeaderPending(state);
+
+        autoPassIfHandEmpty(state.getCurrentPlayer());
+        resolveAfterAction(state);
+    }
+
     private void resolveLeaderHandDiscard(GameState state, Card card) {
         PlayerState current = state.getCurrentPlayer();
         if (!current.getHand().contains(card))
@@ -274,9 +290,20 @@ public class GwentEngine {
 
         current.removeFromHand(card);
         current.addToGraveyard(card);
+
+        int remaining = state.getPendingAbilityCount() - 1;
+        if (remaining > 0 && !current.getHand().isEmpty()) {
+            state.setPendingAbilityCount(remaining);
+            return;
+        }
+
+        if (state.getPendingLeaderAbility() == LeaderAbility.DESTROYER_OF_WORLDS
+                && !current.isDeckEmpty()) {
+            current.drawCard();
+        }
         clearLeaderPending(state);
 
-        autoPassIfHandEmpty(state.getCurrentPlayer());
+        autoPassIfHandEmpty(current);
         resolveAfterAction(state);
     }
 
