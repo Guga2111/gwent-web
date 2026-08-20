@@ -1,11 +1,12 @@
 package com.gwent.engine.state;
 
-import com.gwent.engine.domain.*;
+import com.gwent.engine.domain.Ability;
+import com.gwent.engine.domain.GamePhase;
+import com.gwent.engine.domain.PendingAbility;
+import com.gwent.engine.domain.Turn;
 import com.gwent.engine.exception.state.InvalidPhaseTransitionException;
 import com.gwent.engine.exception.state.RoundLimitExceededException;
 import com.gwent.engine.exception.state.TurnNotSetException;
-
-import java.util.List;
 
 public class GameState {
     private final Board board;
@@ -15,11 +16,6 @@ public class GameState {
     private int currentRound;
     private GamePhase phase;
     private PendingAbility pendingAbility;
-    private LeaderAbility pendingLeaderAbility;
-    private int pendingAbilityCount;
-    private List<Card> revealedCards;
-    private Turn winner;
-    private EndReason endReason;
 
     public GameState (PlayerState player1, PlayerState player2) {
         this.player1 = player1;
@@ -68,30 +64,6 @@ public class GameState {
         this.pendingAbility = pendingAbility;
     }
 
-    public LeaderAbility getPendingLeaderAbility() {
-        return pendingLeaderAbility;
-    }
-
-    public void setPendingLeaderAbility(LeaderAbility pendingLeaderAbility) {
-        this.pendingLeaderAbility = pendingLeaderAbility;
-    }
-
-    public int getPendingAbilityCount() {
-        return pendingAbilityCount;
-    }
-
-    public void setPendingAbilityCount(int pendingAbilityCount) {
-        this.pendingAbilityCount = pendingAbilityCount;
-    }
-
-    public List<Card> getRevealedCards() {
-        return revealedCards;
-    }
-
-    public void setRevealedCards(List<Card> revealedCards) {
-        this.revealedCards = revealedCards;
-    }
-
     public void setCurrentTurn (Turn currentTurn) {
         this.currentTurn = currentTurn;
     }
@@ -118,7 +90,7 @@ public class GameState {
         boolean valid = switch (this.phase) {
             case COIN_FLIP -> phase == GamePhase.REDRAW;
             case REDRAW -> phase == GamePhase.PLAY;
-            case PLAY -> phase == GamePhase.ROUND_END || phase == GamePhase.GAME_OVER;
+            case PLAY -> phase == GamePhase.ROUND_END;
             case ROUND_END -> phase == GamePhase.PLAY || phase == GamePhase.GAME_OVER;
             case GAME_OVER -> false;
         };
@@ -126,19 +98,5 @@ public class GameState {
         if (!valid) throw new InvalidPhaseTransitionException(this.phase, phase);
 
         this.phase = phase;
-    }
-
-    public Turn getWinner () {
-        return winner;
-    }
-
-    public EndReason getEndReason () {
-        return endReason;
-    }
-
-    public void finishGame (Turn winner, EndReason endReason) {
-        this.winner = winner;
-        this.endReason = endReason;
-        setPhase(GamePhase.GAME_OVER); // isso eh possivel? fazer um set dentro de outra funcao do state
     }
 }

@@ -35,14 +35,6 @@ core/       → (a implementar) lógica e regras do jogo, GameEngine
 
 ---
 
-## Executando em desenvolvimento
-
-```bash
-docker compose -f docker-compose-dev.yml up --build
-```
-
----
-
 ## Convenções
 
 - State classes são dumb containers — lógica vai no `core`
@@ -50,4 +42,3 @@ docker compose -f docker-compose-dev.yml up --build
 - `GameEngine.execute(GameState, GameCommand)` retorna void
 - Toda exceção estende `GwentException`, nunca usar `IllegalStateException` genérico
 - Testes cobrem happy path, sad path e edge cases
-- Claude `não deve colocar sua marca d'agua (watermark) nos commits e nos prs` "🤖 Generated with Claude Code"
