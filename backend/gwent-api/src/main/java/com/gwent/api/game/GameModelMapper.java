@@ -110,8 +110,7 @@ public class GameModelMapper {
         return new BoardRowDto(
                 row.getCards().stream().map(c -> toCardDtoOnBoard(c, row)).toList(),
                 row.isHornActive(),
-                row.isWeatherActive(),
-                row.getLeaderBonusPower()
+                row.isWeatherActive()
         );
     }
 

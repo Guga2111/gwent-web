@@ -14,7 +14,6 @@ public class BoardRow {
     private final RowType rowType;
     private boolean hornActive;
     private boolean weatherActive;
-    private int leaderBonusPower;
 
     public BoardRow (RowType rowType) {
         this.rowType = rowType;
@@ -46,14 +45,6 @@ public class BoardRow {
         this.weatherActive = weatherActive;
     }
 
-    public int getLeaderBonusPower() {
-        return leaderBonusPower;
-    }
-
-    public void setLeaderBonusPower(int leaderBonusPower) {
-        this.leaderBonusPower = leaderBonusPower;
-    }
-
     public void addCard (Card card) {
 
         if (card.ability() == Ability.AGILE) {
@@ -72,6 +63,5 @@ public class BoardRow {
 
     public void clear () {
         cards.clear();
-        leaderBonusPower = 0;
     }
 }

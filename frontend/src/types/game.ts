@@ -20,7 +20,6 @@ export interface BoardRowDto {
   cards: CardDto[]
   hornActive: boolean
   weatherActive: boolean
-  leaderBonusPower: number
 }
 
 export interface PlayerStateDto {
