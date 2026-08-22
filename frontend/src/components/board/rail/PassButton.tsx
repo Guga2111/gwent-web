@@ -18,16 +18,14 @@ export default function PassButton({ onClick, disabled }: PassButtonProps) {
   }, [onClick, disabled])
 
   return (
-    <div className="px-3 py-2 text-center">
+    <div className="px-4 py-2 text-center">
       <button
         onClick={onClick}
         disabled={disabled}
-        className="w-full py-2 bg-[var(--bg-medium)] border border-[var(--border-gold)] rounded text-sm"
+        className="pass-button"
         style={{
-          fontFamily: 'var(--font-heading)',
-          color: disabled ? 'var(--text-muted)' : 'var(--gold)',
+          opacity: disabled ? 0.4 : 1,
           cursor: disabled ? 'not-allowed' : 'pointer',
-          opacity: disabled ? 0.5 : 1,
         }}
       >
         PASSAR

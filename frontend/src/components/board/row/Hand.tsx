@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import Card from '../card/Card'
-import type { CardDto } from '@/types/game'
+import type { CardDto, Faction } from '@/types/game'
 
 interface HandProps {
   cards?: CardDto[]
@@ -9,9 +9,11 @@ interface HandProps {
   onCardClick?: (cardId: string) => void
   interactive: boolean
   selectedCardId?: string
+  faction?: Faction
+  departingCardId?: string | null
 }
 
-export default function Hand({ cards: rawCards, opponentHandSize, isPlayer, onCardClick, interactive, selectedCardId }: HandProps) {
+export default function Hand({ cards: rawCards, opponentHandSize, isPlayer, onCardClick, interactive, selectedCardId, faction, departingCardId }: HandProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const cards = rawCards ?? []
   const count = isPlayer ? cards.length : (opponentHandSize ?? 0)
@@ -23,19 +25,23 @@ export default function Hand({ cards: rawCards, opponentHandSize, isPlayer, onCa
 
   if (!isPlayer) {
     return (
-      <div className="flex justify-center py-1.5 min-h-[114px]">
-        {Array.from({ length: count }, (_, i) => (
-          <div
-            key={i}
-            style={{
-              marginLeft: i === 0 ? 0 : -12,
-              transform: `rotate(${getRotation(i)}deg)`,
-              zIndex: i,
-            }}
-          >
-            <Card />
-          </div>
-        ))}
+      <div className="hand-fan hand-fan-mirrored flex justify-center py-1.5" style={{ minHeight: 'var(--card-h)' }}>
+        {Array.from({ length: count }, (_, i) => {
+          const rotation = count <= 1 ? 0 : 8 - (16 * i) / (count - 1)
+          const offsetY = count <= 1 ? 0 : Math.abs(i - (count - 1) / 2) * 3
+          return (
+            <div
+              key={i}
+              className="hand-card"
+              style={{
+                transform: `rotate(${rotation}deg) translateY(${offsetY}px)`,
+                zIndex: i,
+              }}
+            >
+              <Card faction={faction} />
+            </div>
+          )
+        })}
       </div>
     )
   }
@@ -48,23 +54,25 @@ export default function Hand({ cards: rawCards, opponentHandSize, isPlayer, onCa
       >
         Sua mão &middot; {count}
       </div>
-      <div className="flex justify-center min-h-[114px]">
+      <div className="hand-fan flex justify-center" style={{ minHeight: 'var(--card-h)' }}>
         {cards.map((card, i) => {
           const isHovered = hoveredIndex === i
           const isSelected = selectedCardId === card.id
           const rotation = isHovered || isSelected ? 0 : getRotation(i)
           const lift = isHovered || isSelected ? -20 : 0
 
+          const isDeparting = departingCardId === card.id
+
           return (
             <div
               key={card.id}
+              data-card-id={card.id}
+              className={`hand-card${isSelected ? ' hand-card--selected' : ''}${isDeparting ? ' hand-card--departing' : ''}`}
               style={{
-                marginLeft: i === 0 ? 0 : -12,
                 transform: `rotate(${rotation}deg) translateY(${lift}px)`,
-                transition: 'transform 0.15s, z-index 0s',
                 zIndex: isSelected ? 101 : isHovered ? 100 : i,
                 position: 'relative',
-                filter: isSelected ? 'drop-shadow(0 0 6px var(--gold))' : 'none',
+                filter: isSelected ? 'drop-shadow(0 0 8px var(--gold))' : 'none',
               }}
               onMouseEnter={() => setHoveredIndex(i)}
               onMouseLeave={() => setHoveredIndex(null)}
@@ -72,7 +80,7 @@ export default function Hand({ cards: rawCards, opponentHandSize, isPlayer, onCa
               <Card
                 card={card}
                 onClick={onCardClick ? () => onCardClick(card.id) : undefined}
-                interactive={interactive}
+                interactive={true}
               />
             </div>
           )
