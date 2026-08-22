@@ -39,7 +39,7 @@ public class ScoreCalculator {
 
             currentCardPower += card.basePower();
             if (Ability.TIGHT_BOND.equals(card.ability())) currentCardPower *= countByName.get(card.name());
-            if (card.cardType() == CardType.UNIT) currentCardPower += row.getLeaderBonusPower();
+
             if (row.isWeatherActive() && card.cardType().equals(CardType.UNIT)) currentCardPower = 1;
             currentCardPower += (int) moraleBonus;
             if (row.isHornActive()) currentCardPower *= 2;
@@ -64,7 +64,7 @@ public class ScoreCalculator {
 
         int power = card.basePower();
         if (Ability.TIGHT_BOND.equals(card.ability())) power *= countByName.get(card.name());
-        if (card.cardType() == CardType.UNIT) power += row.getLeaderBonusPower();
+
         if (row.isWeatherActive() && card.cardType() == CardType.UNIT) power = 1;
         power += (int) moraleBonus;
         if (row.isHornActive()) power *= 2;

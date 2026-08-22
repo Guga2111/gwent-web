@@ -154,11 +154,11 @@ public class CardCatalogLoader implements ApplicationRunner {
 
             // ── NEUTRAL ──────────────────────────────────────────────────────
 
-            // Weather (deckCopies=0 — available for deck builder, not in default decks)
-            card("NEUTRAL_FROST",         "Biting Frost",       Faction.NEUTRAL, CardType.WEATHER, Ability.FROST,         null, null, null, 0),
-            card("NEUTRAL_FOG",           "Impenetrable Fog",   Faction.NEUTRAL, CardType.WEATHER, Ability.FOG,           null, null, null, 0),
-            card("NEUTRAL_RAIN",          "Torrential Rain",    Faction.NEUTRAL, CardType.WEATHER, Ability.RAIN,          null, null, null, 0),
-            card("NEUTRAL_CLEAR_WEATHER", "Clear Weather",      Faction.NEUTRAL, CardType.WEATHER, Ability.CLEAR_WEATHER, null, null, null, 0),
+            // Weather
+            card("NEUTRAL_FROST",         "Biting Frost",       Faction.NEUTRAL, CardType.WEATHER, Ability.FROST,         null, null, null, 3),
+            card("NEUTRAL_FOG",           "Impenetrable Fog",   Faction.NEUTRAL, CardType.WEATHER, Ability.FOG,           null, null, null, 3),
+            card("NEUTRAL_RAIN",          "Torrential Rain",    Faction.NEUTRAL, CardType.WEATHER, Ability.RAIN,          null, null, null, 3),
+            card("NEUTRAL_CLEAR_WEATHER", "Clear Weather",      Faction.NEUTRAL, CardType.WEATHER, Ability.CLEAR_WEATHER, null, null, null, 3),
 
             // Neutral units/heroes (deckCopies=0 — for deck builder)
             card("NEUTRAL_VILLENTRETENMERTH", "Villentretenmerth",  Faction.NEUTRAL, CardType.HERO, Ability.SCORCH,       null, RowType.MELEE,  7, 0),
