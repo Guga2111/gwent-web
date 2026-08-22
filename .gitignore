@@ -4,4 +4,4 @@ CLAUDE.md
 # Secrets
 .env
 backend/.env
-frontend/src/assets/*
+frontend/public/cards/*

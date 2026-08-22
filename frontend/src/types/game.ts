@@ -1,7 +1,14 @@
-export type Faction = 'NORTHERN_REALMS' | 'NILFGAARD' | 'MONSTERS' | 'SCOIATAEL' | 'SKELLIGE'
+export type Faction = 'NORTHERN_REALMS' | 'NILFGAARD' | 'MONSTER' | 'SCOIATAEL' | 'SKELLIGE'
 export type CardType = 'UNIT' | 'HERO' | 'WEATHER' | 'SPECIAL' | 'LEADER'
 export type RowType = 'MELEE' | 'RANGED' | 'SIEGE'
-export type Ability = 'NONE' | 'SPY' | 'BOND' | 'MORALE' | 'MEDIC' | 'MUSTER' | 'SCORCH' | 'DECOY' | 'HORN' | 'BERSERKER' | 'AGILE'
+export type Ability = 'NONE' | 'SPY' | 'TIGHT_BOND' | 'MORALE_BOOST' | 'MEDIC' | 'MUSTER' | 'SCORCH' | 'DUMMY' | 'COMMANDERS_HORN' | 'BERSERKER' | 'AGILE' | 'FROST' | 'FOG' | 'RAIN' | 'CLEAR_WEATHER'
+
+export type LeaderAbility =
+  | 'SIEGE_MASTER' | 'SON_OF_MEDELL' | 'KING_OF_TEMERIA' | 'LORD_COMMANDER' | 'STEEL_FORGED'
+  | 'EMPEROR_OF_NILFGAARD' | 'INVADER_OF_THE_NORTH' | 'RELENTLESS' | 'WHITE_FLAME' | 'IMPERIAL_MAJESTY'
+  | 'BRINGER_OF_DEATH' | 'COMMANDER_OF_THE_RED_RIDERS' | 'DESTROYER_OF_WORLDS' | 'KING_OF_THE_WILD_HUNT' | 'TREACHEROUS'
+  | 'QUEEN_OF_DOL_BLATHANNA' | 'DAISY_OF_THE_VALLEY' | 'PUREBLOOD_ELF' | 'THE_BEATIFUL' | 'HOPE_OF_THE_AEN_SEIDHE'
+  | 'KING_BRAN' | 'CLAN_AN_CRAITE'
 export type GamePhase = 'COIN_FLIP' | 'REDRAW' | 'PLAY' | 'ROUND_END' | 'GAME_OVER'
 export type Turn = 'PLAYER_1' | 'PLAYER_2'
 
@@ -14,6 +21,7 @@ export interface CardDto {
   rowType: RowType | null
   ability: Ability | null
   faction: Faction
+  leaderAbility: LeaderAbility | null
 }
 
 export interface BoardRowDto {
