@@ -89,7 +89,8 @@ public class GameModelMapper {
                 card.cardType().name(),
                 card.rowType() != null ? card.rowType().name() : null,
                 card.ability() != null ? card.ability().name() : null,
-                card.faction().name()
+                card.faction().name(),
+                card.leaderAbility() != null ? card.leaderAbility().name() : null
         );
     }
 
@@ -102,7 +103,8 @@ public class GameModelMapper {
                 card.cardType().name(),
                 card.rowType() != null ? card.rowType().name() : null,
                 card.ability() != null ? card.ability().name() : null,
-                card.faction().name()
+                card.faction().name(),
+                null
         );
     }
 

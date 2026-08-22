@@ -8,5 +8,6 @@ public record CardDto(
         String cardType,
         String rowType,
         String ability,
-        String faction
+        String faction,
+        String leaderAbility
 ) {}
