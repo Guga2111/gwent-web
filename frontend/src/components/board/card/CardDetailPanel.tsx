@@ -115,8 +115,8 @@ export default function CardDetailPanel({ card, onClose, action }: CardDetailPan
   const hasPower = isUnit && card.basePower != null
 
   const tokens = factionTokens[card.faction]
-  const artStyle = tokens
-    ? { background: `linear-gradient(135deg, ${tokens.secondary}, ${tokens.primary}20)` }
+  const panelVars = tokens
+    ? { '--cdp-primary': tokens.primary, '--cdp-secondary': tokens.secondary } as React.CSSProperties
     : undefined
 
   const panelClass = [
@@ -133,13 +133,8 @@ export default function CardDetailPanel({ card, onClose, action }: CardDetailPan
     : ability ? abilityDescriptions[ability] : null
 
   return (
-    <div className={panelClass}>
-      <div
-        className="card-detail-stripe"
-        style={{ backgroundColor: tokens?.primary }}
-      />
-
-      <div className="card-detail-art" style={artStyle}>
+    <div className={panelClass} style={panelVars}>
+      <div className="card-detail-art">
         <CardArtImage cardId={card.id} faction={card.faction} />
         {hasPower && (
           <PowerGem
@@ -151,10 +146,10 @@ export default function CardDetailPanel({ card, onClose, action }: CardDetailPan
         )}
 
         {isUnit && card.rowType && (
-          <div style={{ position: 'absolute', top: 56, left: 16, zIndex: 3 }}>
+          <div className="card-detail-row-container">
             <RowIcon rowType={card.rowType} size="lg" />
             {card.ability === 'AGILE' && card.rowType === 'MELEE' && (
-              <div style={{ marginTop: 4 }}>
+              <div className="card-detail-row-secondary">
                 <RowIcon rowType="RANGED" size="lg" />
               </div>
             )}
@@ -162,7 +157,7 @@ export default function CardDetailPanel({ card, onClose, action }: CardDetailPan
         )}
 
         {ability && !isLeader && (
-          <div style={{ position: 'absolute', top: 8, right: 8, zIndex: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+          <div className="card-detail-ability-container">
             <AbilityIcon ability={ability} size="lg" />
             <span className="card-detail-ability-label">
               {abilityNames[ability]}
@@ -171,7 +166,7 @@ export default function CardDetailPanel({ card, onClose, action }: CardDetailPan
         )}
 
         {isLeader && (
-          <div style={{ position: 'absolute', top: 8, right: 8, zIndex: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+          <div className="card-detail-ability-container">
             <span className="card-detail-ability-label">
               {leaderAbilityNames[card.leaderAbility!]}
             </span>

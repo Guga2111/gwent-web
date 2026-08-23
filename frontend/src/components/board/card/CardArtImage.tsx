@@ -7,14 +7,14 @@ interface Props {
 }
 
 export default function CardArtImage({ cardId, faction }: Props) {
-  const [failed, setFailed] = useState(false)
-  if (failed) return null
+  const [failedId, setFailedId] = useState<string | null>(null)
+  if (failedId === cardId) return null
 
   return (
     <img
       src={getCardArtUrl(cardId, faction)}
       alt=""
-      onError={() => setFailed(true)}
+      onError={() => setFailedId(cardId)}
       draggable={false}
       className="card-art-img"
     />
