@@ -33,12 +33,6 @@ export default function LeaderCard({ leader, leaderUsed, onClick, side = 'bottom
         }}
       >
         <CardArtImage cardId={leader.id} faction={leader.faction} />
-        <div
-          className="text-[9px] text-center text-[var(--gold-light)] px-1"
-          style={{ fontFamily: 'var(--font-heading)', position: 'relative', zIndex: 2 }}
-        >
-          {shortName}
-        </div>
       </div>
     </div>
   )

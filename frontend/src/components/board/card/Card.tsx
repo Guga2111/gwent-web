@@ -65,8 +65,6 @@ export default function Card({ card, onClick, interactive = false, faction, supp
         <AbilityIcon ability={card.ability} />
       )}
 
-      {/* Name banner */}
-      <div className="card-name-banner">{card.name}</div>
     </div>
   )
 }
