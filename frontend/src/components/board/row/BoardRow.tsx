@@ -63,7 +63,7 @@ export default function BoardRow({ row, rowType, side, onCardClick, onRowClick, 
       />
 
       {/* Cards area */}
-      <div className="flex-1 flex justify-center gap-1.5 px-2 overflow-x-hidden items-center min-h-0">
+      <div className="flex-1 flex justify-center gap-1.5 px-2 overflow-hidden items-center min-h-0">
         {cards.map((card) => (
           <div
             key={card.id}

@@ -1122,8 +1122,8 @@
   .player-panel {
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 16px 14px;
+    gap: 10px;
+    padding: 12px 10px;
     min-height: min(112px, calc(var(--card-h) + 6px));
     border-radius: 6px;
     width: 100%;
@@ -1146,13 +1146,13 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    position: relative;
     flex-shrink: 0;
   }
 
   .player-panel__avatar {
-    width: 64px;
-    height: 64px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     background-color: var(--bg-medium);
     border: 2px solid var(--gold-dim);
@@ -1160,11 +1160,19 @@
   }
 
   .player-panel__faction-emblem {
-    width: 32px;
-    height: 32px;
+    width: 20px;
+    height: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-dark);
+    border: 1px solid var(--gold-dim);
+    border-radius: 50%;
+    padding: 2px;
   }
 
   .player-panel__info {
@@ -1177,7 +1185,7 @@
 
   .player-panel__name {
     font-family: var(--font-heading);
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 600;
     color: var(--text-primary);
     overflow: hidden;
