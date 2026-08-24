@@ -748,6 +748,7 @@
   .card-detail-panel {
     width: 220px;
     height: 100%;
+    max-height: min(100%, 420px);
     background-color: var(--bg-card);
     border: 1px solid var(--gold-dim);
     border-radius: 6px;
@@ -766,7 +767,6 @@
     position: relative;
     width: 100%;
     aspect-ratio: 3 / 4;
-    flex-shrink: 0;
     overflow: hidden;
     background: linear-gradient(
       135deg,
@@ -830,6 +830,9 @@
     flex-direction: column;
     gap: 4px;
     align-items: center;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
   }
 
   .card-detail-name {

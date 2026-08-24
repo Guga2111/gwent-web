@@ -473,13 +473,13 @@ export default function Game() {
         </div>
 
         {/* Right Rail */}
-        <div className="flex flex-col items-center bg-(--bg-dark)/90 border-l border-(--border-subtle) py-3 gap-3 w-70">
-          <div className="flex items-center gap-16 py-22">
+        <div className="flex flex-col items-center bg-(--bg-dark)/90 border-l border-(--border-subtle) py-3 gap-3 w-70 overflow-hidden">
+          <div className="flex items-center gap-16 py-11">
             <GraveyardStack count={opponent.graveyard.length} />
             <DeckStack count={opponent.deckSize} label="Deck" faction={opponent.leader.faction} />
           </div>
 
-          <div className="flex-1 flex flex-col items-center justify-center px-3">
+          <div className="flex-1 flex flex-col items-center justify-center px-3 min-h-0">
             {selectedCard ? (
               <CardDetailPanel
                 card={selectedCard}
@@ -518,7 +518,7 @@ export default function Game() {
             )}
           </div>
 
-          <div className="flex items-center gap-16 py-22">
+          <div className="flex items-center gap-16 py-11">
             <GraveyardStack count={me.graveyard.length} />
             <DeckStack count={me.deckSize} label="Deck" faction={me.leader.faction} />
           </div>
