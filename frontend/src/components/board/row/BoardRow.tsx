@@ -1,4 +1,5 @@
-import type { BoardRowDto, RowType } from '@/types/game'
+import { useEffect, useRef, useState } from 'react'
+import type { BoardRowDto, CardDto, RowType } from '@/types/game'
 import Card from '../card/Card'
 import CountBadge from '@/components/ui/CountBadge'
 
@@ -9,77 +10,80 @@ interface BoardRowProps {
   side: 'player' | 'opponent'
   onCardClick?: (cardId: string) => void
   onRowClick?: () => void
+  onInspectCard?: (card: CardDto) => void
   isPlacementTarget?: boolean
   interactive: boolean
+  suppressEnterCardId?: string | null
 }
 
-const ROW_TINTS: Record<string, string> = {
-  Corpo: 'rgba(80, 50, 20, 0.3)',
-  Distância: 'rgba(30, 60, 20, 0.3)',
-  Cerco: 'rgba(20, 40, 70, 0.3)',
+function useScoreFlash(score: number) {
+  const [flash, setFlash] = useState(false)
+  const prevRef = useRef(score)
+
+  useEffect(() => {
+    if (score !== prevRef.current) {
+      setFlash(true)
+      prevRef.current = score
+      const t = setTimeout(() => setFlash(false), 400)
+      return () => clearTimeout(t)
+    }
+  }, [score])
+
+  return flash
 }
 
-export default function BoardRow({ row, rowLabel, onCardClick, onRowClick, isPlacementTarget, interactive }: BoardRowProps) {
+export default function BoardRow({ row, rowType, side, onCardClick, onRowClick, onInspectCard, isPlacementTarget, interactive, suppressEnterCardId }: BoardRowProps) {
   const cards = row.cards ?? []
   const score = cards.reduce((sum, c) => sum + (c.currentPower ?? c.basePower ?? 0), 0)
+  const scoreFlash = useScoreFlash(score)
+
+  const rowTypeClass = `board-row--${rowType.toLowerCase()}`
+  const weatherClass = row.weatherActive
+    ? rowType === 'MELEE' ? 'board-row--frost'
+    : rowType === 'RANGED' ? 'board-row--fog'
+    : 'board-row--rain'
+    : ''
 
   return (
     <div
       onClick={onRowClick}
-      className="flex items-center flex-1 relative border-b border-[var(--border-subtle)] min-h-0 py-1"
-      style={{
-        backgroundColor: ROW_TINTS[rowLabel] ?? 'transparent',
-        outline: isPlacementTarget ? '2px solid var(--gold)' : 'none',
-        outlineOffset: -2,
-        cursor: onRowClick ? 'pointer' : 'default',
-        transition: 'outline 0.15s',
-      }}
+      data-row-type={rowType}
+      data-row-side={side}
+      className={`flex items-center flex-1 relative min-h-0 py-1 board-row ${rowTypeClass}${isPlacementTarget ? ' board-row--target' : ''}${weatherClass ? ` ${weatherClass}` : ''}`}
+      style={{ cursor: onRowClick ? 'pointer' : 'default' }}
     >
       {/* Score badge */}
-      <div className="absolute left-1 z-10">
+      <div className={`absolute left-1 z-10${scoreFlash ? ' score-flash' : ''}`}>
         <CountBadge value={score} size={36} fontSize={13} />
       </div>
 
       {/* Horn slot */}
       <div
-        className="w-[34px] h-[72px] ml-7 border border-dashed border-[var(--border-subtle)] rounded-sm shrink-0 flex items-center justify-center"
-        style={{
-          backgroundColor: row.hornActive ? 'rgba(218, 165, 32, 0.3)' : 'var(--bg-medium)',
-        }}
+        className={`w-[var(--card-w)] h-[var(--card-h)] ml-7 shrink-0 flex items-center justify-center board-row__horn${row.hornActive ? ' board-row__horn--active' : ''}`}
       />
 
-      {/* Leader bonus power indicator */}
-      {row.leaderBonusPower > 0 && (
-        <div
-          className="absolute left-[70px] top-0.5 text-[9px] text-[var(--gold-light)] pointer-events-none"
-          style={{ fontFamily: 'var(--font-ui)' }}
-        >
-          +{row.leaderBonusPower}
-        </div>
-      )}
-
-      {/* Row label */}
-      <div
-        className="absolute right-[52px] text-[9px] text-[var(--text-muted)] opacity-50 pointer-events-none"
-        style={{ fontFamily: 'var(--font-ui)' }}
-      >
-        {rowLabel}
-      </div>
-
       {/* Cards area */}
-      <div className="flex-1 flex justify-center gap-1.5 px-2 overflow-x-hidden items-center min-h-0">
+      <div className="flex-1 flex justify-center gap-1.5 px-2 overflow-hidden items-center min-h-0">
         {cards.map((card) => (
-          <Card
+          <div
             key={card.id}
-            card={card}
-            onClick={onCardClick ? () => onCardClick(card.id) : undefined}
-            interactive={interactive}
-          />
+            data-card-id={card.id}
+            onClick={onInspectCard ? (e) => { e.stopPropagation(); onInspectCard(card); } : undefined}
+            style={{ cursor: onInspectCard ? 'pointer' : undefined }}
+          >
+            <Card
+              card={card}
+              onClick={onCardClick ? () => onCardClick(card.id) : undefined}
+              interactive={false}
+              suppressEnterAnimation={card.id === suppressEnterCardId}
+            />
+          </div>
         ))}
       </div>
 
-      {/* Right cap */}
-      <div className="w-[46px] h-[72px] border border-dashed border-[var(--border-subtle)] rounded-sm shrink-0 ml-3 mr-1" />
+      {/* Right cap — mirrors horn slot width */}
+      <div className="w-[calc(var(--card-w)+12px)] shrink-0 ml-3 mr-1" />
+
     </div>
   )
 }

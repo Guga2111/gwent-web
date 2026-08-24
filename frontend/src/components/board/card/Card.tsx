@@ -1,52 +1,70 @@
-import type { CardDto } from '@/types/game'
+import type { CardDto, Faction } from '@/types/game'
+import CardBack from './CardBack'
+import { factionTokens } from './CardBack'
+import CardArtImage from './CardArtImage'
+import PowerGem from './PowerGem'
+import RowIcon from './RowIcon'
+import AbilityIcon from './AbilityIcon'
 
 interface CardProps {
   card?: CardDto        // present = face-up, absent = face-down
   onClick?: () => void
   interactive?: boolean
+  faction?: Faction
+  suppressEnterAnimation?: boolean
 }
 
-export default function Card({ card, onClick, interactive = false }: CardProps) {
+export default function Card({ card, onClick, interactive = false, faction, suppressEnterAnimation }: CardProps) {
   if (!card) {
-    return (
-      <div
-        className="card-base"
-        style={{
-          backgroundImage:
-            'repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(106, 85, 48, 0.15) 8px, rgba(106, 85, 48, 0.15) 9px), repeating-linear-gradient(-45deg, transparent, transparent 8px, rgba(106, 85, 48, 0.15) 8px, rgba(106, 85, 48, 0.15) 9px)',
-        }}
-      />
-    )
+    return <CardBack faction={faction} />
   }
+
+  const isHero = card.cardType === 'HERO'
+  const isUnit = card.cardType === 'UNIT' || isHero
+  const hasPower = isUnit && card.basePower != null
+
+  const tokens = factionTokens[card.faction]
+  const artStyle = tokens
+    ? { background: `linear-gradient(160deg, ${tokens.secondary} 0%, color-mix(in srgb, ${tokens.primary} 25%, ${tokens.secondary}) 50%, ${tokens.secondary} 100%)` }
+    : undefined
+
+  const className = [
+    'card-base card-face',
+    isHero && 'card-face--hero',
+    interactive && 'card-face--interactive',
+    !interactive && 'cursor-default',
+    suppressEnterAnimation && 'card-enter--suppressed',
+  ]
+    .filter(Boolean)
+    .join(' ')
 
   return (
     <div
       onClick={interactive ? onClick : undefined}
-      className={`card-base relative flex-col gap-0.5 p-1 transition-[translate,border-color] duration-150 ${
-        interactive
-          ? 'cursor-pointer hover:-translate-y-1.5 hover:border-[var(--gold-light)]'
-          : 'cursor-default'
-      }`}
+      className={className}
     >
-      {card.basePower != null && (
-        <div
-          className="text-sm leading-none"
-          style={{
-            fontFamily: 'var(--font-heading)',
-            color: card.currentPower != null && card.currentPower !== card.basePower
-              ? card.currentPower > card.basePower ? 'var(--green)' : 'var(--red)'
-              : 'var(--gold-light)',
-          }}
-        >
-          {card.currentPower ?? card.basePower}
-        </div>
-      )}
-      <div
-        className="text-[8px] text-center text-[var(--text-secondary)] overflow-hidden text-ellipsis whitespace-nowrap max-w-full"
-        style={{ fontFamily: 'var(--font-heading)' }}
-      >
-        {card.name}
+      {/* Background art / faction gradient */}
+      <div className="card-art" style={artStyle}>
+        <CardArtImage cardId={card.id} faction={card.faction} />
       </div>
+
+      {/* Power gem */}
+      {hasPower && (
+        <PowerGem
+          basePower={card.basePower!}
+          currentPower={card.currentPower ?? card.basePower!}
+          isHero={isHero}
+        />
+      )}
+
+      {/* Row icon */}
+      {isUnit && card.rowType && <RowIcon rowType={card.rowType} />}
+
+      {/* Ability icon */}
+      {card.ability && card.ability !== 'NONE' && (
+        <AbilityIcon ability={card.ability} />
+      )}
+
     </div>
   )
 }

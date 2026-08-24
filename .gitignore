@@ -4,4 +4,6 @@ CLAUDE.md
 # Secrets
 .env
 backend/.env
-frontend/src/assets/*
+frontend/public/cards/*
+.claude/*
+skills-lock.json

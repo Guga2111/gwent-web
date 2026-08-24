@@ -5,6 +5,5 @@ import java.util.List;
 public record BoardRowDto(
         List<CardDto> cards,
         boolean hornActive,
-        boolean weatherActive,
-        int leaderBonusPower
+        boolean weatherActive
 ) {}

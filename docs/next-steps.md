@@ -36,7 +36,6 @@ Seguir o padrao de `LeaderAbilityResolver`. Faccao derivada de `player.getLeader
 
 ### Observacoes de implementacao
 
-- `BoardRow.clear()` ja reseta `leaderBonusPower` — nao precisa limpar manualmente antes de re-adicionar carta dos Monsters
 - `BoardRow.addCard()` valida `rowType` — guardar a row real de cartas AGILE ao extrair
 - Scoia'tael e a unica passiva que requer interacao (novo `PendingAbility` + frontend overlay simples com 2 botoes)
 - Testar com mirror match Nilfgaard vs Nilfgaard para garantir tie normal
