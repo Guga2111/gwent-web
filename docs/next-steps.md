@@ -2,13 +2,9 @@
 
 ## Prioridade 1 — Engine (leader ability pendente)
 
-### Leader abilities implementadas (17/18)
+### Leader abilities implementadas (18/18)
 
 Todas implementadas no engine (`LeaderAbilityResolver`), API (`GameModelMapper`) e frontend (`LeaderOverlay`, `RevealedCardsOverlay`).
-
-### Leader ability pendente (1)
-
-- **PUREBLOOD_ELF** — requer troca de turno mid-pending (complexidade alta); no-op com TODO em `LeaderAbilityResolver.java`
 
 
 ## Prioridade 2 — Faction Passives (engine)
