@@ -66,8 +66,8 @@ export default function PlayerPanel({ player, isActive, side }: PlayerPanelProps
       {/* Score */}
       <CountBadge
         value={player.score}
-        size={52}
-        fontSize={22}
+        size={44}
+        fontSize={18}
         bg={side === 'bottom' ? 'var(--gold-dark)' : 'var(--bg-medium)'}
       />
     </div>
