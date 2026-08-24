@@ -1,6 +1,6 @@
 # Missing Card Images
 
-**Total cards:** 85 | **With images:** 66 | **Missing:** 19
+**Total cards:** 77 | **With images:** 65 | **Missing:** 12
 
 Images are stored in `frontend/public/cards/{faction}/` as `.webp` files, named by card ID.
 
@@ -8,32 +8,14 @@ Images are stored in `frontend/public/cards/{faction}/` as `.webp` files, named 
 
 | Faction | Coverage | Status |
 |---------|----------|--------|
-| Northern Realms | 16/16 (100%) | Complete |
+| Northern Realms | 12/12 (100%) | Complete |
 | Nilfgaard | 18/18 (100%) | Complete |
-| Neutral | 8/8 (100%) | Complete |
-| Scoia'tael | 10/13 (77%) | Partial |
-| Monster | 13/18 (72%) | Partial |
+| Neutral | 12/12 (100%) | Complete |
+| Scoia'tael | 13/13 (100%) | Complete |
+| Monster | 14/14 (100%) | Complete |
 | Skellige | 0/12 (0%) | Missing entirely |
 
 ## Missing Cards
-
-### Monster (5 missing)
-
-| Card ID | Name | Type | Expected Path |
-|---------|------|------|---------------|
-| MO_LEADER_EREDIN | Eredin Breacc Glas: Destroyer of Worlds | Leader | `/cards/monster/MO_LEADER_EREDIN.webp` |
-| MO_HERO_GELS | Ge'els | Hero | `/cards/monster/MO_HERO_GELS.webp` |
-| MO_HERO_CARANTHIR | Caranthir | Hero | `/cards/monster/MO_HERO_CARANTHIR.webp` |
-| MO_HERO_NITHRAL | Nithral | Hero | `/cards/monster/MO_HERO_NITHRAL.webp` |
-| MO_GOLEM | Golem | Unit | `/cards/monster/MO_GOLEM.webp` |
-
-### Scoia'tael (3 missing)
-
-| Card ID | Name | Type | Expected Path |
-|---------|------|------|---------------|
-| ST_HERO_SASKIA | Saskia | Hero | `/cards/scoiatael/ST_HERO_SASKIA.webp` |
-| ST_YAEVINN | Yaevinn | Unit | `/cards/scoiatael/ST_YAEVINN.webp` |
-| ST_VRIHEDD | Vrihedd Brigade Veteran | Unit | `/cards/scoiatael/ST_VRIHEDD.webp` |
 
 ### Skellige (12 missing - entire faction)
 
