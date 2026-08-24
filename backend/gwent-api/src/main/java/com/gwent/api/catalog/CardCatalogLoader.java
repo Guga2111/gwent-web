@@ -33,15 +33,11 @@ public class CardCatalogLoader implements ApplicationRunner {
                     null, LeaderAbility.SIEGE_MASTER, null, null, 0),
 
             // Heroes
-            card("NR_HERO_GERALT",        "Geralt of Rivia",       Faction.NORTHERN_REALMS, CardType.HERO, null,                null, RowType.MELEE,  15, 1),
-            card("NR_HERO_CIRI",          "Ciri",                  Faction.NORTHERN_REALMS, CardType.HERO, null,                null, RowType.MELEE,  15, 1),
-            card("NR_HERO_TRISS",         "Triss Merigold",        Faction.NORTHERN_REALMS, CardType.HERO, null,                null, RowType.MELEE,   7, 1),
-            card("NR_HERO_YENNEFER",      "Yennefer of Vengerberg",Faction.NORTHERN_REALMS, CardType.HERO, Ability.MEDIC,       null, RowType.RANGED,  7, 1),
-            card("NR_HERO_PHILIPPA",      "Philippa Eilhart",      Faction.NORTHERN_REALMS, CardType.HERO, Ability.SPY,         null, RowType.RANGED, 10, 1),
+            card("NR_HERO_PHILIPPA",      "Philippa Eilhart",      Faction.NORTHERN_REALMS, CardType.HERO, null,                null, RowType.RANGED, 10, 1),
             card("NR_HERO_VERNON_ROCHE",  "Vernon Roche",          Faction.NORTHERN_REALMS, CardType.HERO, null,                null, RowType.MELEE,  10, 1),
 
             // Units
-            card("NR_DIJKSTRA",       "Dijkstra",                       Faction.NORTHERN_REALMS, CardType.UNIT, Ability.SPY,          null, RowType.RANGED, 4, 1),
+            card("NR_DIJKSTRA",       "Dijkstra",                       Faction.NORTHERN_REALMS, CardType.UNIT, Ability.SPY,          null, RowType.MELEE,  4, 1),
             card("NR_PRINCE_STENNIS", "Prince Stennis",                 Faction.NORTHERN_REALMS, CardType.UNIT, Ability.SPY,          null, RowType.MELEE,  5, 1),
             card("NR_BLUE_STRIPES",   "Blue Stripes Commando",          Faction.NORTHERN_REALMS, CardType.UNIT, Ability.TIGHT_BOND,   null, RowType.MELEE,  4, 3),
             card("NR_POOR_INFANTRY",  "Poor Fucking Infantry",          Faction.NORTHERN_REALMS, CardType.UNIT, Ability.TIGHT_BOND,   null, RowType.MELEE,  1, 3),
@@ -88,16 +84,12 @@ public class CardCatalogLoader implements ApplicationRunner {
 
             // Heroes
             card("MO_HERO_IMLERITH",  "Imlerith",  Faction.MONSTER, CardType.HERO, null,        null, RowType.MELEE,  10, 1),
-            card("MO_HERO_GELS",      "Ge'els",    Faction.MONSTER, CardType.HERO, Ability.SPY, null, RowType.RANGED,  6, 1),
-            card("MO_HERO_CARANTHIR", "Caranthir", Faction.MONSTER, CardType.HERO, null,        null, RowType.RANGED,  8, 1),
-            card("MO_HERO_NITHRAL",   "Nithral",   Faction.MONSTER, CardType.HERO, null,        null, RowType.MELEE,   6, 1),
 
             // Units
             card("MO_NEKKER",           "Nekker",           Faction.MONSTER, CardType.UNIT, Ability.MUSTER, null, RowType.MELEE,  2, 3),
             card("MO_ARACHAS",          "Arachas",          Faction.MONSTER, CardType.UNIT, Ability.MUSTER, null, RowType.MELEE,  4, 3),
             card("MO_GHOUL",            "Ghoul",            Faction.MONSTER, CardType.UNIT, Ability.MEDIC,  null, RowType.MELEE,  6, 1),
             card("MO_EARTH_ELEMENTAL",  "Earth Elemental",  Faction.MONSTER, CardType.UNIT, Ability.MUSTER, null, RowType.SIEGE,  6, 1),
-            card("MO_GOLEM",            "Golem",            Faction.MONSTER, CardType.UNIT, null,           null, RowType.SIEGE,  6, 1),
             card("MO_WYVERN",           "Wyvern",           Faction.MONSTER, CardType.UNIT, null,           null, RowType.RANGED, 7, 2),
             card("MO_CRONE_BREWESS",    "Crone: Brewess",   Faction.MONSTER, CardType.UNIT, Ability.MUSTER, null, RowType.MELEE,  5, 1),
             card("MO_CRONE_WHISPESS",   "Crone: Whispess",  Faction.MONSTER, CardType.UNIT, Ability.MUSTER, null, RowType.RANGED, 5, 1),
@@ -118,10 +110,10 @@ public class CardCatalogLoader implements ApplicationRunner {
             card("ST_HERO_ISENGRIM", "Isengrim Faoiltiarna",    Faction.SCOIATAEL, CardType.HERO, Ability.MORALE_BOOST, null, RowType.MELEE,  10, 1),
             card("ST_HERO_MILVA",    "Milva",                   Faction.SCOIATAEL, CardType.HERO, Ability.MORALE_BOOST, null, RowType.RANGED,  7, 1),
             card("ST_HERO_IDA",      "Ida Emean aep Sivney",    Faction.SCOIATAEL, CardType.HERO, null,                 null, RowType.RANGED,  6, 1),
-            card("ST_HERO_SASKIA",   "Saskia",                  Faction.SCOIATAEL, CardType.HERO, Ability.MORALE_BOOST, null, RowType.MELEE,  10, 1),
+            card("ST_HERO_SASKIA",   "Saesenthessis",           Faction.SCOIATAEL, CardType.HERO, null,                 null, RowType.RANGED, 10, 1),
 
             // Units
-            card("ST_YAEVINN",        "Yaevinn",                  Faction.SCOIATAEL, CardType.UNIT, Ability.SPY,          null, RowType.RANGED, 6, 1),
+            card("ST_YAEVINN",        "Yaevinn",                  Faction.SCOIATAEL, CardType.UNIT, Ability.AGILE,        null, RowType.MELEE,  6, 1),
             card("ST_DENNIS",         "Dennis Cranmer",            Faction.SCOIATAEL, CardType.UNIT, null,                 null, RowType.MELEE,  6, 1),
             card("ST_VRIHEDD",        "Vrihedd Brigade Veteran",   Faction.SCOIATAEL, CardType.UNIT, Ability.AGILE,        null, RowType.RANGED, 5, 3),
             card("ST_MAHAKAM",        "Mahakam Defender",          Faction.SCOIATAEL, CardType.UNIT, Ability.TIGHT_BOND,   null, RowType.MELEE,  5, 4),
@@ -160,8 +152,14 @@ public class CardCatalogLoader implements ApplicationRunner {
             card("NEUTRAL_RAIN",          "Torrential Rain",    Faction.NEUTRAL, CardType.WEATHER, Ability.RAIN,          null, null, null, 3),
             card("NEUTRAL_CLEAR_WEATHER", "Clear Weather",      Faction.NEUTRAL, CardType.WEATHER, Ability.CLEAR_WEATHER, null, null, null, 3),
 
-            // Neutral units/heroes (deckCopies=0 — for deck builder)
-            card("NEUTRAL_VILLENTRETENMERTH", "Villentretenmerth",  Faction.NEUTRAL, CardType.HERO, Ability.SCORCH,       null, RowType.MELEE,  7, 0),
+            // Neutral heroes
+            card("NEUTRAL_HERO_GERALT",       "Geralt of Rivia",        Faction.NEUTRAL, CardType.HERO, null,                 null, RowType.MELEE,  15, 0),
+            card("NEUTRAL_HERO_CIRI",         "Cirilla Fiona Elen Riannon", Faction.NEUTRAL, CardType.HERO, null,             null, RowType.MELEE,  15, 0),
+            card("NEUTRAL_HERO_TRISS",        "Triss Merigold",         Faction.NEUTRAL, CardType.HERO, null,                 null, RowType.MELEE,   7, 0),
+            card("NEUTRAL_HERO_YENNEFER",     "Yennefer of Vengerberg", Faction.NEUTRAL, CardType.HERO, Ability.MEDIC,        null, RowType.RANGED,  7, 0),
+            card("NEUTRAL_VILLENTRETENMERTH", "Villentretenmerth",      Faction.NEUTRAL, CardType.HERO, Ability.SCORCH,       null, RowType.MELEE,   7, 0),
+
+            // Neutral units (deckCopies=0 — for deck builder)
             card("NEUTRAL_ZOLTAN",            "Zoltan Chivay",      Faction.NEUTRAL, CardType.UNIT, null,                 null, RowType.MELEE,  5, 0),
             card("NEUTRAL_EMIEL_REGIS",       "Emiel Regis",        Faction.NEUTRAL, CardType.UNIT, Ability.MEDIC,        null, RowType.RANGED, 5, 0),
             card("NEUTRAL_DANDELION",         "Dandelion",          Faction.NEUTRAL, CardType.UNIT, Ability.MORALE_BOOST, null, RowType.RANGED, 2, 0)

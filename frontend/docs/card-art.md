@@ -26,7 +26,7 @@ Examples:
 
 | Card Name | Faction | Filename | Full Path |
 |-----------|---------|----------|-----------|
-| Geralt of Rivia | Northern Realms | `NR_HERO_GERALT.webp` | `northern/NR_HERO_GERALT.webp` |
+| Geralt of Rivia | Neutral | `NEUTRAL_HERO_GERALT.webp` | `neutral/NEUTRAL_HERO_GERALT.webp` |
 | Blue Stripes | Northern Realms | `NR_BLUE_STRIPES.webp` | `northern/NR_BLUE_STRIPES.webp` |
 | Yennefer | Neutral | `NEUTRAL_HERO_YENNEFER.webp` | `neutral/NEUTRAL_HERO_YENNEFER.webp` |
 | Foltest | Northern Realms | `NR_LEADER_FOLTEST.webp` | `northern/NR_LEADER_FOLTEST.webp` |
