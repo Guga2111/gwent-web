@@ -1,6 +1,6 @@
 # Missing Card Images
 
-**Total cards:** 77 | **With images:** 65 | **Missing:** 12
+**Total cards:** 77 | **With images:** 62 | **Missing:** 15
 
 Images are stored in `frontend/public/cards/{faction}/` as `.webp` files, named by card ID.
 
@@ -11,11 +11,19 @@ Images are stored in `frontend/public/cards/{faction}/` as `.webp` files, named 
 | Northern Realms | 12/12 (100%) | Complete |
 | Nilfgaard | 18/18 (100%) | Complete |
 | Neutral | 12/12 (100%) | Complete |
-| Scoia'tael | 13/13 (100%) | Complete |
+| Scoia'tael | 10/13 (77%) | Partial |
 | Monster | 14/14 (100%) | Complete |
 | Skellige | 0/12 (0%) | Missing entirely |
 
 ## Missing Cards
+
+### Scoia'tael (3 missing)
+
+| Card ID | Name | Type | Expected Path |
+|---------|------|------|---------------|
+| ST_HERO_SASKIA | Saesenthessis | Hero | `/cards/scoiatael/ST_HERO_SASKIA.webp` |
+| ST_YAEVINN | Yaevinn | Unit | `/cards/scoiatael/ST_YAEVINN.webp` |
+| ST_VRIHEDD | Vrihedd Brigade Veteran | Unit | `/cards/scoiatael/ST_VRIHEDD.webp` |
 
 ### Skellige (12 missing - entire faction)
 
