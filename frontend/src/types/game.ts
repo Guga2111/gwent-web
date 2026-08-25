@@ -79,9 +79,10 @@ export interface GameStateDto {
 }
 
 export interface CommandRequest {
-  commandType: 'PLAY_CARD' | 'PASS' | 'MULLIGAN' | 'USE_LEADER' | 'RESOLVE_MEDIC' | 'CONFIRM_MULLIGAN' | 'RESOLVE_LEADER'
+  commandType: 'PLAY_CARD' | 'PASS' | 'MULLIGAN' | 'USE_LEADER' | 'RESOLVE_MEDIC' | 'CONFIRM_MULLIGAN' | 'RESOLVE_LEADER' | 'RESOLVE_SCOIATAEL'
   playerId?: string
   cardId?: string
   targetRow?: string
   cardIds?: string[]
+  chosenPlayerId?: string
 }
