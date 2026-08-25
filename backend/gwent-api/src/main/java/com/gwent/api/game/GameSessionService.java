@@ -11,6 +11,7 @@ import com.gwent.api.game.dto.*;
 import com.gwent.api.game.exception.GameNotFoundException;
 import com.gwent.api.game.exception.GameNotWaitingException;
 import com.gwent.api.game.exception.PlayerNotInGameException;
+import com.gwent.engine.command.PassCommand;
 import com.gwent.engine.command.ResolveLeaderCommand;
 import com.gwent.engine.command.ResolveMedicCommand;
 import com.gwent.engine.command.ResolveScoiataelCommand;
@@ -21,12 +22,7 @@ import com.gwent.engine.state.PlayerState;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.*;
 
 @Service
@@ -38,6 +34,8 @@ public class GameSessionService {
     private final Map<UUID, ScheduledFuture<?>> medicTimers = new ConcurrentHashMap<>();
     private final Map<UUID, ScheduledFuture<?>> leaderTimers = new ConcurrentHashMap<>();
     private final Map<UUID, ScheduledFuture<?>> scoiataelTimers = new ConcurrentHashMap<>();
+    private final Map<UUID, ScheduledFuture<?>> turnTimers = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> turnDeadlines = new HashMap<>();
     // 4 threads: sufficient for MVP. When scaling, replace with Spring TaskScheduler
     // (container-managed, configurable) or Redis TTL + keyspace notifications (zero threads).
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
@@ -115,7 +113,9 @@ public class GameSessionService {
             if (ctx == null) throw new GameNotFoundException(gameId);
 
             Turn player = resolvePlayer(ctx, userId);
+            Turn currentTurn = ctx.gameState().getCurrentTurn();
             engine.execute(ctx.gameState(), mapper.toCommand(request, player, ctx.gameState(), ctx));
+            Turn afterExecutionTurn = ctx.gameState().getCurrentTurn();
 
             if (request.commandType() == CommandType.RESOLVE_SCOIATAEL) {
                 cancelScoiataelTimer(gameId);
@@ -126,13 +126,26 @@ public class GameSessionService {
             if (pending == PendingAbility.MEDIC_CHOICE) {
                 scheduleMedicTimeout(gameId, ctx);
                 cancelLeaderTimer(gameId);
+                cancelTurnTimer(gameId);
             } else if (pending != null && pending.name().startsWith("LEADER_")) {
                 scheduleLeaderTimeout(gameId, ctx);
                 cancelMedicTimer(gameId);
+                cancelTurnTimer(gameId);
+            } else if (pending == null && currentTurn != afterExecutionTurn && ctx.gameState().getPhase().equals(GamePhase.PLAY)) {
+                scheduleTurnTimer(gameId, ctx);
+                cancelMedicTimer(gameId);
+                cancelLeaderTimer(gameId);
             } else {
                 cancelMedicTimer(gameId);
                 cancelLeaderTimer(gameId);
+                if (pending == null && ctx.gameState().getPhase() == GamePhase.PLAY && !ctx.gameState().isGameOver()) {
+                    scheduleTurnTimer(gameId, ctx);
+                } else {
+                    cancelTurnTimer(gameId);
+                }
             }
+
+            if (ctx.gameState().isGameOver()) cancelTurnTimer(gameId);
 
             broadcastState(gameId, ctx);
 
@@ -182,6 +195,7 @@ public class GameSessionService {
             cancelMedicTimer(gameId);
             cancelLeaderTimer(gameId);
             cancelScoiataelTimer(gameId);
+            cancelTurnTimer(gameId);
             broadcastState(gameId, ctx);
             persist(gameId, ctx);
         }
@@ -219,6 +233,8 @@ public class GameSessionService {
                         engine.execute(ctx.gameState(), new ResolveMedicCommand(randomUnit));
                         if (ctx.gameState().getPendingAbility() == PendingAbility.MEDIC_CHOICE) {
                             scheduleMedicTimeout(gameId, ctx);
+                        } else if (ctx.gameState().getPhase() == GamePhase.PLAY && !ctx.gameState().isGameOver()) {
+                            scheduleTurnTimer(gameId, ctx);
                         }
                         broadcastState(gameId, ctx);
                         persist(gameId, ctx);
@@ -247,6 +263,8 @@ public class GameSessionService {
                     PendingAbility newPending = ctx.gameState().getPendingAbility();
                     if (newPending != null && newPending.name().startsWith("LEADER_")) {
                         scheduleLeaderTimeout(gameId, ctx);
+                    } else if (ctx.gameState().getPhase() == GamePhase.PLAY && !ctx.gameState().isGameOver()) {
+                        scheduleTurnTimer(gameId, ctx);
                     }
                     broadcastState(gameId, ctx);
                     if (ctx.gameState().getRevealedCards() != null) {
@@ -303,11 +321,39 @@ public class GameSessionService {
             synchronized (lock) {
                 if (ctx.gameState().getPhase() == GamePhase.REDRAW) {
                     engine.startPlay(ctx.gameState());
+                    scheduleTurnTimer(gameId, ctx);
                     broadcastState(gameId, ctx);
                     persist(gameId, ctx);
                 }
             }
         }, 30, TimeUnit.SECONDS);
+    }
+
+    private void scheduleTurnTimer(UUID gameId, SessionContext ctx) {
+        long deadline = System.currentTimeMillis() + 60_000;
+        turnDeadlines.put(gameId, deadline);
+
+        cancelTurnTimer(gameId);
+        turnTimers.put(gameId, scheduler.schedule(() -> {
+            Object lock = gameLocks.computeIfAbsent(gameId, k -> new Object());
+            synchronized (lock) {
+                GameState state = ctx.gameState();
+                if (state.getPendingAbility() == null && state.getPhase() == GamePhase.PLAY && !state.isGameOver()) {
+                    engine.execute(state, new PassCommand());
+                    broadcastState(gameId, ctx);
+                    persist(gameId, ctx);
+                    if (state.getPhase() == GamePhase.PLAY && !state.isGameOver()) {
+                        scheduleTurnTimer(gameId, ctx);
+                    }
+                }
+            }
+        }, 60, TimeUnit.SECONDS));
+    }
+
+    private void cancelTurnTimer (UUID gameId) {
+        ScheduledFuture<?> timer = turnTimers.remove(gameId);
+        Long deadline = turnDeadlines.remove(gameId);
+        if (timer != null) timer.cancel(false);
     }
 
     // --- Mapping delegation ---
