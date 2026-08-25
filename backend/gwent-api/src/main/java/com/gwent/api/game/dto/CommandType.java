@@ -7,5 +7,6 @@ public enum CommandType {
     USE_LEADER,
     RESOLVE_MEDIC,
     CONFIRM_MULLIGAN,
-    RESOLVE_LEADER
+    RESOLVE_LEADER,
+    RESOLVE_SCOIATAEL
 }

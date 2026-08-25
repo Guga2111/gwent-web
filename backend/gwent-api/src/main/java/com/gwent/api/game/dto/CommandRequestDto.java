@@ -5,5 +5,6 @@ public record CommandRequestDto (
         CommandType commandType,
         String cardId, // nullable - just for commands that use cards
         String targetRow, // nullable - just for PLAY_CARD
-        java.util.List<String> cardIds // nullable - for CONFIRM_MULLIGAN with cards to swap
+        java.util.List<String> cardIds, // nullable - for CONFIRM_MULLIGAN with cards to swap
+        String chosenPlayerId
 ) {}

@@ -116,7 +116,7 @@ public class GameModelMapper {
         );
     }
 
-    public GameCommand toCommand(CommandRequestDto request, Turn player, GameState state) {
+    public GameCommand toCommand(CommandRequestDto request, Turn player, GameState state, SessionContext ctx) {
         return switch (request.commandType()) {
             case PASS             -> new PassCommand();
             case USE_LEADER       -> new UseLeaderCommand();
@@ -144,6 +144,17 @@ public class GameModelMapper {
                     default -> throw new IllegalStateException("No pending leader ability");
                 };
                 yield new ResolveLeaderCommand(card);
+            }
+            case RESOLVE_SCOIATAEL -> {
+                Turn chosen;
+                if (request.chosenPlayerId().equals(ctx.player1Id())) {
+                    chosen = Turn.PLAYER_1;
+                } else if (request.chosenPlayerId().equals(ctx.player2Id())) {
+                    chosen = Turn.PLAYER_2;
+                } else {
+                    throw new IllegalArgumentException("Unknown player id: " + request.chosenPlayerId());
+                }
+                yield new ResolveScoiataelCommand(chosen);
             }
         };
     }
