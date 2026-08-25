@@ -12,6 +12,7 @@ public class GwentEngine {
     private final ScoreCalculator scoreCalculator = new ScoreCalculator();
     private final AbilityResolver abilityResolver = new AbilityResolver(scoreCalculator);
     private final LeaderAbilityResolver leaderAbilityResolver = new LeaderAbilityResolver(scoreCalculator);
+    private final FactionPassiveResolver factionPassiveResolver = new FactionPassiveResolver();
 
     public void execute(GameState state, GameCommand command) {
         switch (command) {
@@ -21,7 +22,8 @@ public class GwentEngine {
             case UseLeaderCommand c    -> handleUseLeader(state, c);
             case ResolveMedicCommand c -> handleResolveMedic(state, c);
             case ConfirmMulliganCommand c -> handleConfirmMulligan(state, c);
-            case ResolveLeaderCommand c  -> handleResolveLeader(state, c);
+            case ResolveLeaderCommand c     -> handleResolveLeader(state, c);
+            case ResolveScoiataelCommand c  -> handleResolveScoiatael(state, c);
         }
     }
 
@@ -32,10 +34,16 @@ public class GwentEngine {
     // --- Engine-initiated transitions ---
 
     public void resolveCoinFlip(GameState state, Turn firstPlayer) {
-        state.setCurrentTurn(firstPlayer);
-        state.getPlayer1().setMulligansRemaining(2);
-        state.getPlayer2().setMulligansRemaining(2);
-        state.setPhase(GamePhase.REDRAW);
+        if (factionPassiveResolver.hasScoiataelAdvantage(state)) {
+            Turn scoiataelPlayer = factionPassiveResolver.getScoiataelPlayer(state);
+            state.setCurrentTurn(scoiataelPlayer);
+            state.setPendingAbility(PendingAbility.SCOIATAEL_FIRST_PLAYER_CHOICE);
+        } else {
+            state.setCurrentTurn(firstPlayer);
+            state.getPlayer1().setMulligansRemaining(2);
+            state.getPlayer2().setMulligansRemaining(2);
+            state.setPhase(GamePhase.REDRAW);
+        }
     }
 
     public void drawInitialCards(GameState state, int count) {
@@ -183,6 +191,17 @@ public class GwentEngine {
             autoPassIfHandEmpty(state.getCurrentPlayer());
             resolveAfterAction(state);
         }
+    }
+
+    private void handleResolveScoiatael(GameState state, ResolveScoiataelCommand command) {
+        if (state.getPendingAbility() != PendingAbility.SCOIATAEL_FIRST_PLAYER_CHOICE)
+            throw new InvalidPhaseCommandException(GamePhase.COIN_FLIP, state.getPhase());
+
+        state.setPendingAbility(null);
+        state.setCurrentTurn(command.chosenFirstPlayer());
+        state.getPlayer1().setMulligansRemaining(2);
+        state.getPlayer2().setMulligansRemaining(2);
+        state.setPhase(GamePhase.REDRAW);
     }
 
     private void handleResolveLeader(GameState state, ResolveLeaderCommand command) {
@@ -340,13 +359,20 @@ public class GwentEngine {
         int p1Score = scoreCalculator.calculate(state.getPlayer1());
         int p2Score = scoreCalculator.calculate(state.getPlayer2());
 
+        Faction p1Faction = state.getPlayer1().getLeader().faction();
+        Faction p2Faction = state.getPlayer2().getLeader().faction();
+
         Turn loser;
         if (p1Score > p2Score) {
             state.getPlayer2().loseLife();
             loser = Turn.PLAYER_2;
+            factionPassiveResolver.resolveNorthernRealmsBonus(state.getPlayer1());
         } else if (p2Score > p1Score) {
             state.getPlayer1().loseLife();
             loser = Turn.PLAYER_1;
+            factionPassiveResolver.resolveNorthernRealmsBonus(state.getPlayer2());
+        } else if (p1Faction == Faction.NILFGAARD || p2Faction == Faction.NILFGAARD) {
+            loser = factionPassiveResolver.resolveNilfgaardTie(state);
         } else {
             state.getPlayer1().loseLife();
             state.getPlayer2().loseLife();
@@ -368,14 +394,27 @@ public class GwentEngine {
     }
 
     private void startNewRound(GameState state, Turn loser) {
+        FactionPassiveResolver.KeptCard p1Kept = factionPassiveResolver.resolveMonsterKeepCard(state.getPlayer1());
+        FactionPassiveResolver.KeptCard p2Kept = factionPassiveResolver.resolveMonsterKeepCard(state.getPlayer2());
+
         state.getPlayer1().clearRows();
         state.getPlayer2().clearRows();
+
+        if (p1Kept != null) state.getPlayer1().getRow(p1Kept.row()).addCard(p1Kept.card());
+        if (p2Kept != null) state.getPlayer2().getRow(p2Kept.row()).addCard(p2Kept.card());
+
         clearAllWeatherActive(state);
         state.getBoard().clearWeatherCards();
         state.getPlayer1().resetPassed();
         state.getPlayer2().resetPassed();
         state.setCurrentTurn(loser);
         state.nextRound();
+
+        if (state.getCurrentRound() == 3) {
+            factionPassiveResolver.resolveSkelligeRound3(state.getPlayer1());
+            factionPassiveResolver.resolveSkelligeRound3(state.getPlayer2());
+        }
+
         state.setPhase(GamePhase.PLAY);
     }
 

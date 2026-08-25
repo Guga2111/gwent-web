@@ -24,6 +24,7 @@ import GameOverOverlay from "@/components/board/overlays/GameOverOverlay";
 import MedicOverlay from "@/components/board/overlays/MedicOverlay";
 import LeaderOverlay from "@/components/board/overlays/LeaderOverlay";
 import RevealedCardsOverlay from "@/components/board/overlays/RevealedCardsOverlay";
+import ScoiataelOverlay from "@/components/board/overlays/ScoiataelOverlay";
 import FlyingCard from "@/components/board/card/FlyingCard";
 
 export default function Game() {
@@ -379,6 +380,17 @@ export default function Game() {
           />
 
           {/* Phase overlays */}
+          {gameState.pendingAbility === "SCOIATAEL_FIRST_PLAYER_CHOICE" && isMyTurn && (
+            <ScoiataelOverlay
+              onChoose={(goFirst) => {
+                sendCommand({
+                  commandType: "RESOLVE_SCOIATAEL",
+                  playerId,
+                  chosenPlayerId: goFirst ? me.playerId : opponent.playerId,
+                });
+              }}
+            />
+          )}
           {gameState.phase === "REDRAW" && !me.mulliganConfirmed && (
             <MulliganOverlay
               hand={me.hand}

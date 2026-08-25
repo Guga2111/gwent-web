@@ -13,6 +13,7 @@ import com.gwent.api.game.exception.GameNotWaitingException;
 import com.gwent.api.game.exception.PlayerNotInGameException;
 import com.gwent.engine.command.ResolveLeaderCommand;
 import com.gwent.engine.command.ResolveMedicCommand;
+import com.gwent.engine.command.ResolveScoiataelCommand;
 import com.gwent.engine.core.GwentEngine;
 import com.gwent.engine.domain.*;
 import com.gwent.engine.state.GameState;
@@ -36,6 +37,7 @@ public class GameSessionService {
     private final Map<UUID, Object> gameLocks = new ConcurrentHashMap<>();
     private final Map<UUID, ScheduledFuture<?>> medicTimers = new ConcurrentHashMap<>();
     private final Map<UUID, ScheduledFuture<?>> leaderTimers = new ConcurrentHashMap<>();
+    private final Map<UUID, ScheduledFuture<?>> scoiataelTimers = new ConcurrentHashMap<>();
     // 4 threads: sufficient for MVP. When scaling, replace with Spring TaskScheduler
     // (container-managed, configurable) or Redis TTL + keyspace notifications (zero threads).
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
@@ -93,7 +95,11 @@ public class GameSessionService {
 
             SessionContext ctx = new SessionContext(gameState, game.getPlayer1Id(), userId);
             sessions.put(gameId, ctx);
-            scheduleMulliganTimeout(gameId, ctx);
+            if (gameState.getPhase() == GamePhase.REDRAW) {
+                scheduleMulliganTimeout(gameId, ctx);
+            } else {
+                scheduleScoiataelTimeout(gameId, ctx);
+            }
 
             broadcastState(gameId, ctx);
             persist(gameId, ctx);
@@ -109,7 +115,12 @@ public class GameSessionService {
             if (ctx == null) throw new GameNotFoundException(gameId);
 
             Turn player = resolvePlayer(ctx, userId);
-            engine.execute(ctx.gameState(), mapper.toCommand(request, player, ctx.gameState()));
+            engine.execute(ctx.gameState(), mapper.toCommand(request, player, ctx.gameState(), ctx));
+
+            if (request.commandType() == CommandType.RESOLVE_SCOIATAEL) {
+                cancelScoiataelTimer(gameId);
+                scheduleMulliganTimeout(gameId, ctx);
+            }
 
             PendingAbility pending = ctx.gameState().getPendingAbility();
             if (pending == PendingAbility.MEDIC_CHOICE) {
@@ -170,6 +181,7 @@ public class GameSessionService {
 
             cancelMedicTimer(gameId);
             cancelLeaderTimer(gameId);
+            cancelScoiataelTimer(gameId);
             broadcastState(gameId, ctx);
             persist(gameId, ctx);
         }
@@ -262,6 +274,27 @@ public class GameSessionService {
             case LEADER_HAND_DISCARD -> current.getHand().stream().findAny().orElse(null);
             default -> null;
         };
+    }
+
+    private void scheduleScoiataelTimeout(UUID gameId, SessionContext ctx) {
+        cancelScoiataelTimer(gameId);
+        scoiataelTimers.put(gameId, scheduler.schedule(() -> {
+            Object lock = gameLocks.computeIfAbsent(gameId, k -> new Object());
+            synchronized (lock) {
+                if (ctx.gameState().getPendingAbility() == PendingAbility.SCOIATAEL_FIRST_PLAYER_CHOICE) {
+                    Turn randomChoice = Math.random() < 0.5 ? Turn.PLAYER_1 : Turn.PLAYER_2;
+                    engine.execute(ctx.gameState(), new ResolveScoiataelCommand(randomChoice));
+                    scheduleMulliganTimeout(gameId, ctx);
+                    broadcastState(gameId, ctx);
+                    persist(gameId, ctx);
+                }
+            }
+        }, 30, TimeUnit.SECONDS));
+    }
+
+    private void cancelScoiataelTimer(UUID gameId) {
+        ScheduledFuture<?> timer = scoiataelTimers.remove(gameId);
+        if (timer != null) timer.cancel(false);
     }
 
     private void scheduleMulliganTimeout(UUID gameId, SessionContext ctx) {
