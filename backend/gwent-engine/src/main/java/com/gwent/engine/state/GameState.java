@@ -141,4 +141,8 @@ public class GameState {
         this.endReason = endReason;
         setPhase(GamePhase.GAME_OVER); // isso eh possivel? fazer um set dentro de outra funcao do state
     }
+
+    public boolean isGameOver() {
+        return phase == GamePhase.GAME_OVER;
+    }
 }
