@@ -383,12 +383,10 @@ export default function Game() {
           {gameState.pendingAbility === "SCOIATAEL_FIRST_PLAYER_CHOICE" && isMyTurn && (
             <ScoiataelOverlay
               onChoose={(goFirst) => {
-                const myTurn = gameState.myTurn;
-                const opponentTurn = myTurn === "PLAYER_1" ? "PLAYER_2" : "PLAYER_1";
                 sendCommand({
                   commandType: "RESOLVE_SCOIATAEL",
                   playerId,
-                  chosenPlayerId: goFirst ? myTurn : opponentTurn,
+                  chosenPlayerId: goFirst ? me.playerId : opponent.playerId,
                 });
               }}
             />
