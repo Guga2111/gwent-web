@@ -18,12 +18,18 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.UUID;
 
 @Component
 public class WebsocketChannelInterceptor implements ChannelInterceptor {
-
     @Value("${jwt.secret}")
     private String jwtSecret;
+
+    private final WebSocketSessionRegistry registry;
+
+    public WebsocketChannelInterceptor (WebSocketSessionRegistry registry) {
+        this.registry = registry;
+    }
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -76,6 +82,10 @@ public class WebsocketChannelInterceptor implements ChannelInterceptor {
             if (user == null || !isAuthorizedForTopic(user, destination)) {
                 throw new MessageDeliveryException("Denied access to player topic");
             }
+            String[] segments = destination.substring("/topic/games/".length()).split("/");
+            UUID gameId = UUID.fromString(segments[0]);
+            registry.registerSession(accessor.getSessionId(), gameId, user.getName());
+
         }
     }
 

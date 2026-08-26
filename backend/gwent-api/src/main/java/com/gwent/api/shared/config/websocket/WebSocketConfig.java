@@ -1,6 +1,5 @@
-package com.gwent.api.shared.config;
+package com.gwent.api.shared.config.websocket;
 
-import com.gwent.api.shared.config.websocket.WebsocketChannelInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
