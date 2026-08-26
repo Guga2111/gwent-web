@@ -76,6 +76,7 @@ export interface GameStateDto {
   deckCards: CardDto[] | null
   winner: string | null
   endReason: string | null
+  turnDeadlineUtc: number | null
 }
 
 export interface CommandRequest {
