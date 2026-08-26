@@ -362,11 +362,13 @@ public class GameSessionService {
         GameState state = ctx.gameState();
         PlayerState meState = state.getPlayer(perspective);
         PlayerState opponentState = state.getPlayer(perspective == Turn.PLAYER_1 ? Turn.PLAYER_2 : Turn.PLAYER_1);
+        Long deadlines = turnDeadlines.get(gameId);
 
         return mapper.toGameStateDto(
                 gameId, ctx, perspective,
                 engine.calculateScore(meState),
-                engine.calculateScore(opponentState)
+                engine.calculateScore(opponentState),
+                deadlines
         );
     }
 
