@@ -15,7 +15,7 @@ Currently players have infinite time to play on their turn and if a player disco
 | Turn timer on turn switch | Reset to 60s every time | Consistent behavior |
 | Session tracking | Reference counting per (gameId, playerEmail) | Handles multi-tab without false disconnects |
 | Disconnect forfeit | Reuse existing `SURRENDER` EndReason | Avoid engine changes, good enough for demo |
-| Connection status delivery | Separate `/topic/games/{gameId}/presence` topic | SRP — connection status is not game state |
+| Connection status del3ivery | Separate `/topic/games/{gameId}/presence` topic | SRP — connection status is not game state |
 | Countdown UI | Progress bar always visible + large numbers at 10s | Better UX awareness |
 
 ## Architecture Notes

@@ -25,7 +25,9 @@ import MedicOverlay from "@/components/board/overlays/MedicOverlay";
 import LeaderOverlay from "@/components/board/overlays/LeaderOverlay";
 import RevealedCardsOverlay from "@/components/board/overlays/RevealedCardsOverlay";
 import ScoiataelOverlay from "@/components/board/overlays/ScoiataelOverlay";
+import TurnCountdown from "@/components/board/overlays/TurnCountdown";
 import FlyingCard from "@/components/board/card/FlyingCard";
+import { useTurnCountdown } from "@/hooks/useTurnCountdown";
 
 export default function Game() {
   const { gameId } = useParams<{ gameId: string }>();
@@ -82,6 +84,8 @@ export default function Game() {
   const isMyTurn = gameState
     ? gameState.currentTurn === gameState.myTurn
     : false;
+
+  const { remainingPct, remainingSeconds, isUrgent } = useTurnCountdown(gameState?.turnDeadlineUtc ?? null);
 
   const playerId = user?.email;
 
@@ -312,7 +316,7 @@ export default function Game() {
               onInspectCard={handleBoardCardClick}
             />
 
-            <CentralDivider />
+            <CentralDivider turnRemainingPct={remainingPct} isMyTurn={isMyTurn} isUrgent={isUrgent} />
 
             {/* Player rows: melee, ranged, siege (top to bottom) */}
             <BoardRow
@@ -357,6 +361,8 @@ export default function Game() {
               suppressEnterCardId={landedCardId}
             />
           </div>
+
+          <TurnCountdown remainingSeconds={remainingSeconds} isMyTurn={isMyTurn} />
 
           {/* Player hand */}
           <Hand
