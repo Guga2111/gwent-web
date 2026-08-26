@@ -84,8 +84,9 @@ public class WebsocketChannelInterceptor implements ChannelInterceptor {
             }
             String[] segments = destination.substring("/topic/games/".length()).split("/");
             UUID gameId = UUID.fromString(segments[0]);
-            registry.registerSession(accessor.getSessionId(), gameId, user.getName());
-
+            String playerEmail = segments[1];
+            Integer count = registry.registerSession(accessor.getSessionId(), gameId, user.getName());
+            // if (count == 0) gameSessionService.cancelDisconnectForfeit(gameId, playerEmail);
         }
     }
 
