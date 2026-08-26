@@ -1,0 +1,26 @@
+name: Semantic Release
+on:
+  push:
+    branches:
+      - main 
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Permite criar a tag e a release
+      issues: write # Permite comentar em issues fechadas
+      pull-requests: write # Permite comentar em PRs
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Setup do Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Executar Semantic Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
