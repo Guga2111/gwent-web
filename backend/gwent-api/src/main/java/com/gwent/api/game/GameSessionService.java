@@ -17,6 +17,7 @@ import com.gwent.engine.command.ResolveMedicCommand;
 import com.gwent.engine.command.ResolveScoiataelCommand;
 import com.gwent.engine.core.GwentEngine;
 import com.gwent.engine.domain.*;
+import com.gwent.engine.exception.command.InvalidPhaseCommandException;
 import com.gwent.engine.state.GameState;
 import com.gwent.engine.state.PlayerState;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -35,6 +36,7 @@ public class GameSessionService {
     private final Map<UUID, ScheduledFuture<?>> leaderTimers = new ConcurrentHashMap<>();
     private final Map<UUID, ScheduledFuture<?>> scoiataelTimers = new ConcurrentHashMap<>();
     private final Map<UUID, ScheduledFuture<?>> turnTimers = new ConcurrentHashMap<>();
+    private final Map<String, ScheduledFuture<?>> disconnectTimers = new ConcurrentHashMap<>();
     private final Map<UUID, Long> turnDeadlines = new HashMap<>();
     // 4 threads: sufficient for MVP. When scaling, replace with Spring TaskScheduler
     // (container-managed, configurable) or Redis TTL + keyspace notifications (zero threads).
@@ -145,7 +147,10 @@ public class GameSessionService {
                 }
             }
 
-            if (ctx.gameState().isGameOver()) cancelTurnTimer(gameId);
+            if (ctx.gameState().isGameOver()) {
+                cancelTurnTimer(gameId);
+                cancelDisconnectTimersForGame(gameId, ctx);
+            }
 
             broadcastState(gameId, ctx);
 
@@ -188,6 +193,7 @@ public class GameSessionService {
         synchronized (lock) {
             SessionContext ctx = sessions.get(gameId);
             if (ctx == null) throw new GameNotFoundException(gameId);
+            if (ctx.gameState().isGameOver()) throw new InvalidPhaseCommandException(GamePhase.PLAY, GamePhase.GAME_OVER);
 
             Turn player = resolvePlayer(ctx, userId);
             engine.surrender(ctx.gameState(), player);
@@ -196,6 +202,7 @@ public class GameSessionService {
             cancelLeaderTimer(gameId);
             cancelScoiataelTimer(gameId);
             cancelTurnTimer(gameId);
+            cancelDisconnectTimersForGame(gameId, ctx);
             broadcastState(gameId, ctx);
             persist(gameId, ctx);
         }
@@ -344,6 +351,8 @@ public class GameSessionService {
                     persist(gameId, ctx);
                     if (state.getPhase() == GamePhase.PLAY && !state.isGameOver()) {
                         scheduleTurnTimer(gameId, ctx);
+                    } else if (state.isGameOver()) {
+                        cancelDisconnectTimersForGame(gameId, ctx);
                     }
                 }
             }
@@ -354,6 +363,36 @@ public class GameSessionService {
         ScheduledFuture<?> timer = turnTimers.remove(gameId);
         Long deadline = turnDeadlines.remove(gameId);
         if (timer != null) timer.cancel(false);
+    }
+
+    public void scheduleDisconnectForfeit(UUID gameId, String playerEmail) {
+        String key = gameId + ":" + playerEmail;
+        ScheduledFuture<?> future = scheduler.schedule(() -> {
+            try {
+                surrender(gameId, playerEmail);
+            } catch (InvalidPhaseCommandException e) {
+                // game already ended, nothing to do
+            }
+        }, 120, TimeUnit.SECONDS);
+        disconnectTimers.put(key, future);
+        long deadline = System.currentTimeMillis() + 120_000;
+        messagingTemplate.convertAndSend("/topic/games/" + gameId + "/presence",
+                new PresenceDto(playerEmail, false, deadline));
+    }
+
+    public void cancelDisconnectForfeit(UUID gameId, String playerEmail) {
+        String key = gameId + ":" + playerEmail;
+        ScheduledFuture<?> disconnect = disconnectTimers.remove(key);
+        if (disconnect != null) {
+            disconnect.cancel(false);
+            messagingTemplate.convertAndSend("/topic/games/" + gameId + "/presence",
+                    new PresenceDto(playerEmail, true, null));
+        }
+    }
+
+    private void cancelDisconnectTimersForGame(UUID gameId, SessionContext ctx) {
+        cancelDisconnectForfeit(gameId, ctx.player1Id());
+        cancelDisconnectForfeit(gameId, ctx.player2Id());
     }
 
     // --- Mapping delegation ---
