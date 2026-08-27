@@ -37,6 +37,7 @@ public class GameSessionService {
     private final Map<UUID, ScheduledFuture<?>> scoiataelTimers = new ConcurrentHashMap<>();
     private final Map<UUID, ScheduledFuture<?>> turnTimers = new ConcurrentHashMap<>();
     private final Map<String, ScheduledFuture<?>> disconnectTimers = new ConcurrentHashMap<>();
+    private final Set<UUID> disconnectForfeits = ConcurrentHashMap.newKeySet();
     private final Map<UUID, Long> turnDeadlines = new HashMap<>();
     // 4 threads: sufficient for MVP. When scaling, replace with Spring TaskScheduler
     // (container-managed, configurable) or Redis TTL + keyspace notifications (zero threads).
@@ -337,23 +338,23 @@ public class GameSessionService {
     }
 
     private void scheduleTurnTimer(UUID gameId, SessionContext ctx) {
+        cancelTurnTimer(gameId);
+
         long deadline = System.currentTimeMillis() + 60_000;
         turnDeadlines.put(gameId, deadline);
-
-        cancelTurnTimer(gameId);
         turnTimers.put(gameId, scheduler.schedule(() -> {
             Object lock = gameLocks.computeIfAbsent(gameId, k -> new Object());
             synchronized (lock) {
                 GameState state = ctx.gameState();
                 if (state.getPendingAbility() == null && state.getPhase() == GamePhase.PLAY && !state.isGameOver()) {
                     engine.execute(state, new PassCommand());
-                    broadcastState(gameId, ctx);
-                    persist(gameId, ctx);
                     if (state.getPhase() == GamePhase.PLAY && !state.isGameOver()) {
                         scheduleTurnTimer(gameId, ctx);
                     } else if (state.isGameOver()) {
                         cancelDisconnectTimersForGame(gameId, ctx);
                     }
+                    broadcastState(gameId, ctx);
+                    persist(gameId, ctx);
                 }
             }
         }, 60, TimeUnit.SECONDS));
@@ -368,10 +369,11 @@ public class GameSessionService {
     public void scheduleDisconnectForfeit(UUID gameId, String playerEmail) {
         String key = gameId + ":" + playerEmail;
         ScheduledFuture<?> future = scheduler.schedule(() -> {
+            disconnectForfeits.add(gameId);
             try {
                 surrender(gameId, playerEmail);
             } catch (InvalidPhaseCommandException e) {
-                // game already ended, nothing to do
+                disconnectForfeits.remove(gameId);
             }
         }, 120, TimeUnit.SECONDS);
         disconnectTimers.put(key, future);
@@ -407,7 +409,8 @@ public class GameSessionService {
                 gameId, ctx, perspective,
                 engine.calculateScore(meState),
                 engine.calculateScore(opponentState),
-                deadlines
+                deadlines,
+                disconnectForfeits.contains(gameId)
         );
     }
 
