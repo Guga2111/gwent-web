@@ -336,15 +336,26 @@
   right: calc(50% - 34px);
 }
 
-/* Timer bar */
+/* Timer bar track (visible empty portion) */
+.central-divider__timer-track {
+  position: absolute;
+  top: calc(50% + 4px);
+  left: 0;
+  width: 100%;
+  height: 5px;
+  border-radius: 3px;
+  z-index: 1;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+/* Timer bar fill */
 .central-divider__timer-bar {
   position: absolute;
-  top: 50%;
+  top: calc(50% + 4px);
   left: 0;
-  height: 3px;
-  border-radius: 2px;
-  z-index: 1;
-  transform: translateY(-50%);
+  height: 5px;
+  border-radius: 3px;
+  z-index: 2;
   transition: width 150ms linear, background-color 0.5s ease;
 }
 
@@ -361,6 +372,30 @@
 .central-divider__timer-bar--urgent {
   background: linear-gradient(90deg, #a33, var(--red), #e55);
   box-shadow: 0 0 8px rgba(204, 68, 68, 0.6);
+}
+
+/* Disconnected banner */
+.disconnected-banner {
+  position: absolute;
+  top: 44px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  pointer-events: none;
+  padding: 6px 20px;
+  border-radius: 4px;
+  border: 1px solid var(--red);
+  background-color: rgba(204, 68, 68, 0.18);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  animation: disconnected-banner-enter 0.3s ease-out;
+}
+
+@keyframes disconnected-banner-enter {
+  from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
 /* Turn countdown number */

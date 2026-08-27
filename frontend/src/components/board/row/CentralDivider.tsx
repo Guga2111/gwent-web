@@ -20,10 +20,13 @@ export default function CentralDivider({ turnRemainingPct, isMyTurn, isUrgent }:
     <div className="central-divider">
       <div className="central-divider__line" />
       {turnRemainingPct != null && (
-        <div
-          className={timerBarClass}
-          style={{ width: `${turnRemainingPct}%` }}
-        />
+        <>
+          <div className="central-divider__timer-track" />
+          <div
+            className={timerBarClass}
+            style={{ width: `${turnRemainingPct}%` }}
+          />
+        </>
       )}
       <div className="central-divider__accent central-divider__accent--left" />
       <div className="central-divider__medallion">
