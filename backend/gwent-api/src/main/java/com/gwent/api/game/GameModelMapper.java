@@ -18,7 +18,7 @@ public class GameModelMapper {
 
     private final ScoreCalculator scoreCalculator = new ScoreCalculator();
 
-    public GameStateDto toGameStateDto(UUID gameId, SessionContext ctx, Turn perspective, int meScore, int opponentScore, Long turnDeadlines) {
+    public GameStateDto toGameStateDto(UUID gameId, SessionContext ctx, Turn perspective, int meScore, int opponentScore, Long turnDeadlines, boolean disconnectForfeit) {
         GameState state = ctx.gameState();
         String meId = perspective == Turn.PLAYER_1 ? ctx.player1Id() : ctx.player2Id();
         String opponentId = perspective == Turn.PLAYER_1 ? ctx.player2Id() : ctx.player1Id();
@@ -42,7 +42,8 @@ public class GameModelMapper {
                 state.getEndReason() != null ? state.getEndReason().name() : null,
                 resolveRevealedCards(state, perspective),
                 resolveDeckCards(state, perspective, meState),
-                turnDeadlines
+                turnDeadlines,
+                disconnectForfeit
         );
     }
 
