@@ -15,7 +15,9 @@ public class WebSocketSessionRegistry {
 
     public Integer registerSession (String sessionId, UUID gameId, String playerEmail) {
         String key = gameId.toString() + ":" + playerEmail;
-        sessionToKey.put(sessionId, key);
+        if (sessionToKey.putIfAbsent(sessionId, key) != null) {
+            return connectionCounts.getOrDefault(key, 1);
+        }
         return connectionCounts.merge(key, 1, Integer::sum);
     }
 
