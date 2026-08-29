@@ -2,6 +2,8 @@ import { Settings, Coins, Gem } from 'lucide-react'
 import type { AuthUser } from '@/types/auth'
 import PlayerShield from './PlayerShield'
 import CurrencyBadge from './CurrencyBadge'
+import { useHubStore } from '@/stores/hubStore'
+import { getFactionConfig } from '@/utils/factionConfig'
 
 interface TopHUDProps {
   user: AuthUser | null
@@ -9,11 +11,14 @@ interface TopHUDProps {
 }
 
 export default function TopHUD({ user, onSettingsClick }: TopHUDProps) {
+  const activeDeck = useHubStore((s) => s.activeDeck)
+  const config = getFactionConfig(activeDeck?.faction ?? null)
+
   return (
     <header className="relative z-30 flex items-center justify-between px-[30px] pt-4 pb-[10px] shrink-0">
       {/* Left: Avatar + Player info */}
       <div className="flex items-center gap-3.5">
-        <PlayerShield level={34} />
+        <PlayerShield level={1} />
         <div>
           <div
             className="font-bold text-lg text-[var(--text-primary)] tracking-[.3px]"
@@ -25,7 +30,7 @@ export default function TopHUD({ user, onSettingsClick }: TopHUDProps) {
             className="italic text-[13px] text-[var(--text-muted)] mt-px"
             style={{ fontFamily: 'var(--font-body)' }}
           >
-            &laquo; aventureiro &raquo;
+            &laquo; &mdash; &raquo;
           </div>
         </div>
         <div
@@ -35,7 +40,7 @@ export default function TopHUD({ user, onSettingsClick }: TopHUDProps) {
           <div
             className="w-[15px] h-[18px]"
             style={{
-              background: 'linear-gradient(180deg, var(--blue-light), var(--blue))',
+              background: `var(${config.secondaryVar})`,
               clipPath: 'polygon(0 0, 100% 0, 100% 64%, 50% 100%, 0 64%)',
             }}
           />
@@ -43,13 +48,13 @@ export default function TopHUD({ user, onSettingsClick }: TopHUDProps) {
             className="font-semibold text-[13px] text-[var(--gold)] tracking-[.5px]"
             style={{ fontFamily: 'var(--font-heading)' }}
           >
-            Prata II
+            {activeDeck ? config.label : '—'}
           </span>
           <span
             className="italic text-[13px] text-[var(--text-muted)]"
             style={{ fontFamily: 'var(--font-body)' }}
           >
-            · 2.480 PR
+            · —
           </span>
         </div>
       </div>
@@ -76,7 +81,7 @@ export default function TopHUD({ user, onSettingsClick }: TopHUDProps) {
       {/* Right: Currencies + Settings */}
       <div className="flex items-center gap-[11px]">
         <CurrencyBadge
-          count="1.450"
+          count="—"
           label="coroas"
           Icon={Coins}
           iconBg="radial-gradient(circle at 35% 30%, var(--gold-light), var(--gold-dark))"
@@ -84,7 +89,7 @@ export default function TopHUD({ user, onSettingsClick }: TopHUDProps) {
           accentShadow="rgba(240,205,120,.28)"
         />
         <CurrencyBadge
-          count="820"
+          count="—"
           label="sucata"
           Icon={Gem}
           iconBg="radial-gradient(circle at 35% 30%, var(--blue-light), var(--blue))"

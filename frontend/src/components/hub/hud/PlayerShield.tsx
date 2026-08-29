@@ -30,7 +30,7 @@ export default function PlayerShield({ level, size = 'sm' }: PlayerShieldProps) 
             width: inner[0],
             height: inner[1],
             clipPath: 'polygon(0 0, 100% 0, 100% 64%, 50% 100%, 0 64%)',
-            background: 'repeating-linear-gradient(45deg, #2a4258 0 5px, #21384b 5px 10px)',
+            background: 'var(--bg-dark)',
           }}
         />
       </div>
