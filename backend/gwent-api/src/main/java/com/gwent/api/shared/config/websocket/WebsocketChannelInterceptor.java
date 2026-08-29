@@ -4,8 +4,10 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.gwent.api.game.GameSessionService;
 import com.gwent.api.security.SecurityConstants;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
@@ -18,12 +20,20 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.UUID;
 
 @Component
 public class WebsocketChannelInterceptor implements ChannelInterceptor {
-
     @Value("${jwt.secret}")
     private String jwtSecret;
+
+    private final WebSocketSessionRegistry registry;
+    private final GameSessionService gameSessionService;
+
+    public WebsocketChannelInterceptor (WebSocketSessionRegistry registry, @Lazy GameSessionService gameSessionService) {
+        this.registry = registry;
+        this.gameSessionService = gameSessionService;
+    }
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -76,15 +86,25 @@ public class WebsocketChannelInterceptor implements ChannelInterceptor {
             if (user == null || !isAuthorizedForTopic(user, destination)) {
                 throw new MessageDeliveryException("Denied access to player topic");
             }
+            String[] segments = destination.substring("/topic/games/".length()).split("/");
+            if (segments.length >= 2 && !"presence".equals(segments[1])) {
+                UUID gameId = UUID.fromString(segments[0]);
+                Integer count = registry.registerSession(accessor.getSessionId(), gameId, user.getName());
+                if (count == 1) {
+                    gameSessionService.cancelDisconnectForfeit(gameId, user.getName());
+                }
+            }
         }
     }
 
     private boolean isAuthorizedForTopic(Authentication user, String destination) {
         // pattern: /topic/games/{gameId}/{playerEmail} or /topic/games/{gameId}/{playerEmail}/errors
+        // or /topic/games/{gameId}/presence
         String[] segments = destination.substring("/topic/games/".length()).split("/");
         if (segments.length < 2) return false;
 
         String playerSegment = segments[1];
+        if ("presence".equals(playerSegment)) return true;
         return user.getName().equals(playerSegment);
     }
 }

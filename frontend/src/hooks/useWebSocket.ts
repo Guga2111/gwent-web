@@ -4,13 +4,14 @@ import SockJS from 'sockjs-client'
 import { useGameStore } from '@/stores/gameStore'
 import { useAuthStore } from '@/stores/authStore'
 import { getGameState } from '@/api/game'
-import type { GameStateDto, CommandRequest } from '@/types/game'
+import type { GameStateDto, CommandRequest, PresenceMessage } from '@/types/game'
 
 export function useWebSocket(gameId: string | null) {
   const clientRef = useRef<Client | null>(null)
   const setGameState = useGameStore((s) => s.setGameState)
   const setConnected = useGameStore((s) => s.setConnected)
   const setError = useGameStore((s) => s.setError)
+  const setOpponentPresence = useGameStore((s) => s.setOpponentPresence)
   const token = useAuthStore((s) => s.token)
   const user = useAuthStore((s) => s.user)
 
@@ -38,6 +39,11 @@ export function useWebSocket(gameId: string | null) {
           if (!active) return
           setError(message.body)
         })
+        stompClient.subscribe(`/topic/games/${gameId}/presence`, (message) => {
+          if (!active) return
+          const presence: PresenceMessage = JSON.parse(message.body)
+          setOpponentPresence(presence.connected, presence.forfeitDeadlineUtc)
+        })
       },
       onDisconnect: () => {
         if (!active) return
@@ -59,7 +65,7 @@ export function useWebSocket(gameId: string | null) {
       clientRef.current = null
       setConnected(false)
     }
-  }, [gameId, token, user, setGameState, setConnected, setError])
+  }, [gameId, token, user, setGameState, setConnected, setError, setOpponentPresence])
 
   const sendCommand = useCallback(
     (command: CommandRequest) => {

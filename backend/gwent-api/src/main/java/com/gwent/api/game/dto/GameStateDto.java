@@ -16,5 +16,7 @@ public record GameStateDto(
         String winner,
         String endReason,
         List<CardDto> revealedCards,
-        List<CardDto> deckCards
+        List<CardDto> deckCards,
+        Long turnDeadlineUtc,
+        boolean disconnectForfeit
 ) {}
