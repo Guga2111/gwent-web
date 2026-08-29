@@ -11,19 +11,22 @@ import com.gwent.api.game.dto.*;
 import com.gwent.api.game.exception.GameNotFoundException;
 import com.gwent.api.game.exception.GameNotWaitingException;
 import com.gwent.api.game.exception.PlayerNotInGameException;
-import com.gwent.engine.command.PassCommand;
 import com.gwent.engine.command.ResolveLeaderCommand;
 import com.gwent.engine.command.ResolveMedicCommand;
 import com.gwent.engine.command.ResolveScoiataelCommand;
 import com.gwent.engine.core.GwentEngine;
 import com.gwent.engine.domain.*;
-import com.gwent.engine.exception.command.InvalidPhaseCommandException;
 import com.gwent.engine.state.GameState;
 import com.gwent.engine.state.PlayerState;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.*;
 
 @Service
@@ -35,10 +38,6 @@ public class GameSessionService {
     private final Map<UUID, ScheduledFuture<?>> medicTimers = new ConcurrentHashMap<>();
     private final Map<UUID, ScheduledFuture<?>> leaderTimers = new ConcurrentHashMap<>();
     private final Map<UUID, ScheduledFuture<?>> scoiataelTimers = new ConcurrentHashMap<>();
-    private final Map<UUID, ScheduledFuture<?>> turnTimers = new ConcurrentHashMap<>();
-    private final Map<String, ScheduledFuture<?>> disconnectTimers = new ConcurrentHashMap<>();
-    private final Set<UUID> disconnectForfeits = ConcurrentHashMap.newKeySet();
-    private final Map<UUID, Long> turnDeadlines = new HashMap<>();
     // 4 threads: sufficient for MVP. When scaling, replace with Spring TaskScheduler
     // (container-managed, configurable) or Redis TTL + keyspace notifications (zero threads).
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
@@ -116,9 +115,7 @@ public class GameSessionService {
             if (ctx == null) throw new GameNotFoundException(gameId);
 
             Turn player = resolvePlayer(ctx, userId);
-            Turn currentTurn = ctx.gameState().getCurrentTurn();
             engine.execute(ctx.gameState(), mapper.toCommand(request, player, ctx.gameState(), ctx));
-            Turn afterExecutionTurn = ctx.gameState().getCurrentTurn();
 
             if (request.commandType() == CommandType.RESOLVE_SCOIATAEL) {
                 cancelScoiataelTimer(gameId);
@@ -129,28 +126,12 @@ public class GameSessionService {
             if (pending == PendingAbility.MEDIC_CHOICE) {
                 scheduleMedicTimeout(gameId, ctx);
                 cancelLeaderTimer(gameId);
-                cancelTurnTimer(gameId);
             } else if (pending != null && pending.name().startsWith("LEADER_")) {
                 scheduleLeaderTimeout(gameId, ctx);
                 cancelMedicTimer(gameId);
-                cancelTurnTimer(gameId);
-            } else if (pending == null && currentTurn != afterExecutionTurn && ctx.gameState().getPhase().equals(GamePhase.PLAY)) {
-                scheduleTurnTimer(gameId, ctx);
-                cancelMedicTimer(gameId);
-                cancelLeaderTimer(gameId);
             } else {
                 cancelMedicTimer(gameId);
                 cancelLeaderTimer(gameId);
-                if (pending == null && ctx.gameState().getPhase() == GamePhase.PLAY && !ctx.gameState().isGameOver()) {
-                    scheduleTurnTimer(gameId, ctx);
-                } else {
-                    cancelTurnTimer(gameId);
-                }
-            }
-
-            if (ctx.gameState().isGameOver()) {
-                cancelTurnTimer(gameId);
-                cancelDisconnectTimersForGame(gameId, ctx);
             }
 
             broadcastState(gameId, ctx);
@@ -194,7 +175,6 @@ public class GameSessionService {
         synchronized (lock) {
             SessionContext ctx = sessions.get(gameId);
             if (ctx == null) throw new GameNotFoundException(gameId);
-            if (ctx.gameState().isGameOver()) throw new InvalidPhaseCommandException(GamePhase.PLAY, GamePhase.GAME_OVER);
 
             Turn player = resolvePlayer(ctx, userId);
             engine.surrender(ctx.gameState(), player);
@@ -202,8 +182,6 @@ public class GameSessionService {
             cancelMedicTimer(gameId);
             cancelLeaderTimer(gameId);
             cancelScoiataelTimer(gameId);
-            cancelTurnTimer(gameId);
-            cancelDisconnectTimersForGame(gameId, ctx);
             broadcastState(gameId, ctx);
             persist(gameId, ctx);
         }
@@ -241,8 +219,6 @@ public class GameSessionService {
                         engine.execute(ctx.gameState(), new ResolveMedicCommand(randomUnit));
                         if (ctx.gameState().getPendingAbility() == PendingAbility.MEDIC_CHOICE) {
                             scheduleMedicTimeout(gameId, ctx);
-                        } else if (ctx.gameState().getPhase() == GamePhase.PLAY && !ctx.gameState().isGameOver()) {
-                            scheduleTurnTimer(gameId, ctx);
                         }
                         broadcastState(gameId, ctx);
                         persist(gameId, ctx);
@@ -271,8 +247,6 @@ public class GameSessionService {
                     PendingAbility newPending = ctx.gameState().getPendingAbility();
                     if (newPending != null && newPending.name().startsWith("LEADER_")) {
                         scheduleLeaderTimeout(gameId, ctx);
-                    } else if (ctx.gameState().getPhase() == GamePhase.PLAY && !ctx.gameState().isGameOver()) {
-                        scheduleTurnTimer(gameId, ctx);
                     }
                     broadcastState(gameId, ctx);
                     if (ctx.gameState().getRevealedCards() != null) {
@@ -329,72 +303,11 @@ public class GameSessionService {
             synchronized (lock) {
                 if (ctx.gameState().getPhase() == GamePhase.REDRAW) {
                     engine.startPlay(ctx.gameState());
-                    scheduleTurnTimer(gameId, ctx);
                     broadcastState(gameId, ctx);
                     persist(gameId, ctx);
                 }
             }
         }, 30, TimeUnit.SECONDS);
-    }
-
-    private void scheduleTurnTimer(UUID gameId, SessionContext ctx) {
-        cancelTurnTimer(gameId);
-
-        long deadline = System.currentTimeMillis() + 60_000;
-        turnDeadlines.put(gameId, deadline);
-        turnTimers.put(gameId, scheduler.schedule(() -> {
-            Object lock = gameLocks.computeIfAbsent(gameId, k -> new Object());
-            synchronized (lock) {
-                GameState state = ctx.gameState();
-                if (state.getPendingAbility() == null && state.getPhase() == GamePhase.PLAY && !state.isGameOver()) {
-                    engine.execute(state, new PassCommand());
-                    if (state.getPhase() == GamePhase.PLAY && !state.isGameOver()) {
-                        scheduleTurnTimer(gameId, ctx);
-                    } else if (state.isGameOver()) {
-                        cancelDisconnectTimersForGame(gameId, ctx);
-                    }
-                    broadcastState(gameId, ctx);
-                    persist(gameId, ctx);
-                }
-            }
-        }, 60, TimeUnit.SECONDS));
-    }
-
-    private void cancelTurnTimer (UUID gameId) {
-        ScheduledFuture<?> timer = turnTimers.remove(gameId);
-        Long deadline = turnDeadlines.remove(gameId);
-        if (timer != null) timer.cancel(false);
-    }
-
-    public void scheduleDisconnectForfeit(UUID gameId, String playerEmail) {
-        String key = gameId + ":" + playerEmail;
-        ScheduledFuture<?> future = scheduler.schedule(() -> {
-            disconnectForfeits.add(gameId);
-            try {
-                surrender(gameId, playerEmail);
-            } catch (InvalidPhaseCommandException e) {
-                disconnectForfeits.remove(gameId);
-            }
-        }, 120, TimeUnit.SECONDS);
-        disconnectTimers.put(key, future);
-        long deadline = System.currentTimeMillis() + 120_000;
-        messagingTemplate.convertAndSend("/topic/games/" + gameId + "/presence",
-                new PresenceDto(playerEmail, false, deadline));
-    }
-
-    public void cancelDisconnectForfeit(UUID gameId, String playerEmail) {
-        String key = gameId + ":" + playerEmail;
-        ScheduledFuture<?> disconnect = disconnectTimers.remove(key);
-        if (disconnect != null) {
-            disconnect.cancel(false);
-            messagingTemplate.convertAndSend("/topic/games/" + gameId + "/presence",
-                    new PresenceDto(playerEmail, true, null));
-        }
-    }
-
-    private void cancelDisconnectTimersForGame(UUID gameId, SessionContext ctx) {
-        cancelDisconnectForfeit(gameId, ctx.player1Id());
-        cancelDisconnectForfeit(gameId, ctx.player2Id());
     }
 
     // --- Mapping delegation ---
@@ -403,14 +316,11 @@ public class GameSessionService {
         GameState state = ctx.gameState();
         PlayerState meState = state.getPlayer(perspective);
         PlayerState opponentState = state.getPlayer(perspective == Turn.PLAYER_1 ? Turn.PLAYER_2 : Turn.PLAYER_1);
-        Long deadlines = turnDeadlines.get(gameId);
 
         return mapper.toGameStateDto(
                 gameId, ctx, perspective,
                 engine.calculateScore(meState),
-                engine.calculateScore(opponentState),
-                deadlines,
-                disconnectForfeits.contains(gameId)
+                engine.calculateScore(opponentState)
         );
     }
 

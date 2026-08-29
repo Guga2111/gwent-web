@@ -1,51 +1,54 @@
-# Proximos Passos — Pre-Demo
+# Proximos Passos
 
-## Critico (bloqueia o demo)
+## Prioridade 1 — Engine (leader ability pendente)
 
-### 1. Disconnection handling
-Nao ha reconnect nem auto-forfeit. Se o WebSocket de um jogador cai no meio do jogo, o jogo trava. No minimo, adicionar timeout que declara forfeit do jogador desconectado.
+### Leader abilities implementadas (18/18)
 
-### 2. Frontend Dockerfile + docker-compose
-O backend ja tem config Docker de producao, mas o frontend nao tem nada. Criar Dockerfile (Bun build -> nginx serve) e um docker-compose combinado.
+Todas implementadas no engine (`LeaderAbilityResolver`), API (`GameModelMapper`) e frontend (`LeaderOverlay`, `RevealedCardsOverlay`).
 
-### 3. BERSERKER ability e no-op
-A ability existe no enum e nos cards, mas `AbilityResolver` nunca a trata. Implementar ou remover os cards do catalogo para nao confundir jogadores.
+
+## Prioridade 2 — Faction Passives (engine)
+
+Cada faccao tem uma habilidade passiva que se aplica automaticamente no fim/inicio de round, sem interacao do jogador (exceto Scoia'tael).
+
+### Engine hooks necessarios
+
+- **`resolveRound()`** — apos calcular scores e determinar loser, antes de `startNewRound()`
+- **`startNewRound()`** — antes e depois de `clearRows()`
+
+### Criar `FactionPassiveResolver` em `gwent-engine/core/`
+
+Seguir o padrao de `LeaderAbilityResolver`. Faccao derivada de `player.getLeader().faction()`.
+
+### Passivas por faccao
+
+| Faccao | Passiva | Hook | Logica |
+|---|---|---|---|
+| **Northern Realms** | Comprar 1 carta ao vencer um round | Apos determinar winner em `resolveRound` | Se NR ganhou e deck nao vazio → `winner.drawCard()` |
+| **Nilfgaard** | Vencer empates (se scores iguais, Nilfgaard nao perde vida) | Dentro do branch `else` (tie) em `resolveRound` | Se um jogador e Nilfgaard e o outro nao: apenas o nao-Nilfgaard perde vida. Mirror match: empate normal |
+| **Monsters** | Manter 1 unidade aleatoria no campo ao fim do round | Antes/depois de `clearRows()` em `startNewRound` | Escolher 1 UNIT (nao HERO) aleatorio das rows do Monsters player; remover da row antes de `clearRows()`; re-adicionar apos a limpeza. Guardar `(Card, RowType)` pois AGILE precisa da row real |
+| **Scoia'tael** | Escolher quem comeca cada round | Requer `PendingAbility.SCOIA_ROUND_START` | Apos fim de round (antes de `startNewRound`), se um jogador e Scoia'tael: setar pending ability; frontend exibe prompt "voce quer comecar ou dar a vez ao oponente?"; resolver com `RESOLVE_FACTION` command |
+| **Skellige** | Ressuscitar 2 unidades do cemiterio no inicio de cada round | Apos `clearRows()` em `startNewRound` | Escolher ate 2 UNIT (nao HERO) aleatorios do cemiterio e adicionar a mao do jogador Skellige |
+
+### Observacoes de implementacao
+
+- `BoardRow.addCard()` valida `rowType` — guardar a row real de cartas AGILE ao extrair
+- Scoia'tael e a unica passiva que requer interacao (novo `PendingAbility` + frontend overlay simples com 2 botoes)
+- Testar com mirror match Nilfgaard vs Nilfgaard para garantir tie normal
+
+### Arquivos a modificar
+
+- `gwent-engine/core/GwentEngine.java` — hooks em `resolveRound` e `startNewRound`
+- `gwent-engine/core/FactionPassiveResolver.java` — novo arquivo
+- `gwent-engine/domain/PendingAbility.java` — adicionar `SCOIA_ROUND_START` (se implementar Scoia'tael)
+- `gwent-api/.../GameModelMapper.java` — expor pending ability no DTO (ja existe campo `pendingAbility`)
+- Frontend — overlay simples para Scoia'tael (se implementar)
 
 ---
 
-## Alta Prioridade (prejudica a experiencia do demo)
+## Prioridade 3 — Polish
 
-### 4. Imagens de cards Skellige em falta
-Todos os 12 cards Skellige renderizam como placeholders. Adicionar a arte ou esconder a faccao no deck building por agora.
-
-### 5. Countdown timers nos overlays
-Mulligan, Medic e Leader overlays tem timeouts de 30s no backend que auto-resolvem, mas o jogador nao ve contagem regressiva. Auto-resolucao surpresa vai frustrar testers.
-
-### 6. Taverna sempre mostra "Reinos do Norte"
-O hub ignora a faccao do deck ativo do jogador. Menor mas parece bug.
-
-### 7. UX de matchmaking manual
-Jogadores precisam partilhar um UUID para comecar um jogo. No minimo, documentar claramente ou adicionar uma fila de matchmaking simples.
-
----
-
-## Nice to Have (polish)
-
-8. 3 imagens de cards Scoiatael em falta
-9. Paginas Shop e Leaderboard sao stubs ("Coming Soon") — ok se claramente rotuladas
-10. Sem tutorial/ajuda — jogadores novos nao vao saber as regras
-11. Sem sons ambiente ou SFX de cards
-
----
-
-## O que ja esta solido
-
-- Ciclo de jogo completo funciona end-to-end (coin flip -> mulligan -> play -> rounds -> game over)
-- Todas as abilities principais a funcionar (SPY, MEDIC, SCORCH, MUSTER, TIGHT_BOND, MORALE_BOOST, HORN, weather)
-- Todas as 5 passivas de faccao implementadas e testadas
-- 18/18 leader abilities feitas
-- ~77 cards em 5 faccoes + neutral
-- Deck building com validacao (22-40 cards, max copias, etc.)
-- Game-over overlay, round-end overlay, todos os overlays de escolha presentes
-- Cobertura de testes no backend solida (11 ficheiros de teste, ~4k linhas)
-- Auth (JWT), CORS, DB migration tudo configurado
+1. **Countdown visual nos overlays** — mostrar timer regressivo no MulliganOverlay (30s) e MedicOverlay (30s). O backend ja aplica timeout automatico, mas o frontend nao exibe contagem
+2. **Tooltips de habilidades nas cartas**
+3. **Animacoes de jogada/pontuacao**
+4. **Leaderboard e estatisticas** — requer modelo de dados de historico de partidas
