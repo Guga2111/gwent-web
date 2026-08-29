@@ -6,6 +6,7 @@ import { getCardsByFaction } from '@/api/catalog'
 import type { CatalogCardDto } from '@/types/deck'
 import { getCardArtUrl } from '@/components/board/card/cardArt'
 import MesaPrivadaModal from '@/components/hub/MesaPrivadaModal'
+import DeckPickerModal from '@/components/hub/DeckPickerModal'
 import type { DeckDto } from '@/types/deck'
 import { getFactionConfig } from '@/utils/factionConfig'
 import { useHubStore } from '@/stores/hubStore'
@@ -20,22 +21,25 @@ const deckFan = [
 
 export default function Taverna() {
   const [modalOpen, setModalOpen] = useState(false)
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [decks, setDecks] = useState<DeckDto[]>([])
   const [activeDeck, setActiveDeck] = useState<DeckDto | null>(null)
   const [leaderCard, setLeaderCard] = useState<CatalogCardDto | null>(null)
   const config = getFactionConfig(activeDeck?.faction ?? null)
 
-  useEffect(() => {
-    getUserDecks().then((decks) => {
-      if (decks.length > 0) {
-        const deck = decks[0]
-        setActiveDeck(deck)
-        useHubStore.getState().setActiveDeck(deck)
+  function selectDeck(deck: DeckDto) {
+    setActiveDeck(deck)
+    useHubStore.getState().setActiveDeck(deck)
+    setLeaderCard(null)
+    getCardsByFaction(deck.faction)
+      .then((cards) => setLeaderCard(cards.find(c => c.id === deck.leaderId) ?? null))
+      .catch(() => {})
+  }
 
-        getCardsByFaction(deck.faction).then((cards) => {
-          const leader = cards.find(c => c.id === deck.leaderId) ?? null
-          setLeaderCard(leader)
-        }).catch(() => {})
-      }
+  useEffect(() => {
+    getUserDecks().then((fetched) => {
+      setDecks(fetched)
+      if (fetched.length > 0) selectDeck(fetched[0])
     }).catch(() => {})
   }, [])
 
@@ -212,14 +216,15 @@ export default function Taverna() {
           >
             Seu baralho
           </span>
-          <span
-            className="italic text-[12.5px] text-[var(--text-muted)]"
+          <button
+            onClick={() => setPickerOpen(true)}
+            className="italic text-[12.5px] text-[var(--text-muted)] bg-transparent border-none cursor-pointer p-0 hover:text-[var(--text-primary)] transition-colors"
             style={{ fontFamily: 'var(--font-body)' }}
           >
             {activeDeck
               ? `${activeDeck.name} · ${activeDeck.cards.reduce((sum, e) => sum + e.quantity, 0)}`
               : 'Nenhum baralho'}
-          </span>
+          </button>
           <button
             className="flex items-center gap-[5px] px-[11px] py-1 rounded-[5px] text-[11px] font-semibold tracking-[.5px] border-none cursor-pointer text-[var(--gold-light)]"
             style={{
@@ -368,6 +373,14 @@ export default function Taverna() {
           novas encomendas ao raiar do dia · 06:42
         </div>
       </div>
+
+      <DeckPickerModal
+        open={pickerOpen}
+        decks={decks}
+        activeDeckId={activeDeck?.id ?? null}
+        onSelect={(deck) => { selectDeck(deck); setPickerOpen(false) }}
+        onClose={() => setPickerOpen(false)}
+      />
 
       <MesaPrivadaModal
         open={modalOpen}
