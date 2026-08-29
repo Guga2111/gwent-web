@@ -76,6 +76,14 @@ export interface GameStateDto {
   deckCards: CardDto[] | null
   winner: string | null
   endReason: string | null
+  turnDeadlineUtc: number | null
+  disconnectForfeit: boolean
+}
+
+export interface PresenceMessage {
+  playerEmail: string
+  connected: boolean
+  forfeitDeadlineUtc: number | null
 }
 
 export interface CommandRequest {
