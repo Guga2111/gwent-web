@@ -2,8 +2,13 @@ import { useState, useEffect } from 'react'
 import { Pencil } from 'lucide-react'
 import { createGame, joinGame } from '@/api/game'
 import { getUserDecks } from '@/api/deck'
+import { getCardsByFaction } from '@/api/catalog'
+import type { CatalogCardDto } from '@/types/deck'
+import { getCardArtUrl } from '@/components/board/card/cardArt'
 import MesaPrivadaModal from '@/components/hub/MesaPrivadaModal'
 import type { DeckDto } from '@/types/deck'
+import { getFactionConfig } from '@/utils/factionConfig'
+import { useHubStore } from '@/stores/hubStore'
 
 const deckFan = [
   { rot: -2, x: 66, y: 10, z: 1 },
@@ -16,10 +21,21 @@ const deckFan = [
 export default function Taverna() {
   const [modalOpen, setModalOpen] = useState(false)
   const [activeDeck, setActiveDeck] = useState<DeckDto | null>(null)
+  const [leaderCard, setLeaderCard] = useState<CatalogCardDto | null>(null)
+  const config = getFactionConfig(activeDeck?.faction ?? null)
 
   useEffect(() => {
     getUserDecks().then((decks) => {
-      if (decks.length > 0) setActiveDeck(decks[0])
+      if (decks.length > 0) {
+        const deck = decks[0]
+        setActiveDeck(deck)
+        useHubStore.getState().setActiveDeck(deck)
+
+        getCardsByFaction(deck.faction).then((cards) => {
+          const leader = cards.find(c => c.id === deck.leaderId) ?? null
+          setLeaderCard(leader)
+        }).catch(() => {})
+      }
     }).catch(() => {})
   }, [])
 
@@ -68,7 +84,7 @@ export default function Taverna() {
             width: 76,
             height: 92,
             clipPath: 'polygon(0 0, 100% 0, 100% 64%, 50% 100%, 0 64%)',
-            background: 'linear-gradient(180deg, var(--blue), #1c3a5c 70%, #13283f)',
+            background: `linear-gradient(180deg, var(${config.secondaryVar}), color-mix(in srgb, var(${config.secondaryVar}) 60%, black) 70%)`,
           }}
         >
           {/* Sword icon */}
@@ -91,9 +107,10 @@ export default function Taverna() {
 
       {/* Faction label */}
       <div
-        className="relative text-[11px] tracking-[3px] uppercase font-bold text-[var(--blue)]"
+        className="relative text-[11px] tracking-[3px] uppercase font-bold"
+        style={{ color: activeDeck ? `var(${config.accentColor})` : 'var(--text-muted)' }}
       >
-        Reinos do Norte
+        {activeDeck ? config.label : 'Sem baralho'}
       </div>
 
       {/* Mode banner */}
@@ -225,7 +242,7 @@ export default function Taverna() {
                 left: card.x,
                 width: 82,
                 height: 112,
-                background: 'linear-gradient(160deg, #24405f, #142536)',
+                background: `linear-gradient(160deg, var(${config.secondaryVar}), color-mix(in srgb, var(${config.secondaryVar}) 60%, black) 70%)`,
                 boxShadow: '0 6px 16px rgba(0,0,0,.5)',
                 transform: `rotate(${card.rot}deg)`,
                 transformOrigin: 'bottom left',
@@ -250,24 +267,25 @@ export default function Taverna() {
           >
             <div
               className="relative w-full h-full rounded-[6px] overflow-hidden flex items-start justify-center"
-              style={{ background: 'repeating-linear-gradient(45deg, #2a4258 0 6px, #21384b 6px 12px)' }}
+              style={{ background: `linear-gradient(180deg, var(${config.secondaryVar}), color-mix(in srgb, var(${config.secondaryVar}) 60%, black) 70%)` }}
             >
-              <span className="font-mono text-[7.5px] text-[#8fb0c8] mt-2">arte do líder</span>
+              {leaderCard && (
+                <img
+                  src={getCardArtUrl(leaderCard.id, leaderCard.faction)}
+                  alt=""
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                  className="card-art-img"
+                />
+              )}
               <div
                 className="absolute left-0 right-0 bottom-0 px-1.5 py-[5px] text-center"
                 style={{ background: 'linear-gradient(180deg, transparent, rgba(10,6,3,.92))' }}
               >
                 <div
-                  className="font-bold text-[10px] text-[var(--gold-light)] leading-[1.1]"
-                  style={{ fontFamily: 'var(--font-heading)' }}
-                >
-                  Foltest
-                </div>
-                <div
                   className="italic text-[8px] text-[var(--gold)]"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
-                  Rei de Temeria
+                  {config.label}
                 </div>
               </div>
             </div>
