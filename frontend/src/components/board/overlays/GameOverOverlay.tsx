@@ -5,23 +5,11 @@ interface GameOverOverlayProps {
   myState: PlayerStateDto
   opponentState: OpponentStateDto
   winner: string | null
-  disconnectForfeit: boolean
   onBack: () => void
 }
 
-export default function GameOverOverlay({ myState, opponentState, winner, disconnectForfeit, onBack }: GameOverOverlayProps) {
+export default function GameOverOverlay({ myState, opponentState, winner, onBack }: GameOverOverlayProps) {
   const won = winner === myState.playerId
-
-  const title = disconnectForfeit
-    ? (won ? 'Oponente Desconectou' : 'Desconectado')
-    : (won ? 'Vitória!' : 'Derrota...')
-
-  const subtitle = disconnectForfeit
-    ? (won ? 'Vitória concedida' : 'Partida perdida por desconexão')
-    : null
-
-  const titleColor = disconnectForfeit ? 'var(--text-secondary)' : (won ? 'var(--gold-light)' : 'var(--text-muted)')
-  const titleGlow = !disconnectForfeit && won ? '0 0 20px rgba(246, 221, 151, 0.5)' : 'none'
 
   return (
     <div className="absolute inset-0 bg-[var(--bg-darkest)] flex flex-col items-center justify-center gap-5 z-50">
@@ -29,23 +17,12 @@ export default function GameOverOverlay({ myState, opponentState, winner, discon
         className="text-[36px]"
         style={{
           fontFamily: 'var(--font-display)',
-          color: titleColor,
-          textShadow: titleGlow,
+          color: won ? 'var(--gold-light)' : 'var(--text-muted)',
+          textShadow: won ? '0 0 20px rgba(246, 221, 151, 0.5)' : 'none',
         }}
       >
-        {title}
+        {won ? 'Vitória!' : 'Derrota...'}
       </h1>
-      {subtitle && (
-        <p
-          className="text-[18px]"
-          style={{
-            fontFamily: 'var(--font-heading)',
-            color: 'var(--text-muted)',
-          }}
-        >
-          {subtitle}
-        </p>
-      )}
 
       <div
         className="flex gap-12 text-[18px]"
