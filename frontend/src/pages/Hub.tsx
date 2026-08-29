@@ -5,11 +5,13 @@ import { getActiveGame } from '@/api/game'
 import TopHUD from '@/components/hub/hud/TopHUD'
 import BottomNav from '@/components/hub/BottomNav'
 import TownCrier from '@/components/hub/TownCrier'
+import RulesModal from '@/components/hub/RulesModal'
 import Taverna from '@/pages/hub/Taverna'
 import DeckForge from '@/pages/hub/DeckForge'
 import Shop from '@/pages/hub/Shop'
 import Leaderboard from '@/pages/hub/Leaderboard'
 import Profile from '@/pages/hub/Profile'
+import { useTutorial } from '@/hooks/useTutorial'
 
 type TabId = 'home' | 'deck' | 'shop' | 'rank' | 'profile'
 
@@ -27,6 +29,7 @@ export default function Hub() {
   const user = useAuthStore((s) => s.user)
   const navigate = useNavigate()
   const ActiveTab = tabContent[activeTab]
+  const { tutorialOpen, openTutorial, closeTutorial } = useTutorial()
 
   useEffect(() => {
     getActiveGame().then(setActiveGameId).catch(() => {})
@@ -86,8 +89,33 @@ export default function Hub() {
       {/* Content area */}
       <div className="relative z-20 flex-1 min-h-0 overflow-hidden">
         <ActiveTab />
+        <button
+          onClick={openTutorial}
+          style={{
+            position: 'absolute',
+            bottom: 16,
+            right: 16,
+            width: 36,
+            height: 36,
+            borderRadius: '50%',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--gold)',
+            color: 'var(--gold)',
+            fontFamily: 'var(--font-heading)',
+            fontSize: 18,
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10,
+          }}
+        >
+          ?
+        </button>
       </div>
 
+      <RulesModal open={tutorialOpen} onClose={closeTutorial} />
       <TownCrier />
       <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
     </div>
