@@ -4,7 +4,6 @@ import { useAuthStore } from '@/stores/authStore'
 import { getActiveGame } from '@/api/game'
 import TopHUD from '@/components/hub/hud/TopHUD'
 import BottomNav from '@/components/hub/BottomNav'
-import TownCrier from '@/components/hub/TownCrier'
 import RulesModal from '@/components/hub/RulesModal'
 import Taverna from '@/pages/hub/Taverna'
 import DeckForge from '@/pages/hub/DeckForge'
@@ -76,7 +75,6 @@ export default function Hub() {
       </div>
 
       <RulesModal open={tutorialOpen} onClose={closeTutorial} />
-      <TownCrier />
       <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
     </div>
   )

@@ -101,7 +101,7 @@ Extraído dos protótipos e fixado em `src/styles/index.css`.
 
 ### Top HUD (todas as telas do Hub)
 - **Esquerda:** Avatar shield com nível, nome, título, rank + PR
-- **Centro:** Logo "GWENT" em Cinzel Decorative + subtitle "a taverna do Continente"
+- **Centro:** Logo "GWENT" em Cinzel Decorative
 - **Direita:** Coroas (moeda gold) + Sucata (moeda blue) + ícone configurações
 
 ### Bottom Nav (todas as telas do Hub)

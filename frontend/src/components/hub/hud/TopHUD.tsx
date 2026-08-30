@@ -49,9 +49,6 @@ export default function TopHUD({ user, onSettingsClick }: TopHUDProps) {
         <div className="font-display top-hud-logo font-black text-[22px] tracking-[6px] text-[var(--gold-light)]">
           GWENT
         </div>
-        <div className="font-body italic text-[11px] tracking-[1px] text-[var(--text-muted)] mt-px">
-          a taverna do Continente
-        </div>
       </div>
 
       {/* Right: Currencies + Settings */}
