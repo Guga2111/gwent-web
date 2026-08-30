@@ -6,10 +6,13 @@ import { getCardsByFaction } from '@/api/catalog'
 import type { CatalogCardDto } from '@/types/deck'
 import { getCardArtUrl } from '@/components/board/card/cardArt'
 import MesaPrivadaModal from '@/components/hub/MesaPrivadaModal'
+import MatchmakingModal from '@/components/hub/MatchmakingModal'
 import DeckPickerModal from '@/components/hub/DeckPickerModal'
 import type { DeckDto } from '@/types/deck'
 import { getFactionConfig } from '@/utils/factionConfig'
 import { useHubStore } from '@/stores/hubStore'
+import { useMatchmakingStore } from '@/stores/matchmakingStore'
+import { joinMatchmakingQueue, leaveMatchmakingQueue } from '@/api/matchmaking'
 
 const deckFan = [
   { rot: -2, x: 66, y: 10, z: 1 },
@@ -22,11 +25,13 @@ const deckFan = [
 export default function Taverna() {
   const [modalOpen, setModalOpen] = useState(false)
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [matchmakingOpen, setMatchmakingOpen] = useState(false)
   const setTab = useHubStore((s) => s.setTab)
   const [decks, setDecks] = useState<DeckDto[]>([])
   const [activeDeck, setActiveDeck] = useState<DeckDto | null>(null)
   const [leaderCard, setLeaderCard] = useState<CatalogCardDto | null>(null)
   const config = getFactionConfig(activeDeck?.faction ?? null)
+  const matchmakingError = useMatchmakingStore((s) => s.error)
 
   function selectDeck(deck: DeckDto) {
     setActiveDeck(deck)
@@ -53,16 +58,33 @@ export default function Taverna() {
     await joinGame(code, deckId)
   }
 
+  async function handleSearchOpponent() {
+    if (!activeDeck) return
+    try {
+      const matchedGameId = await joinMatchmakingQueue(activeDeck.id)
+      if (matchedGameId) {
+        useMatchmakingStore.getState().setFound(matchedGameId)
+      } else {
+        useMatchmakingStore.getState().setSearching()
+      }
+      setMatchmakingOpen(true)
+    } catch (err: any) {
+      if (err?.response?.status === 409) {
+        useMatchmakingStore.getState().setSearching()
+        setMatchmakingOpen(true)
+      }
+    }
+  }
+
+  async function handleCancelMatchmaking() {
+    await leaveMatchmakingQueue().catch(() => {})
+    useMatchmakingStore.getState().reset()
+    setMatchmakingOpen(false)
+  }
+
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center text-center gap-[5px]">
-      {/* Ambient light */}
-      <div className="taverna-ambient absolute w-[560px] h-[520px] -top-[10px] rounded-full pointer-events-none" />
-
-      {/* Flavor text */}
-      <div className="font-body relative italic text-[17px] text-[var(--text-muted)]">
-        Cerveja na mão, cartas na mesa — alivie alguns bolsos esta noite.
-      </div>
-
+      
       {/* Faction shield */}
       <div className="taverna-shield-outer relative my-1.5 flex items-center justify-center">
         <div
@@ -103,12 +125,16 @@ export default function Taverna() {
       {/* Mode banner */}
       <div className="taverna-mode-banner relative my-2.5 px-[30px] py-1.5">
         <span className="font-heading font-bold text-[11.5px] tracking-[3px] text-[var(--bg-darkest)]">
-          RANQUEADA · COROAS EM JOGO
+          PARTIDA RANQUEADA
         </span>
       </div>
 
       {/* Primary CTA */}
-      <button className="taverna-cta-btn relative mt-1.5 px-14 py-5 rounded-[11px] border-none cursor-pointer">
+      <button
+        className="taverna-cta-btn relative mt-1.5 px-14 py-5 rounded-[11px] border-none cursor-pointer"
+        style={!activeDeck ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+        onClick={handleSearchOpponent}
+      >
         {/* Corner diamonds */}
         {[
           { top: 7, left: 7 },
@@ -139,10 +165,15 @@ export default function Taverna() {
         </div>
       </button>
 
+      {/* Matchmaking error */}
+      {matchmakingError && (
+        <p className="font-body italic text-[12.5px] text-[var(--red)]">{matchmakingError}</p>
+      )}
+
       {/* Win streak + amistosa link */}
       <div className="relative flex items-center gap-4 mt-3.5">
         <span className="font-body italic text-[13.5px] text-[var(--text-muted)]">
-          sequência de 4 vitórias
+          sequência de - vitórias
         </span>
         <span className="w-1 h-1 rounded-full bg-[var(--border-gold)]" />
         <span className="font-body italic text-[13.5px] text-[var(--text-muted)]">
@@ -279,6 +310,8 @@ export default function Taverna() {
         onJoinGame={handleJoinGame}
         defaultDeckId={activeDeck?.id ?? null}
       />
+
+      <MatchmakingModal open={matchmakingOpen} onCancel={handleCancelMatchmaking} />
     </div>
   )
 }
