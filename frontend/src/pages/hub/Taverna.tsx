@@ -22,6 +22,7 @@ const deckFan = [
 export default function Taverna() {
   const [modalOpen, setModalOpen] = useState(false)
   const [pickerOpen, setPickerOpen] = useState(false)
+  const setTab = useHubStore((s) => s.setTab)
   const [decks, setDecks] = useState<DeckDto[]>([])
   const [activeDeck, setActiveDeck] = useState<DeckDto | null>(null)
   const [leaderCard, setLeaderCard] = useState<CatalogCardDto | null>(null)
@@ -170,7 +171,10 @@ export default function Taverna() {
               ? `${activeDeck.name} · ${activeDeck.cards.reduce((sum, e) => sum + e.quantity, 0)}`
               : 'Nenhum baralho'}
           </button>
-          <button className="taverna-edit-btn flex items-center gap-[5px] px-[11px] py-1 rounded-[5px] text-[11px] font-semibold tracking-[.5px] border-none cursor-pointer text-[var(--gold-light)]">
+          <button
+            onClick={() => setTab?.('deck')}
+            className="taverna-edit-btn flex items-center gap-[5px] px-[11px] py-1 rounded-[5px] text-[11px] font-semibold tracking-[.5px] border-none cursor-pointer text-[var(--gold-light)]"
+          >
             <Pencil size={12} strokeWidth={2} />
             Editar
           </button>
