@@ -183,7 +183,11 @@ public class GwentEngine {
             throw new InvalidRowException();
 
         current.removeFromGraveyard(card);
-        current.getRow(card.rowType()).addCard(card);
+        if (card.ability() == Ability.SPY) {
+            state.getOpponent().getRow(card.rowType()).addCard(card);
+        } else {
+            current.getRow(card.rowType()).addCard(card);
+        }
         state.setPendingAbility(null);
         abilityResolver.resolve(state, card, card.rowType());
 
@@ -226,7 +230,11 @@ public class GwentEngine {
             throw new InvalidRowException();
 
         current.removeFromGraveyard(card);
-        current.getRow(card.rowType()).addCard(card);
+        if (card.ability() == Ability.SPY) {
+            state.getOpponent().getRow(card.rowType()).addCard(card);
+        } else {
+            current.getRow(card.rowType()).addCard(card);
+        }
 
         int remaining = state.getPendingAbilityCount() - 1;
         if (remaining > 0) {
@@ -258,7 +266,11 @@ public class GwentEngine {
             throw new InvalidRowException();
 
         opponent.removeFromGraveyard(card);
-        current.getRow(card.rowType()).addCard(card);
+        if (card.ability() == Ability.SPY) {
+            state.getOpponent().getRow(card.rowType()).addCard(card);
+        } else {
+            current.getRow(card.rowType()).addCard(card);
+        }
         clearLeaderPending(state);
 
         abilityResolver.resolve(state, card, card.rowType());
