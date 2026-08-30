@@ -1,4 +1,5 @@
 import Card from '../card/Card'
+import OverlayCountdown from './OverlayCountdown'
 import type { CardDto } from '@/types/game'
 
 type LeaderPendingType =
@@ -11,6 +12,7 @@ interface LeaderOverlayProps {
   pendingType: LeaderPendingType
   cards: CardDto[]
   onSelectCard: (cardId: string) => void
+  abilityDeadlineUtc: number | null
 }
 
 const CONFIG: Record<LeaderPendingType, { title: string; description: string }> = {
@@ -32,7 +34,7 @@ const CONFIG: Record<LeaderPendingType, { title: string; description: string }> 
   },
 }
 
-export default function LeaderOverlay({ pendingType, cards, onSelectCard }: LeaderOverlayProps) {
+export default function LeaderOverlay({ pendingType, cards, onSelectCard, abilityDeadlineUtc }: LeaderOverlayProps) {
   const { title, description } = CONFIG[pendingType]
   const selectableCards =
     pendingType === 'LEADER_GRAVEYARD_PICK' || pendingType === 'LEADER_OPPONENT_GRAVEYARD_PICK'
@@ -41,6 +43,7 @@ export default function LeaderOverlay({ pendingType, cards, onSelectCard }: Lead
 
   return (
     <div className="board-overlay">
+      <OverlayCountdown deadlineUtc={abilityDeadlineUtc} />
       <h2 className="overlay-title">{title}</h2>
       <p className="overlay-body">{description}</p>
 

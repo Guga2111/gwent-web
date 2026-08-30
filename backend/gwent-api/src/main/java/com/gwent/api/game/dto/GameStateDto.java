@@ -18,5 +18,6 @@ public record GameStateDto(
         List<CardDto> revealedCards,
         List<CardDto> deckCards,
         Long turnDeadlineUtc,
+        Long abilityDeadlineUtc,
         boolean disconnectForfeit
 ) {}

@@ -1,10 +1,14 @@
+import OverlayCountdown from './OverlayCountdown'
+
 interface ScoiataelOverlayProps {
   onChoose: (goFirst: boolean) => void
+  abilityDeadlineUtc: number | null
 }
 
-export default function ScoiataelOverlay({ onChoose }: ScoiataelOverlayProps) {
+export default function ScoiataelOverlay({ onChoose, abilityDeadlineUtc }: ScoiataelOverlayProps) {
   return (
     <div className="board-overlay">
+      <OverlayCountdown deadlineUtc={abilityDeadlineUtc} />
       <h2 className="overlay-title">Vantagem Scoia'tael</h2>
       <p className="overlay-body">
         Como líder dos Scoia'tael, você escolhe quem joga primeiro nesta rodada.

@@ -39,6 +39,7 @@ public class GameSessionService {
     private final Map<String, ScheduledFuture<?>> disconnectTimers = new ConcurrentHashMap<>();
     private final Set<UUID> disconnectForfeits = ConcurrentHashMap.newKeySet();
     private final Map<UUID, Long> turnDeadlines = new HashMap<>();
+    private final Map<UUID, Long> abilityDeadlines = new HashMap<>();
     // 4 threads: sufficient for MVP. When scaling, replace with Spring TaskScheduler
     // (container-managed, configurable) or Redis TTL + keyspace notifications (zero threads).
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
@@ -228,6 +229,7 @@ public class GameSessionService {
 
     private void scheduleMedicTimeout(UUID gameId, SessionContext ctx) {
         cancelMedicTimer(gameId);
+        abilityDeadlines.put(gameId, System.currentTimeMillis() + 30_000);
         medicTimers.put(gameId, scheduler.schedule(() -> {
             Object lock = gameLocks.computeIfAbsent(gameId, k -> new Object());
             synchronized (lock) {
@@ -255,10 +257,12 @@ public class GameSessionService {
     private void cancelMedicTimer(UUID gameId) {
         ScheduledFuture<?> timer = medicTimers.remove(gameId);
         if (timer != null) timer.cancel(false);
+        abilityDeadlines.remove(gameId);
     }
 
     private void scheduleLeaderTimeout(UUID gameId, SessionContext ctx) {
         cancelLeaderTimer(gameId);
+        abilityDeadlines.put(gameId, System.currentTimeMillis() + 30_000);
         leaderTimers.put(gameId, scheduler.schedule(() -> {
             Object lock = gameLocks.computeIfAbsent(gameId, k -> new Object());
             synchronized (lock) {
@@ -287,6 +291,7 @@ public class GameSessionService {
     private void cancelLeaderTimer(UUID gameId) {
         ScheduledFuture<?> timer = leaderTimers.remove(gameId);
         if (timer != null) timer.cancel(false);
+        abilityDeadlines.remove(gameId);
     }
 
     private Card resolveRandomLeaderCard(GameState state, PendingAbility pending) {
@@ -304,6 +309,7 @@ public class GameSessionService {
 
     private void scheduleScoiataelTimeout(UUID gameId, SessionContext ctx) {
         cancelScoiataelTimer(gameId);
+        abilityDeadlines.put(gameId, System.currentTimeMillis() + 30_000);
         scoiataelTimers.put(gameId, scheduler.schedule(() -> {
             Object lock = gameLocks.computeIfAbsent(gameId, k -> new Object());
             synchronized (lock) {
@@ -321,9 +327,11 @@ public class GameSessionService {
     private void cancelScoiataelTimer(UUID gameId) {
         ScheduledFuture<?> timer = scoiataelTimers.remove(gameId);
         if (timer != null) timer.cancel(false);
+        abilityDeadlines.remove(gameId);
     }
 
     private void scheduleMulliganTimeout(UUID gameId, SessionContext ctx) {
+        abilityDeadlines.put(gameId, System.currentTimeMillis() + 30_000);
         scheduler.schedule(() -> {
             Object lock = gameLocks.computeIfAbsent(gameId, k -> new Object());
             synchronized (lock) {
@@ -339,6 +347,7 @@ public class GameSessionService {
 
     private void scheduleTurnTimer(UUID gameId, SessionContext ctx) {
         cancelTurnTimer(gameId);
+        abilityDeadlines.remove(gameId);
 
         long deadline = System.currentTimeMillis() + 60_000;
         turnDeadlines.put(gameId, deadline);
@@ -404,12 +413,14 @@ public class GameSessionService {
         PlayerState meState = state.getPlayer(perspective);
         PlayerState opponentState = state.getPlayer(perspective == Turn.PLAYER_1 ? Turn.PLAYER_2 : Turn.PLAYER_1);
         Long deadlines = turnDeadlines.get(gameId);
+        Long abilityDeadline = abilityDeadlines.get(gameId);
 
         return mapper.toGameStateDto(
                 gameId, ctx, perspective,
                 engine.calculateScore(meState),
                 engine.calculateScore(opponentState),
                 deadlines,
+                abilityDeadline,
                 disconnectForfeits.contains(gameId)
         );
     }

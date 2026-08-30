@@ -393,6 +393,7 @@ export default function Game() {
           {/* Phase overlays */}
           {gameState.pendingAbility === "SCOIATAEL_FIRST_PLAYER_CHOICE" && isMyTurn && (
             <ScoiataelOverlay
+              abilityDeadlineUtc={gameState.abilityDeadlineUtc}
               onChoose={(goFirst) => {
                 sendCommand({
                   commandType: "RESOLVE_SCOIATAEL",
@@ -406,6 +407,7 @@ export default function Game() {
             <MulliganOverlay
               hand={me.hand}
               mulligansRemaining={me.mulligansRemaining}
+              abilityDeadlineUtc={gameState.abilityDeadlineUtc}
               onConfirm={(cardIds) =>
                 sendCommand({
                   commandType: "CONFIRM_MULLIGAN",
@@ -425,6 +427,7 @@ export default function Game() {
           {gameState.pendingAbility === "MEDIC_CHOICE" && isMyTurn && (
             <MedicOverlay
               graveyard={me.graveyard}
+              abilityDeadlineUtc={gameState.abilityDeadlineUtc}
               onSelectCard={(cardId) =>
                 sendCommand({ commandType: "RESOLVE_MEDIC", playerId, cardId })
               }
@@ -434,6 +437,7 @@ export default function Game() {
             <LeaderOverlay
               pendingType="LEADER_GRAVEYARD_PICK"
               cards={me.graveyard}
+              abilityDeadlineUtc={gameState.abilityDeadlineUtc}
               onSelectCard={(cardId) =>
                 sendCommand({ commandType: "RESOLVE_LEADER", playerId, cardId })
               }
@@ -444,6 +448,7 @@ export default function Game() {
               <LeaderOverlay
                 pendingType="LEADER_OPPONENT_GRAVEYARD_PICK"
                 cards={opponent.graveyard}
+                abilityDeadlineUtc={gameState.abilityDeadlineUtc}
                 onSelectCard={(cardId) =>
                   sendCommand({
                     commandType: "RESOLVE_LEADER",
@@ -459,6 +464,7 @@ export default function Game() {
               <LeaderOverlay
                 pendingType="LEADER_DECK_PICK"
                 cards={gameState.deckCards}
+                abilityDeadlineUtc={gameState.abilityDeadlineUtc}
                 onSelectCard={(cardId) =>
                   sendCommand({
                     commandType: "RESOLVE_LEADER",
@@ -472,6 +478,7 @@ export default function Game() {
             <LeaderOverlay
               pendingType="LEADER_HAND_DISCARD"
               cards={me.hand}
+              abilityDeadlineUtc={gameState.abilityDeadlineUtc}
               onSelectCard={(cardId) =>
                 sendCommand({ commandType: "RESOLVE_LEADER", playerId, cardId })
               }
