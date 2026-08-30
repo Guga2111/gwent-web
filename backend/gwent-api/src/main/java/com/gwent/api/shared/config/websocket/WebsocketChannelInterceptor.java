@@ -80,6 +80,15 @@ public class WebsocketChannelInterceptor implements ChannelInterceptor {
     private void handleSubscribe(StompHeaderAccessor accessor) {
         String destination = accessor.getDestination();
 
+        if (destination != null && destination.startsWith("/topic/matchmaking/")) {
+            Authentication user = (Authentication) accessor.getUser();
+            String emailSegment = destination.substring("/topic/matchmaking/".length());
+            if (user == null || !user.getName().equals(emailSegment)) {
+                throw new MessageDeliveryException("Denied access to matchmaking topic");
+            }
+            return;
+        }
+
         if (destination != null && destination.startsWith("/topic/games/")) {
             Authentication user = (Authentication) accessor.getUser();
 
