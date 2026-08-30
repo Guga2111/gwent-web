@@ -5,11 +5,14 @@ import { getActiveGame } from '@/api/game'
 import TopHUD from '@/components/hub/hud/TopHUD'
 import BottomNav from '@/components/hub/BottomNav'
 import TownCrier from '@/components/hub/TownCrier'
+import RulesModal from '@/components/hub/RulesModal'
 import Taverna from '@/pages/hub/Taverna'
 import DeckForge from '@/pages/hub/DeckForge'
 import Shop from '@/pages/hub/Shop'
 import Leaderboard from '@/pages/hub/Leaderboard'
 import Profile from '@/pages/hub/Profile'
+import { useTutorial } from '@/hooks/useTutorial'
+import { useHubStore } from '@/stores/hubStore'
 
 type TabId = 'home' | 'deck' | 'shop' | 'rank' | 'profile'
 
@@ -27,56 +30,37 @@ export default function Hub() {
   const user = useAuthStore((s) => s.user)
   const navigate = useNavigate()
   const ActiveTab = tabContent[activeTab]
+  const { tutorialOpen, openTutorial, closeTutorial } = useTutorial()
+  const registerSetTab = useHubStore((s) => s.registerSetTab)
 
   useEffect(() => {
     getActiveGame().then(setActiveGameId).catch(() => {})
   }, [])
 
+  useEffect(() => {
+    registerSetTab((tab) => setActiveTab(tab as TabId))
+  }, [])
+
   return (
-    <div
-      className="h-screen flex flex-col relative overflow-hidden"
-      style={{
-        background: 'radial-gradient(135% 125% at 50% -8%, #2c1e10 0%, #160d06 46%, var(--bg-darkest) 100%)',
-      }}
-    >
+    <div className="h-screen flex flex-col relative overflow-hidden hub-bg">
       {/* Atmosphere layers */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: 'radial-gradient(60% 50% at 50% 30%, rgba(255,196,108,.22), rgba(150,90,30,.06) 44%, transparent 72%)',
-          animation: 'gw-flicker 5s ease-in-out infinite',
-        }}
-      />
-      <div
-        className="absolute left-0 right-0 bottom-0 h-[42%] pointer-events-none"
-        style={{
-          background: 'linear-gradient(180deg, transparent, rgba(46,30,16,.5) 36%, rgba(20,12,6,.92)), repeating-linear-gradient(90deg, rgba(0,0,0,.18) 0 3px, rgba(255,220,160,.016) 3px 9px)',
-        }}
-      />
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: 'radial-gradient(125% 115% at 50% 44%, transparent 42%, rgba(0,0,0,.6) 100%)',
-        }}
-      />
+      <div className="absolute inset-0 pointer-events-none hub-atm-warm" />
+      <div className="absolute left-0 right-0 bottom-0 h-[42%] pointer-events-none hub-atm-bottom" />
+      <div className="absolute inset-0 pointer-events-none hub-atm-vignette" />
 
       <TopHUD user={user} onSettingsClick={() => setActiveTab('profile')} />
 
       {activeGameId && (
-        <div className="relative z-10 flex items-center justify-between px-5 py-2 border-b border-[rgba(240,205,120,0.25)] shadow-[0_2px_12px_rgba(0,0,0,0.5)] bg-[linear-gradient(90deg,rgba(30,18,6,0.92),rgba(50,32,10,0.92))]">
+        <div className="relative z-10 flex items-center justify-between px-5 py-2 hub-active-banner">
           <div className="flex items-center gap-2.5">
             <div className="w-2 h-2 rounded-full bg-[#4ade80] shadow-[0_0_6px_#4ade80]" />
-            <span
-              className="text-[11px] tracking-[1.5px] uppercase font-bold text-[var(--gold-light)]"
-              style={{ fontFamily: 'var(--font-heading)' }}
-            >
+            <span className="font-heading text-[11px] tracking-[1.5px] uppercase font-bold text-[var(--gold-light)]">
               Partida em andamento
             </span>
           </div>
           <button
             onClick={() => navigate(`/game/${activeGameId}`)}
-            className="px-4 py-1 rounded border border-[rgba(240,205,120,0.45)] bg-[rgba(240,205,120,0.12)] text-[var(--gold-light)] text-[11px] font-bold tracking-[1.5px] uppercase cursor-pointer"
-            style={{ fontFamily: 'var(--font-heading)' }}
+            className="font-heading hub-active-banner__btn px-4 py-1 rounded text-[var(--gold-light)] text-[11px] font-bold tracking-[1.5px] uppercase cursor-pointer"
           >
             Retomar
           </button>
@@ -86,8 +70,12 @@ export default function Hub() {
       {/* Content area */}
       <div className="relative z-20 flex-1 min-h-0 overflow-hidden">
         <ActiveTab />
+        <button onClick={openTutorial} className="hub-help-btn">
+          ?
+        </button>
       </div>
 
+      <RulesModal open={tutorialOpen} onClose={closeTutorial} />
       <TownCrier />
       <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
     </div>

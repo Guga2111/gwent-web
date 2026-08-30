@@ -20,3 +20,9 @@ export interface AuthUser {
   username: string
   userId: string
 }
+
+export interface UserMeDto {
+  email: string
+  username: string
+  hasSeenTutorial: boolean
+}

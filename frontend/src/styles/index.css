@@ -1403,3 +1403,250 @@
     border-color: var(--gold);
   }
 }
+
+/* ── Font utilities ── */
+
+.font-heading { font-family: var(--font-heading); }
+.font-body    { font-family: var(--font-body); }
+.font-display { font-family: var(--font-display); }
+.font-ui      { font-family: var(--font-ui); }
+
+/* ── Hub layout ── */
+
+.hub-bg {
+  background: radial-gradient(135% 125% at 50% -8%, #2c1e10 0%, #160d06 46%, var(--bg-darkest) 100%);
+}
+.hub-atm-warm {
+  background: radial-gradient(60% 50% at 50% 30%, rgba(255,196,108,.22), rgba(150,90,30,.06) 44%, transparent 72%);
+  animation: gw-flicker 5s ease-in-out infinite;
+}
+.hub-atm-bottom {
+  background:
+    linear-gradient(180deg, transparent, rgba(46,30,16,.5) 36%, rgba(20,12,6,.92)),
+    repeating-linear-gradient(90deg, rgba(0,0,0,.18) 0 3px, rgba(255,220,160,.016) 3px 9px);
+}
+.hub-atm-vignette {
+  background: radial-gradient(125% 115% at 50% 44%, transparent 42%, rgba(0,0,0,.6) 100%);
+}
+.hub-active-banner {
+  background: linear-gradient(90deg, rgba(30,18,6,.92), rgba(50,32,10,.92));
+  border-bottom: 1px solid rgba(240,205,120,.25);
+  box-shadow: 0 2px 12px rgba(0,0,0,.5);
+}
+.hub-active-banner__btn {
+  border: 1px solid rgba(240,205,120,.45);
+  background: rgba(240,205,120,.12);
+}
+.hub-help-btn {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+/* ── Top HUD ── */
+
+.top-hud-faction-divider {
+  border-left: 1px solid rgba(240,205,120,.16);
+}
+.top-hud-logo {
+  text-shadow: 0 1px 0 rgba(0,0,0,.7), 0 0 20px rgba(240,200,110,.3);
+}
+
+/* ── Rules modal ── */
+
+.rules-modal-backdrop {
+  background: rgba(0,0,0,.72);
+}
+.rules-modal-panel {
+  background: linear-gradient(155deg, var(--parchment-light), var(--parchment-mid) 55%, var(--parchment-dark));
+  box-shadow: 0 24px 60px rgba(0,0,0,.7), inset 0 0 48px rgba(150,115,60,.28), inset 0 0 0 1px rgba(120,90,45,.3);
+  border-radius: 4px;
+  width: min(640px, 92vw);
+  max-height: 88vh;
+}
+.rules-modal-close {
+  background: linear-gradient(180deg, var(--gold), var(--gold-dark));
+  border: none;
+  border-radius: 3px;
+  padding: 6px 18px;
+  color: var(--bg-darkest);
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,.35);
+}
+
+/* ── Navigation card ── */
+
+.nav-card {
+  background: linear-gradient(180deg, var(--bg-card), var(--bg-dark));
+  box-shadow: inset 0 0 0 1px rgba(20,12,5,.9), inset 0 0 0 2px rgba(240,205,120,.14), 0 9px 20px rgba(0,0,0,.45);
+}
+.nav-card__glow--active {
+  background: linear-gradient(180deg, rgba(240,210,122,.2), rgba(240,210,122,.04));
+  box-shadow: inset 0 0 0 2px rgba(240,210,122,.6), 0 0 22px rgba(240,200,110,.3);
+}
+.nav-card__medallion {
+  background: rgba(0,0,0,.32);
+  box-shadow: inset 0 0 0 1px rgba(240,205,120,.18);
+  color: var(--text-muted);
+}
+.nav-card__medallion--active {
+  background: radial-gradient(circle at 35% 30%, var(--gold-light), var(--gold-dark));
+  box-shadow: 0 3px 8px rgba(0,0,0,.45);
+  color: var(--bg-darkest);
+}
+.nav-card__label--active {
+  color: var(--gold-light);
+  text-shadow: 0 0 8px rgba(202,160,87,.6);
+}
+
+/* ── Taverna ── */
+
+.taverna-ambient {
+  background: radial-gradient(circle, rgba(255,196,108,.15), transparent 62%);
+  animation: gw-flicker 5s ease-in-out infinite;
+}
+.taverna-shield-outer {
+  width: 90px;
+  height: 106px;
+  background: linear-gradient(180deg, var(--gold-light), var(--gold) 58%, var(--gold-dim));
+  clip-path: polygon(0 0, 100% 0, 100% 64%, 50% 100%, 0 64%);
+  filter: drop-shadow(0 6px 14px rgba(0,0,0,.55));
+}
+.taverna-mode-banner {
+  background: linear-gradient(180deg, var(--gold), var(--gold-dim));
+  clip-path: polygon(0 0, 8% 50%, 0 100%, 100% 100%, 92% 50%, 100% 0);
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,.5));
+}
+.taverna-cta-btn {
+  background: linear-gradient(180deg, #f7df9a 0%, #e0b65e 44%, var(--gold) 62%, var(--gold) 100%);
+  animation: gw-glow 3.4s ease-in-out infinite;
+}
+.taverna-cta-label {
+  text-shadow: 0 1px 0 rgba(255,240,200,.5);
+}
+.taverna-diamond {
+  transform: rotate(45deg);
+  box-shadow: 0 0 0 1px rgba(255,235,190,.4);
+}
+.taverna-edit-btn {
+  background: rgba(240,205,120,.12);
+  box-shadow: inset 0 0 0 1px rgba(240,205,120,.4);
+}
+.taverna-card-fan-card {
+  width: 82px;
+  height: 112px;
+  box-shadow: 0 6px 16px rgba(0,0,0,.5);
+  transform-origin: bottom left;
+}
+.taverna-card-fan-diamond {
+  border: 1.5px solid rgba(240,205,120,.5);
+}
+.taverna-leader-card {
+  width: 92px;
+  height: 124px;
+  background: linear-gradient(180deg, var(--gold-light), var(--gold-dark));
+  box-shadow: 0 12px 26px rgba(0,0,0,.6);
+}
+.taverna-leader-overlay {
+  background: linear-gradient(180deg, transparent, rgba(10,6,3,.92));
+}
+.taverna-quests-card {
+  transform: rotate(-1.4deg);
+  background: linear-gradient(155deg, var(--parchment-light), var(--parchment-mid) 55%, var(--parchment-dark));
+  box-shadow: 0 16px 34px rgba(0,0,0,.55), inset 0 0 36px rgba(150,115,60,.32), inset 0 0 0 1px rgba(120,90,45,.25);
+}
+.taverna-quest-seal {
+  border-radius: 48% 52% 51% 49%;
+  background: radial-gradient(circle at 38% 32%, #b8403a, #6e1414);
+  box-shadow: 0 3px 7px rgba(0,0,0,.5), inset 0 -3px 5px rgba(0,0,0,.35);
+}
+.taverna-quest-seal__icon {
+  box-shadow: inset 0 0 0 1.5px rgba(255,210,200,.45);
+}
+.parchment-separator {
+  background: rgba(90,63,28,.18);
+}
+.taverna-quest-track {
+  background: rgba(90,63,28,.22);
+}
+.taverna-quest-fill {
+  background: linear-gradient(90deg, #9a6a1c, var(--gold));
+}
+
+/* ── DeckForge ── */
+
+.deckforge-sidebar {
+  border-color: rgba(240,205,120,.2);
+  background: rgba(0,0,0,.3);
+}
+.deckforge-sidebar-header {
+  border-color: rgba(240,205,120,.2);
+}
+.deckforge-editor-header {
+  border-color: rgba(240,205,120,.2);
+  background: rgba(0,0,0,.4);
+}
+.deckforge-catalog-panel {
+  border-color: rgba(240,205,120,.15);
+}
+.deckforge-catalog-header {
+  border-color: rgba(240,205,120,.15);
+  background: rgba(0,0,0,.2);
+}
+.deckforge-deck-panel {
+  background: rgba(0,0,0,.25);
+}
+.deckforge-deck-item {
+  border-color: rgba(240,205,120,.1);
+}
+.deckforge-catalog-card {
+  background: rgba(255,255,255,.03);
+}
+.deckforge-catalog-card--selected {
+  background: rgba(240,205,120,.08);
+  box-shadow: inset 0 0 0 1px rgba(240,205,120,.25);
+}
+.deckforge-power-gem {
+  background: rgba(0,0,0,.4);
+  color: var(--gold);
+}
+.deckforge-faction-pill {
+  background: rgba(240,205,120,.1);
+  color: var(--gold);
+  box-shadow: inset 0 0 0 1px rgba(240,205,120,.3);
+}
+.deckforge-faction-pill--active {
+  background: var(--gold);
+  color: var(--bg-darkest);
+}
+.deckforge-section-border {
+  border-color: rgba(240,205,120,.15);
+}
+.deckforge-card-list-item {
+  border-color: rgba(255,255,255,.05);
+}
+.deckforge-leader-select {
+  box-shadow: inset 0 0 0 1px var(--border-gold);
+}
+.btn-gold {
+  background: linear-gradient(180deg, var(--gold-light), var(--gold));
+}

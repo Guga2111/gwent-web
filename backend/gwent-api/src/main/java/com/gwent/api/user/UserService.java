@@ -1,5 +1,6 @@
 package com.gwent.api.user;
 
+import com.gwent.api.user.dto.UserMeDto;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -25,5 +26,16 @@ public class UserService {
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
         return userRepository.save(user);
+    }
+
+    public UserMeDto getMe(String email) {
+        User user = getUser(email);
+        return new UserMeDto(user.getEmail(), user.getUsername(), user.isHasSeenTutorial());
+    }
+
+    public void markTutorialSeen(String email) {
+        User user = getUser(email);
+        user.setHasSeenTutorial(true);
+        userRepository.save(user);
     }
 }
