@@ -257,7 +257,6 @@ public class GameSessionService {
     private void cancelMedicTimer(UUID gameId) {
         ScheduledFuture<?> timer = medicTimers.remove(gameId);
         if (timer != null) timer.cancel(false);
-        abilityDeadlines.remove(gameId);
     }
 
     private void scheduleLeaderTimeout(UUID gameId, SessionContext ctx) {
@@ -291,7 +290,6 @@ public class GameSessionService {
     private void cancelLeaderTimer(UUID gameId) {
         ScheduledFuture<?> timer = leaderTimers.remove(gameId);
         if (timer != null) timer.cancel(false);
-        abilityDeadlines.remove(gameId);
     }
 
     private Card resolveRandomLeaderCard(GameState state, PendingAbility pending) {
@@ -327,7 +325,6 @@ public class GameSessionService {
     private void cancelScoiataelTimer(UUID gameId) {
         ScheduledFuture<?> timer = scoiataelTimers.remove(gameId);
         if (timer != null) timer.cancel(false);
-        abilityDeadlines.remove(gameId);
     }
 
     private void scheduleMulliganTimeout(UUID gameId, SessionContext ctx) {
