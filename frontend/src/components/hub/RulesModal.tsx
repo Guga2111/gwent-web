@@ -43,19 +43,11 @@ export default function RulesModal({ open, onClose }: RulesModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
-      style={{ background: 'rgba(0,0,0,.72)' }}
+      className="fixed inset-0 z-50 flex items-center justify-center rules-modal-backdrop"
       onClick={onClose}
     >
       <div
-        className="relative flex flex-col"
-        style={{
-          width: 'min(640px, 92vw)',
-          maxHeight: '88vh',
-          borderRadius: 4,
-          background: 'linear-gradient(155deg, var(--parchment-light), var(--parchment-mid) 55%, var(--parchment-dark))',
-          boxShadow: '0 24px 60px rgba(0,0,0,.7), inset 0 0 48px rgba(150,115,60,.28), inset 0 0 0 1px rgba(120,90,45,.3)',
-        }}
+        className="relative flex flex-col rules-modal-panel"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
@@ -63,29 +55,10 @@ export default function RulesModal({ open, onClose }: RulesModalProps) {
           className="flex-shrink-0 flex items-center justify-between px-7 pt-6 pb-4"
           style={{ borderBottom: '1px solid rgba(90,63,28,.2)' }}
         >
-          <h2
-            className="text-[18px] tracking-[2px] uppercase text-[var(--parchment-heading)]"
-            style={{ fontFamily: 'var(--font-heading)' }}
-          >
+          <h2 className="font-heading text-[18px] tracking-[2px] uppercase text-[var(--parchment-heading)]">
             Regras do Gwent
           </h2>
-          <button
-            onClick={onClose}
-            style={{
-              background: 'linear-gradient(180deg, var(--gold), var(--gold-dark))',
-              border: 'none',
-              borderRadius: 3,
-              padding: '6px 18px',
-              color: 'var(--bg-darkest)',
-              fontFamily: 'var(--font-heading)',
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: '1.5px',
-              textTransform: 'uppercase',
-              cursor: 'pointer',
-              boxShadow: '0 2px 6px rgba(0,0,0,.35)',
-            }}
-          >
+          <button onClick={onClose} className="rules-modal-close">
             Fechar
           </button>
         </div>
@@ -98,27 +71,18 @@ export default function RulesModal({ open, onClose }: RulesModalProps) {
           {sections.map((section, i) => (
             <div key={i}>
               {i > 0 && (
-                <div className="h-px mb-5" style={{ background: 'rgba(90,63,28,.18)' }} />
+                <div className="parchment-separator h-px mb-5" />
               )}
-              <h3
-                className="text-[12.5px] tracking-[1.5px] uppercase mb-[7px] text-[var(--parchment-heading)]"
-                style={{ fontFamily: 'var(--font-heading)', fontWeight: 600 }}
-              >
+              <h3 className="font-heading text-[12.5px] tracking-[1.5px] uppercase mb-[7px] text-[var(--parchment-heading)]">
                 {section.title}
               </h3>
-              <p
-                className="text-[14.5px] leading-[1.65] text-[var(--parchment-text)]"
-                style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic' }}
-              >
+              <p className="font-body italic text-[14.5px] leading-[1.65] text-[var(--parchment-text)]">
                 {section.body}
               </p>
             </div>
           ))}
 
-          <div
-            className="text-[10.5px] italic text-right text-[var(--parchment-muted)] mt-1"
-            style={{ fontFamily: 'var(--font-body)' }}
-          >
+          <div className="font-body text-[10.5px] italic text-right text-[var(--parchment-muted)] mt-1">
             que os dados sejam favoráveis em vossos duelos
           </div>
         </div>

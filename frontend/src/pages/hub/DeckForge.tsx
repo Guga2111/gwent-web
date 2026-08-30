@@ -136,20 +136,17 @@ export default function DeckForge() {
       <div className="absolute inset-0 flex overflow-hidden">
         {/* Sidebar */}
         <div
-          className="w-[280px] flex-shrink-0 flex flex-col border-r"
-          style={{ borderColor: 'rgba(240,205,120,.2)', background: 'rgba(0,0,0,.3)' }}
+          className="w-[280px] flex-shrink-0 flex flex-col border-r deckforge-sidebar"
         >
-          <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'rgba(240,205,120,.2)' }}>
+          <div className="flex items-center justify-between px-5 py-4 border-b deckforge-sidebar-header">
             <span
-              className="font-bold text-[11px] tracking-[2.5px] uppercase text-[var(--gold)]"
-              style={{ fontFamily: 'var(--font-heading)' }}
+              className="font-heading font-bold text-[11px] tracking-[2.5px] uppercase text-[var(--gold)]"
             >
               Meus Baralhos
             </span>
             <button
               onClick={openNew}
-              className="flex items-center gap-1.5 px-3 py-1 rounded border-none cursor-pointer text-[11px] font-semibold text-[var(--bg-darkest)]"
-              style={{ background: 'linear-gradient(180deg, var(--gold-light), var(--gold))' }}
+              className="flex items-center gap-1.5 px-3 py-1 rounded border-none cursor-pointer text-[11px] font-semibold text-[var(--bg-darkest)] btn-gold"
             >
               <Plus size={12} strokeWidth={2.5} />
               Novo
@@ -158,7 +155,7 @@ export default function DeckForge() {
           <div className="flex-1 overflow-y-auto">
             {decks.length === 0 && (
               <div className="px-5 py-8 text-center">
-                <p className="italic text-[13px] text-[var(--text-muted)]" style={{ fontFamily: 'var(--font-body)' }}>
+                <p className="font-body italic text-[13px] text-[var(--text-muted)]">
                   Nenhum baralho ainda
                 </p>
                 <button
@@ -172,8 +169,7 @@ export default function DeckForge() {
             {decks.map((d) => (
               <div
                 key={d.id}
-                className="flex items-center gap-2 px-4 py-3 border-b cursor-pointer"
-                style={{ borderColor: 'rgba(240,205,120,.1)' }}
+                className="flex items-center gap-2 px-4 py-3 border-b cursor-pointer deckforge-deck-item"
                 onClick={() => openEdit(d)}
               >
                 <div className="flex-1 min-w-0">
@@ -197,15 +193,13 @@ export default function DeckForge() {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <p
-              className="text-[17px] italic text-[var(--text-muted)] mb-4"
-              style={{ fontFamily: 'var(--font-body)' }}
+              className="font-body text-[17px] italic text-[var(--text-muted)] mb-4"
             >
               Selecione um baralho ou crie um novo
             </p>
             <button
               onClick={openNew}
-              className="px-6 py-3 rounded-[8px] font-bold text-[13px] text-[var(--bg-darkest)] border-none cursor-pointer"
-              style={{ background: 'linear-gradient(180deg, var(--gold-light), var(--gold))' }}
+              className="px-6 py-3 rounded-[8px] font-bold text-[13px] text-[var(--bg-darkest)] border-none cursor-pointer btn-gold"
             >
               Criar Baralho
             </button>
@@ -220,8 +214,7 @@ export default function DeckForge() {
     <div className="absolute inset-0 flex flex-col overflow-hidden">
       {/* Editor header */}
       <div
-        className="flex items-center gap-4 px-5 py-3 border-b flex-shrink-0"
-        style={{ borderColor: 'rgba(240,205,120,.2)', background: 'rgba(0,0,0,.4)' }}
+        className="flex items-center gap-4 px-5 py-3 border-b flex-shrink-0 deckforge-editor-header"
       >
         <button
           onClick={closeEditor}
@@ -235,8 +228,7 @@ export default function DeckForge() {
           value={editor.name}
           onChange={(e) => setEditor({ ...editor, name: e.target.value })}
           placeholder="Nome do baralho"
-          className="flex-1 bg-transparent border-none outline-none text-[16px] font-bold text-[var(--gold-light)]"
-          style={{ fontFamily: 'var(--font-heading)' }}
+          className="font-heading flex-1 bg-transparent border-none outline-none text-[16px] font-bold text-[var(--gold-light)]"
         />
         {/* Faction pills */}
         <div className="flex gap-1.5">
@@ -244,12 +236,7 @@ export default function DeckForge() {
             <button
               key={f.value}
               onClick={() => setEditor({ ...editor, faction: f.value, leaderId: '', cards: [] })}
-              className="px-2.5 py-1 rounded text-[10px] font-bold tracking-wide border-none cursor-pointer"
-              style={{
-                background: editor.faction === f.value ? 'var(--gold)' : 'rgba(240,205,120,.1)',
-                color: editor.faction === f.value ? 'var(--bg-darkest)' : 'var(--gold)',
-                boxShadow: editor.faction === f.value ? 'none' : 'inset 0 0 0 1px rgba(240,205,120,.3)',
-              }}
+              className={`px-2.5 py-1 rounded text-[10px] font-bold tracking-wide border-none cursor-pointer ${editor.faction === f.value ? 'deckforge-faction-pill--active' : 'deckforge-faction-pill'}`}
             >
               {f.label.split(' ')[0]}
             </button>
@@ -259,8 +246,7 @@ export default function DeckForge() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="flex items-center gap-1.5 px-4 py-2 rounded border-none cursor-pointer font-bold text-[12px] text-[var(--bg-darkest)]"
-          style={{ background: 'linear-gradient(180deg, var(--gold-light), var(--gold))', opacity: saving ? 0.6 : 1 }}
+          className={`flex items-center gap-1.5 px-4 py-2 rounded border-none cursor-pointer font-bold text-[12px] text-[var(--bg-darkest)] btn-gold ${saving ? 'opacity-60' : ''}`}
         >
           <Check size={14} strokeWidth={2.5} />
           {saving ? 'Salvando…' : 'Salvar'}
@@ -270,10 +256,9 @@ export default function DeckForge() {
       {/* Editor body */}
       <div className="flex flex-1 min-h-0">
         {/* Catalog panel */}
-        <div className="flex-1 flex flex-col min-w-0 border-r" style={{ borderColor: 'rgba(240,205,120,.15)' }}>
+        <div className="flex-1 flex flex-col min-w-0 border-r deckforge-catalog-panel">
           <div
-            className="px-4 py-2 text-[10px] font-bold tracking-[2px] uppercase text-[var(--gold)] border-b flex-shrink-0"
-            style={{ borderColor: 'rgba(240,205,120,.15)', background: 'rgba(0,0,0,.2)' }}
+            className="px-4 py-2 text-[10px] font-bold tracking-[2px] uppercase text-[var(--gold)] border-b flex-shrink-0 deckforge-catalog-header"
           >
             Catálogo · {FACTIONS.find((f) => f.value === editor.faction)?.label ?? editor.faction}
           </div>
@@ -286,17 +271,11 @@ export default function DeckForge() {
               return (
                 <div
                   key={card.id}
-                  className="flex items-center gap-3 px-3 py-2 rounded-[6px] mb-1.5 cursor-pointer"
-                  style={{
-                    background: qty > 0 ? 'rgba(240,205,120,.08)' : 'rgba(255,255,255,.03)',
-                    boxShadow: qty > 0 ? 'inset 0 0 0 1px rgba(240,205,120,.25)' : 'none',
-                    opacity: atMax ? 0.5 : 1,
-                  }}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-[6px] mb-1.5 cursor-pointer ${qty > 0 ? 'deckforge-catalog-card--selected' : 'deckforge-catalog-card'} ${atMax ? 'opacity-50' : ''}`}
                   onClick={() => !atMax && addCard(card)}
                 >
                   <div
-                    className="w-6 h-6 rounded flex items-center justify-center text-[11px] font-bold flex-shrink-0"
-                    style={{ background: 'rgba(0,0,0,.4)', color: 'var(--gold)' }}
+                    className="w-6 h-6 rounded flex items-center justify-center text-[11px] font-bold flex-shrink-0 deckforge-power-gem"
                   >
                     {card.basePower ?? '—'}
                   </div>
@@ -317,17 +296,15 @@ export default function DeckForge() {
 
         {/* Deck preview panel */}
         <div
-          className="w-[320px] flex-shrink-0 flex flex-col"
-          style={{ background: 'rgba(0,0,0,.25)' }}
+          className="w-[320px] flex-shrink-0 flex flex-col deckforge-deck-panel"
         >
           {/* Leader */}
-          <div className="px-4 py-3 border-b" style={{ borderColor: 'rgba(240,205,120,.15)' }}>
+          <div className="px-4 py-3 border-b deckforge-section-border">
             <div className="text-[10px] font-bold tracking-[2px] uppercase text-[var(--gold)] mb-2">Líder</div>
             <select
               value={editor.leaderId}
               onChange={(e) => setEditor({ ...editor, leaderId: e.target.value })}
-              className="w-full px-2 py-1.5 rounded text-[12px] text-[var(--text-primary)] bg-[var(--bg-darkest)] border-none outline-none cursor-pointer"
-              style={{ boxShadow: 'inset 0 0 0 1px var(--border-gold)', fontFamily: 'var(--font-ui)' }}
+              className="font-ui deckforge-leader-select w-full px-2 py-1.5 rounded text-[12px] text-[var(--text-primary)] bg-[var(--bg-darkest)] border-none outline-none cursor-pointer"
             >
               <option value="">Selecione um líder</option>
               {leaders.map((l) => (
@@ -337,11 +314,10 @@ export default function DeckForge() {
           </div>
 
           {/* Card count badge */}
-          <div className="px-4 py-2 border-b flex items-center gap-2" style={{ borderColor: 'rgba(240,205,120,.15)' }}>
+          <div className="px-4 py-2 border-b flex items-center gap-2 deckforge-section-border">
             <span className="text-[10px] font-bold tracking-[2px] uppercase text-[var(--gold)]">Cartas</span>
             <span
-              className="text-[13px] font-bold"
-              style={{ color: count < 22 ? 'var(--red)' : count > 40 ? 'var(--red)' : 'var(--green)' }}
+              className={`text-[13px] font-bold ${count < 22 || count > 40 ? 'text-[var(--red)]' : 'text-[var(--green)]'}`}
             >
               {count}
             </span>
@@ -351,14 +327,14 @@ export default function DeckForge() {
           {/* Card list */}
           <div className="flex-1 overflow-y-auto p-3">
             {editor.cards.length === 0 && (
-              <p className="text-center text-[12px] italic text-[var(--text-muted)] mt-4" style={{ fontFamily: 'var(--font-body)' }}>
+              <p className="font-body text-center text-[12px] italic text-[var(--text-muted)] mt-4">
                 Clique nas cartas do catálogo para adicioná-las
               </p>
             )}
             {editor.cards.map((entry) => {
               const card = cardById[entry.cardId]
               return (
-                <div key={entry.cardId} className="flex items-center gap-2 py-1.5 border-b" style={{ borderColor: 'rgba(255,255,255,.05)' }}>
+                <div key={entry.cardId} className="flex items-center gap-2 py-1.5 border-b deckforge-card-list-item">
                   <span className="text-[11px] font-bold text-[var(--gold)] w-5 text-center">{entry.quantity}×</span>
                   <span className="flex-1 text-[12px] text-[var(--text-primary)] truncate">{card?.name ?? entry.cardId}</span>
                   <button
