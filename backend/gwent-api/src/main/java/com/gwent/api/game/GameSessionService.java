@@ -1,16 +1,7 @@
 package com.gwent.api.game;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gwent.api.catalog.CardCatalogRepository;
-import com.gwent.api.catalog.CardEntity;
-import com.gwent.api.deck.Deck;
-import com.gwent.api.deck.DeckRepository;
-import com.gwent.api.deck.exception.DeckNotFoundException;
 import com.gwent.api.game.dto.*;
-import com.gwent.api.game.exception.GameNotFoundException;
-import com.gwent.api.game.exception.GameNotWaitingException;
-import com.gwent.api.game.exception.PlayerNotInGameException;
+import com.gwent.api.game.service.*;
 import com.gwent.engine.command.PassCommand;
 import com.gwent.engine.command.ResolveLeaderCommand;
 import com.gwent.engine.command.ResolveMedicCommand;
@@ -20,279 +11,214 @@ import com.gwent.engine.domain.*;
 import com.gwent.engine.exception.command.InvalidPhaseCommandException;
 import com.gwent.engine.state.GameState;
 import com.gwent.engine.state.PlayerState;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.concurrent.*;
 
 @Service
 public class GameSessionService {
 
     private final GwentEngine engine = new GwentEngine();
-    private final Map<UUID, SessionContext> sessions = new ConcurrentHashMap<>();
-    private final Map<UUID, Object> gameLocks = new ConcurrentHashMap<>();
-    private final Map<UUID, ScheduledFuture<?>> medicTimers = new ConcurrentHashMap<>();
-    private final Map<UUID, ScheduledFuture<?>> leaderTimers = new ConcurrentHashMap<>();
-    private final Map<UUID, ScheduledFuture<?>> scoiataelTimers = new ConcurrentHashMap<>();
-    private final Map<UUID, ScheduledFuture<?>> turnTimers = new ConcurrentHashMap<>();
-    private final Map<String, ScheduledFuture<?>> disconnectTimers = new ConcurrentHashMap<>();
-    private final Set<UUID> disconnectForfeits = ConcurrentHashMap.newKeySet();
-    private final Map<UUID, Long> turnDeadlines = new HashMap<>();
-    private final Map<UUID, Long> abilityDeadlines = new HashMap<>();
-    // 4 threads: sufficient for MVP. When scaling, replace with Spring TaskScheduler
-    // (container-managed, configurable) or Redis TTL + keyspace notifications (zero threads).
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
 
-    private final GameRepository gameRepository;
-    private final ObjectMapper objectMapper;
-    private final SimpMessagingTemplate messagingTemplate;
     private final GameModelMapper mapper;
-    private final CardCatalogRepository cardCatalogRepository;
-    private final DeckRepository deckRepository;
+    private final GameDeckBuilder gameDeckBuilder;
+    private final GamePersistenceService persistenceService;
+    private final GameBroadcastService broadcastService;
+    private final GameTimerService timerService;
+    private final GameSessionRegistry sessionRegistry;
 
-    public GameSessionService(GameRepository gameRepository, ObjectMapper objectMapper,
-                              SimpMessagingTemplate messagingTemplate, GameModelMapper mapper,
-                              CardCatalogRepository cardCatalogRepository, DeckRepository deckRepository) {
-        this.gameRepository = gameRepository;
-        this.objectMapper = objectMapper;
-        this.messagingTemplate = messagingTemplate;
+    public GameSessionService(GameBroadcastService gameBroadcastService, GameModelMapper mapper, GameDeckBuilder gameDeckBuilder, GamePersistenceService gamePersistenceService, GameTimerService gameTimerService, GameSessionRegistry gameSessionRegistry) {
+        this.broadcastService = gameBroadcastService;
         this.mapper = mapper;
-        this.cardCatalogRepository = cardCatalogRepository;
-        this.deckRepository = deckRepository;
+        this.gameDeckBuilder = gameDeckBuilder;
+        this.persistenceService = gamePersistenceService;
+        this.sessionRegistry = gameSessionRegistry;
+        this.timerService = gameTimerService;
     }
 
-    public CreateGameDto createSession(String userId, UUID deckId) {
-        UUID gameId = UUID.randomUUID();
-
-        Game game = new Game();
-        game.setId(gameId);
-        game.setPlayer1Id(userId);
-        game.setPlayer1DeckId(deckId);
-        game.setStatus(GameStatus.WAITING);
-        gameRepository.save(game);
-
-        return new CreateGameDto(gameId, userId);
+    public CreateGameDto createSession (String userId, UUID deckId) {
+        return persistenceService.createGame(userId, deckId);
     }
 
-    public GameStateDto joinSession(UUID gameId, String userId, UUID deckId) {
-        Object lock = gameLocks.computeIfAbsent(gameId, k -> new Object());
-        synchronized (lock) {
-            Game game = gameRepository.findById(gameId)
-                    .orElseThrow(() -> new GameNotFoundException(gameId));
+    public GameStateDto joinSession (UUID gameId, String userId, UUID deckId) {
+        return sessionRegistry.executeWithInitLock(gameId, () -> {
+            Game game = persistenceService.getGameValidatingWaitingStatus(gameId);
 
-            if (game.getStatus() != GameStatus.WAITING) {
-                throw new GameNotWaitingException(gameId);
-            }
+            persistenceService.saveJoinedGame(gameId, userId, deckId);
 
-            game.setPlayer2Id(userId);
-            game.setPlayer2DeckId(deckId);
-
-            PlayerState player1 = new PlayerState(buildLeaderFromDeckId(game.getPlayer1DeckId()), buildDeckFromDeckId(game.getPlayer1DeckId()));
-            PlayerState player2 = new PlayerState(buildLeaderFromDeckId(deckId), buildDeckFromDeckId(deckId));
+            PlayerState player1 = new PlayerState(gameDeckBuilder.buildLeaderFromDeckId(game.getPlayer1DeckId()), gameDeckBuilder.buildDeckFromDeckId(game.getPlayer1DeckId()));
+            PlayerState player2 = new PlayerState(gameDeckBuilder.buildLeaderFromDeckId(deckId), gameDeckBuilder.buildDeckFromDeckId(deckId));
             GameState gameState = new GameState(player1, player2);
 
             engine.drawInitialCards(gameState, 10);
             engine.resolveCoinFlip(gameState, Turn.PLAYER_1);
 
             SessionContext ctx = new SessionContext(gameState, game.getPlayer1Id(), userId);
-            sessions.put(gameId, ctx);
+            sessionRegistry.putSession(gameId, ctx);
+
             if (gameState.getPhase() == GamePhase.REDRAW) {
                 scheduleMulliganTimeout(gameId, ctx);
             } else {
                 scheduleScoiataelTimeout(gameId, ctx);
             }
 
-            broadcastState(gameId, ctx);
-            persist(gameId, ctx);
+            broadcastAndPersist(gameId, ctx);
 
             return toDto(gameId, ctx, Turn.PLAYER_2);
-        }
+        });
     }
 
-    public GameStateDto execute(UUID gameId, String userId, CommandRequestDto request) {
-        Object lock = gameLocks.computeIfAbsent(gameId, k -> new Object());
-        synchronized (lock) {
-            SessionContext ctx = sessions.get(gameId);
-            if (ctx == null) throw new GameNotFoundException(gameId);
-
-            Turn player = resolvePlayer(ctx, userId);
+    public GameStateDto execute (UUID gameId, String userId, CommandRequestDto request) {
+        return sessionRegistry.executeWithLock(gameId, ctx -> {
+            Turn player = sessionRegistry.resolvePlayer(ctx, userId);
             Turn currentTurn = ctx.gameState().getCurrentTurn();
+
             engine.execute(ctx.gameState(), mapper.toCommand(request, player, ctx.gameState(), ctx));
             Turn afterExecutionTurn = ctx.gameState().getCurrentTurn();
 
             if (request.commandType() == CommandType.RESOLVE_SCOIATAEL) {
-                cancelScoiataelTimer(gameId);
+                timerService.cancelScoiataelTimer(gameId);
                 scheduleMulliganTimeout(gameId, ctx);
             }
 
-            PendingAbility pending = ctx.gameState().getPendingAbility();
-            if (pending == PendingAbility.MEDIC_CHOICE) {
-                scheduleMedicTimeout(gameId, ctx);
-                cancelLeaderTimer(gameId);
-                cancelTurnTimer(gameId);
-            } else if (pending != null && pending.name().startsWith("LEADER_")) {
-                scheduleLeaderTimeout(gameId, ctx);
-                cancelMedicTimer(gameId);
-                cancelTurnTimer(gameId);
-            } else if (pending == null && currentTurn != afterExecutionTurn && ctx.gameState().getPhase().equals(GamePhase.PLAY)) {
-                scheduleTurnTimer(gameId, ctx);
-                cancelMedicTimer(gameId);
-                cancelLeaderTimer(gameId);
-            } else {
-                cancelMedicTimer(gameId);
-                cancelLeaderTimer(gameId);
-                if (pending == null && ctx.gameState().getPhase() == GamePhase.PLAY && !ctx.gameState().isGameOver()) {
-                    scheduleTurnTimer(gameId, ctx);
-                } else {
-                    cancelTurnTimer(gameId);
-                }
-            }
+            updateTimersAfterExecution(gameId, ctx, currentTurn, afterExecutionTurn);
 
             if (ctx.gameState().isGameOver()) {
-                cancelTurnTimer(gameId);
-                cancelDisconnectTimersForGame(gameId, ctx);
+                timerService.cancelTurnTimer(gameId);
+                timerService.cancelDisconnectTimersForGame(gameId, ctx.player1Id(), ctx.player2Id());
             }
 
-            broadcastState(gameId, ctx);
-
-            if (ctx.gameState().getRevealedCards() != null) {
-                ctx.gameState().setRevealedCards(null);
-            }
-
-            persist(gameId, ctx);
+            broadcastAndPersist(gameId, ctx);
 
             return toDto(gameId, ctx, player);
-        }
+        });
     }
 
-    public GameStateDto getSession(UUID gameId, String userId) {
-        SessionContext ctx = sessions.get(gameId);
-        if (ctx != null) {
-            Turn perspective = resolvePlayer(ctx, userId);
+    public GameStateDto getSession (UUID gameId, String userId) {
+        Optional<SessionContext> optCtx = sessionRegistry.getSession(gameId);
+        if (optCtx.isPresent()) {
+            SessionContext ctx = optCtx.get();
+            Turn perspective = sessionRegistry.resolvePlayer(ctx, userId);
             return toDto(gameId, ctx, perspective);
         }
 
-        Game game = gameRepository.findById(gameId)
-                .orElseThrow(() -> new GameNotFoundException(gameId));
-
-        if (game.getStateJson() == null) throw new GameNotFoundException(gameId);
-
-        try {
-            return objectMapper.readValue(game.getStateJson(), GameStateDto.class);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to deserialize game state", e);
-        }
+        return persistenceService.getPersistedState(gameId);
     }
 
-    public Optional<ActiveGameDto> getActiveGame(String userId) {
-        return gameRepository.findActiveGameForPlayer(GameStatus.IN_PROGRESS, userId)
-                .map(g -> new ActiveGameDto(g.getId()));
+    public Optional<ActiveGameDto> getActiveGame (String userId) {
+        return persistenceService.findActiveGameForPlayer(userId);
     }
 
     public void surrender(UUID gameId, String userId) {
-        Object lock = gameLocks.computeIfAbsent(gameId, k -> new Object());
-        synchronized (lock) {
-            SessionContext ctx = sessions.get(gameId);
-            if (ctx == null) throw new GameNotFoundException(gameId);
+        sessionRegistry.executeWithLockVoid(gameId, ctx -> {
             if (ctx.gameState().isGameOver()) throw new InvalidPhaseCommandException(GamePhase.PLAY, GamePhase.GAME_OVER);
 
-            Turn player = resolvePlayer(ctx, userId);
+            Turn player = sessionRegistry.resolvePlayer(ctx, userId);
             engine.surrender(ctx.gameState(), player);
 
-            cancelMedicTimer(gameId);
-            cancelLeaderTimer(gameId);
-            cancelScoiataelTimer(gameId);
-            cancelTurnTimer(gameId);
-            cancelDisconnectTimersForGame(gameId, ctx);
-            broadcastState(gameId, ctx);
-            persist(gameId, ctx);
-        }
+            timerService.cancelAllGameTimers(gameId, ctx.player1Id(), ctx.player2Id());
+            broadcastAndPersist(gameId, ctx);
+        });
     }
 
-    // --- Player resolution ---
+    // --- Disconnect ---
+    public void scheduleDisconnectForfeit (UUID gameId, String playerEmail) {
+        timerService.scheduleDisconnectForfeit(gameId, playerEmail, () -> {
+            sessionRegistry.addDisconnectForfeit(gameId);
+            try {
+                surrender(gameId, playerEmail);
+            } catch (InvalidPhaseCommandException e) {
+                sessionRegistry.removeDisconnectForfeit(gameId);
+            }
+        });
+    }
 
-    private Turn resolvePlayer(SessionContext ctx, String userId) {
-        if (userId.equals(ctx.player1Id())) return Turn.PLAYER_1;
-        if (userId.equals(ctx.player2Id())) return Turn.PLAYER_2;
-        throw new PlayerNotInGameException(userId);
+    public void cancelDisconnectForfeit (UUID gameId, String playerEmail) {
+        timerService.cancelDisconnectForfeit(gameId, playerEmail);
     }
 
     // --- Broadcast & Timeout ---
 
-    private void broadcastState(UUID gameId, SessionContext ctx) {
+    private void broadcastAndPersist (UUID gameId, SessionContext ctx) {
         GameStateDto p1Dto = toDto(gameId, ctx, Turn.PLAYER_1);
         GameStateDto p2Dto = toDto(gameId, ctx, Turn.PLAYER_2);
-        messagingTemplate.convertAndSend("/topic/games/" + gameId + "/" + ctx.player1Id(), p1Dto);
-        messagingTemplate.convertAndSend("/topic/games/" + gameId + "/" + ctx.player2Id(), p2Dto);
+        broadcastService.broadcastState(gameId, ctx, p1Dto, p2Dto);
+        if (ctx.gameState().getRevealedCards() != null) {
+            ctx.gameState().setRevealedCards(null);
+        }
+        persistenceService.persist(gameId, ctx, p1Dto);
     }
 
-    private void scheduleMedicTimeout(UUID gameId, SessionContext ctx) {
-        cancelMedicTimer(gameId);
-        abilityDeadlines.put(gameId, System.currentTimeMillis() + 30_000);
-        medicTimers.put(gameId, scheduler.schedule(() -> {
-            Object lock = gameLocks.computeIfAbsent(gameId, k -> new Object());
-            synchronized (lock) {
-                if (ctx.gameState().getPendingAbility() == PendingAbility.MEDIC_CHOICE) {
-                    PlayerState current = ctx.gameState().getCurrentPlayer();
+    private void updateTimersAfterExecution (UUID gameId, SessionContext ctx, Turn beforeTurn, Turn afterTurn) {
+        PendingAbility pending = ctx.gameState().getPendingAbility();
+        if (pending == PendingAbility.MEDIC_CHOICE) {
+            scheduleMedicTimeout(gameId, ctx);
+            timerService.cancelLeaderTimer(gameId);
+            timerService.cancelTurnTimer(gameId);
+        } else if (pending != null && pending.name().startsWith("LEADER_")) {
+            scheduleLeaderTimeout(gameId, ctx);
+            timerService.cancelMedicTimer(gameId);
+            timerService.cancelTurnTimer(gameId);
+        } else if (pending == null && beforeTurn != afterTurn && ctx.gameState().getPhase().equals(GamePhase.PLAY)) {
+            scheduleTurnTimer(gameId, ctx);
+            timerService.cancelMedicTimer(gameId);
+            timerService.cancelLeaderTimer(gameId);
+        } else {
+            timerService.cancelMedicTimer(gameId);
+            timerService.cancelLeaderTimer(gameId);
+            if (pending == null && ctx.gameState().getPhase() == GamePhase.PLAY && !ctx.gameState().isGameOver()) {
+                scheduleTurnTimer(gameId, ctx);
+            } else {
+                timerService.cancelTurnTimer(gameId);
+            }
+        }
+    }
+
+    private void scheduleMedicTimeout (UUID gameId, SessionContext ctx) {
+        timerService.scheduleMedicTimeout(gameId, () -> {
+            sessionRegistry.executeWithLockVoid(gameId, lockedCtx -> {
+                if (lockedCtx.gameState().getPendingAbility() == PendingAbility.MEDIC_CHOICE) {
+                    PlayerState current = lockedCtx.gameState().getCurrentPlayer();
                     Card randomUnit = current.getGraveyard().stream()
                             .filter(c -> c.cardType() == CardType.UNIT)
                             .findAny()
                             .orElse(null);
                     if (randomUnit != null) {
-                        engine.execute(ctx.gameState(), new ResolveMedicCommand(randomUnit));
-                        if (ctx.gameState().getPendingAbility() == PendingAbility.MEDIC_CHOICE) {
-                            scheduleMedicTimeout(gameId, ctx);
-                        } else if (ctx.gameState().getPhase() == GamePhase.PLAY && !ctx.gameState().isGameOver()) {
-                            scheduleTurnTimer(gameId, ctx);
+                        engine.execute(lockedCtx.gameState(), new ResolveMedicCommand(randomUnit));
+                        if (lockedCtx.gameState().getPendingAbility() == PendingAbility.MEDIC_CHOICE) {
+                            scheduleMedicTimeout(gameId, lockedCtx);
+                        } else if (lockedCtx.gameState().getPhase() == GamePhase.PLAY && !lockedCtx.gameState().isGameOver()) {
+                            scheduleTurnTimer(gameId, lockedCtx);
                         }
-                        broadcastState(gameId, ctx);
-                        persist(gameId, ctx);
+                        broadcastAndPersist(gameId, lockedCtx);
                     }
                 }
-            }
-        }, 30, TimeUnit.SECONDS));
+            });
+        });
     }
 
-    private void cancelMedicTimer(UUID gameId) {
-        ScheduledFuture<?> timer = medicTimers.remove(gameId);
-        if (timer != null) timer.cancel(false);
-    }
-
-    private void scheduleLeaderTimeout(UUID gameId, SessionContext ctx) {
-        cancelLeaderTimer(gameId);
-        abilityDeadlines.put(gameId, System.currentTimeMillis() + 30_000);
-        leaderTimers.put(gameId, scheduler.schedule(() -> {
-            Object lock = gameLocks.computeIfAbsent(gameId, k -> new Object());
-            synchronized (lock) {
-                PendingAbility pending = ctx.gameState().getPendingAbility();
+    private void scheduleLeaderTimeout (UUID gameId, SessionContext ctx) {
+        timerService.scheduleLeaderTimeout(gameId, () -> {
+            sessionRegistry.executeWithLockVoid(gameId, lockedCtx -> {
+                PendingAbility pending = lockedCtx.gameState().getPendingAbility();
                 if (pending == null || !pending.name().startsWith("LEADER_")) return;
 
-                Card randomCard = resolveRandomLeaderCard(ctx.gameState(), pending);
+                Card randomCard = resolveRandomLeaderCard(lockedCtx.gameState(), pending);
                 if (randomCard != null) {
-                    engine.execute(ctx.gameState(), new ResolveLeaderCommand(randomCard));
-                    PendingAbility newPending = ctx.gameState().getPendingAbility();
+                    engine.execute(lockedCtx.gameState(), new ResolveLeaderCommand(randomCard));
+                    PendingAbility newPending = lockedCtx.gameState().getPendingAbility();
                     if (newPending != null && newPending.name().startsWith("LEADER_")) {
-                        scheduleLeaderTimeout(gameId, ctx);
-                    } else if (ctx.gameState().getPhase() == GamePhase.PLAY && !ctx.gameState().isGameOver()) {
-                        scheduleTurnTimer(gameId, ctx);
+                        scheduleLeaderTimeout(gameId, lockedCtx);
+                    } else if (lockedCtx.gameState().getPhase() == GamePhase.PLAY && !lockedCtx.gameState().isGameOver()) {
+                        scheduleTurnTimer(gameId, lockedCtx);
                     }
-                    broadcastState(gameId, ctx);
-                    if (ctx.gameState().getRevealedCards() != null) {
-                        ctx.gameState().setRevealedCards(null);
-                    }
-                    persist(gameId, ctx);
+                    broadcastAndPersist(gameId, lockedCtx);
                 }
-            }
-        }, 30, TimeUnit.SECONDS));
+            });
+        });
     }
 
-    private void cancelLeaderTimer(UUID gameId) {
-        ScheduledFuture<?> timer = leaderTimers.remove(gameId);
-        if (timer != null) timer.cancel(false);
-    }
-
-    private Card resolveRandomLeaderCard(GameState state, PendingAbility pending) {
+    private Card resolveRandomLeaderCard (GameState state, PendingAbility pending) {
         PlayerState current = state.getCurrentPlayer();
         return switch (pending) {
             case LEADER_GRAVEYARD_PICK -> current.getGraveyard().stream()
@@ -305,166 +231,63 @@ public class GameSessionService {
         };
     }
 
-    private void scheduleScoiataelTimeout(UUID gameId, SessionContext ctx) {
-        cancelScoiataelTimer(gameId);
-        abilityDeadlines.put(gameId, System.currentTimeMillis() + 30_000);
-        scoiataelTimers.put(gameId, scheduler.schedule(() -> {
-            Object lock = gameLocks.computeIfAbsent(gameId, k -> new Object());
-            synchronized (lock) {
-                if (ctx.gameState().getPendingAbility() == PendingAbility.SCOIATAEL_FIRST_PLAYER_CHOICE) {
+    private void scheduleScoiataelTimeout (UUID gameId, SessionContext ctx) {
+        timerService.scheduleScoiataelTimeout(gameId, () -> {
+            sessionRegistry.executeWithLockVoid(gameId, lockedCtx -> {
+                if (lockedCtx.gameState().getPendingAbility() == PendingAbility.SCOIATAEL_FIRST_PLAYER_CHOICE) {
                     Turn randomChoice = Math.random() < 0.5 ? Turn.PLAYER_1 : Turn.PLAYER_2;
-                    engine.execute(ctx.gameState(), new ResolveScoiataelCommand(randomChoice));
-                    scheduleMulliganTimeout(gameId, ctx);
-                    broadcastState(gameId, ctx);
-                    persist(gameId, ctx);
+                    engine.execute(lockedCtx.gameState(), new ResolveScoiataelCommand(randomChoice));
+                    scheduleMulliganTimeout(gameId, lockedCtx);
+                    broadcastAndPersist(gameId, lockedCtx);
                 }
-            }
-        }, 30, TimeUnit.SECONDS));
+            });
+        });
     }
 
-    private void cancelScoiataelTimer(UUID gameId) {
-        ScheduledFuture<?> timer = scoiataelTimers.remove(gameId);
-        if (timer != null) timer.cancel(false);
-    }
-
-    private void scheduleMulliganTimeout(UUID gameId, SessionContext ctx) {
-        abilityDeadlines.put(gameId, System.currentTimeMillis() + 30_000);
-        scheduler.schedule(() -> {
-            Object lock = gameLocks.computeIfAbsent(gameId, k -> new Object());
-            synchronized (lock) {
-                if (ctx.gameState().getPhase() == GamePhase.REDRAW) {
-                    engine.startPlay(ctx.gameState());
-                    scheduleTurnTimer(gameId, ctx);
-                    broadcastState(gameId, ctx);
-                    persist(gameId, ctx);
+    private void scheduleMulliganTimeout (UUID gameId, SessionContext ctx) {
+        timerService.scheduleMulliganTimeout(gameId, () -> {
+            sessionRegistry.executeWithLockVoid(gameId, lockedCtx -> {
+                if (lockedCtx.gameState().getPhase() == GamePhase.REDRAW) {
+                    engine.startPlay(lockedCtx.gameState());
+                    scheduleTurnTimer(gameId, lockedCtx);
+                    broadcastAndPersist(gameId, lockedCtx);
                 }
-            }
-        }, 30, TimeUnit.SECONDS);
+            });
+        });
     }
 
-    private void scheduleTurnTimer(UUID gameId, SessionContext ctx) {
-        cancelTurnTimer(gameId);
-        abilityDeadlines.remove(gameId);
-
-        long deadline = System.currentTimeMillis() + 60_000;
-        turnDeadlines.put(gameId, deadline);
-        turnTimers.put(gameId, scheduler.schedule(() -> {
-            Object lock = gameLocks.computeIfAbsent(gameId, k -> new Object());
-            synchronized (lock) {
-                GameState state = ctx.gameState();
+    private void scheduleTurnTimer (UUID gameId, SessionContext ctx) {
+        timerService.scheduleTurnTimer(gameId, () -> {
+            sessionRegistry.executeWithLockVoid(gameId, lockedCtx -> {
+                GameState state = lockedCtx.gameState();
                 if (state.getPendingAbility() == null && state.getPhase() == GamePhase.PLAY && !state.isGameOver()) {
                     engine.execute(state, new PassCommand());
                     if (state.getPhase() == GamePhase.PLAY && !state.isGameOver()) {
-                        scheduleTurnTimer(gameId, ctx);
+                        scheduleTurnTimer(gameId, lockedCtx);
                     } else if (state.isGameOver()) {
-                        cancelDisconnectTimersForGame(gameId, ctx);
+                        timerService.cancelDisconnectTimersForGame(gameId, lockedCtx.player1Id(), lockedCtx.player2Id());
                     }
-                    broadcastState(gameId, ctx);
-                    persist(gameId, ctx);
+                    broadcastAndPersist(gameId, lockedCtx);
                 }
-            }
-        }, 60, TimeUnit.SECONDS));
-    }
-
-    private void cancelTurnTimer (UUID gameId) {
-        ScheduledFuture<?> timer = turnTimers.remove(gameId);
-        Long deadline = turnDeadlines.remove(gameId);
-        if (timer != null) timer.cancel(false);
-    }
-
-    public void scheduleDisconnectForfeit(UUID gameId, String playerEmail) {
-        String key = gameId + ":" + playerEmail;
-        ScheduledFuture<?> future = scheduler.schedule(() -> {
-            disconnectForfeits.add(gameId);
-            try {
-                surrender(gameId, playerEmail);
-            } catch (InvalidPhaseCommandException e) {
-                disconnectForfeits.remove(gameId);
-            }
-        }, 120, TimeUnit.SECONDS);
-        disconnectTimers.put(key, future);
-        long deadline = System.currentTimeMillis() + 120_000;
-        messagingTemplate.convertAndSend("/topic/games/" + gameId + "/presence",
-                new PresenceDto(playerEmail, false, deadline));
-    }
-
-    public void cancelDisconnectForfeit(UUID gameId, String playerEmail) {
-        String key = gameId + ":" + playerEmail;
-        ScheduledFuture<?> disconnect = disconnectTimers.remove(key);
-        if (disconnect != null) {
-            disconnect.cancel(false);
-            messagingTemplate.convertAndSend("/topic/games/" + gameId + "/presence",
-                    new PresenceDto(playerEmail, true, null));
-        }
-    }
-
-    private void cancelDisconnectTimersForGame(UUID gameId, SessionContext ctx) {
-        cancelDisconnectForfeit(gameId, ctx.player1Id());
-        cancelDisconnectForfeit(gameId, ctx.player2Id());
+            });
+        });
     }
 
     // --- Mapping delegation ---
 
-    private GameStateDto toDto(UUID gameId, SessionContext ctx, Turn perspective) {
+    private GameStateDto toDto (UUID gameId, SessionContext ctx, Turn perspective) {
         GameState state = ctx.gameState();
         PlayerState meState = state.getPlayer(perspective);
         PlayerState opponentState = state.getPlayer(perspective == Turn.PLAYER_1 ? Turn.PLAYER_2 : Turn.PLAYER_1);
-        Long deadlines = turnDeadlines.get(gameId);
-        Long abilityDeadline = abilityDeadlines.get(gameId);
 
         return mapper.toGameStateDto(
                 gameId, ctx, perspective,
                 engine.calculateScore(meState),
                 engine.calculateScore(opponentState),
-                deadlines,
-                abilityDeadline,
-                disconnectForfeits.contains(gameId)
+                timerService.getTurnDeadline(gameId),
+                timerService.getAbilityDeadline(gameId),
+                sessionRegistry.hasDisconnectForfeit(gameId)
         );
     }
 
-    private void persist(UUID gameId, SessionContext ctx) {
-        try {
-            GameStatus status = ctx.gameState().getPhase() == GamePhase.GAME_OVER
-                    ? GameStatus.FINISHED : GameStatus.IN_PROGRESS;
-            GameStateDto dto = toDto(gameId, ctx, Turn.PLAYER_1);
-            Game game = gameRepository.findById(gameId).orElse(new Game());
-            game.setId(gameId);
-            game.setStateJson(objectMapper.writeValueAsString(dto));
-            game.setStatus(status);
-            gameRepository.save(game);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to serialize game state", e);
-        }
-    }
-
-    // --- Deck-ID-backed deck building ---
-
-    private Card buildLeaderFromDeckId(UUID deckId) {
-        Deck deck = deckRepository.findById(deckId)
-                .orElseThrow(() -> new DeckNotFoundException(deckId));
-        CardEntity leader = cardCatalogRepository.findById(deck.getLeaderId())
-                .orElseThrow(() -> new IllegalStateException("Leader card not found: " + deck.getLeaderId()));
-        return toEngineCard(leader, leader.getId());
-    }
-
-    private List<Card> buildDeckFromDeckId(UUID deckId) {
-        Deck deck = deckRepository.findById(deckId)
-                .orElseThrow(() -> new DeckNotFoundException(deckId));
-        List<Card> cards = new ArrayList<>();
-        for (var entry : deck.getCards()) {
-            CardEntity template = cardCatalogRepository.findById(entry.getCardId())
-                    .orElseThrow(() -> new IllegalStateException("Card not found: " + entry.getCardId()));
-            for (int i = 1; i <= entry.getQuantity(); i++) {
-                String instanceId = entry.getQuantity() > 1 ? entry.getCardId() + "_" + i : entry.getCardId();
-                cards.add(toEngineCard(template, instanceId));
-            }
-        }
-        Collections.shuffle(cards);
-        return cards;
-    }
-
-    private Card toEngineCard(CardEntity e, String id) {
-        return new Card(id, e.getName(), e.getFaction(), e.getCardType(),
-                e.getAbility(), e.getLeaderAbility(), e.getRowType(), e.getBasePower());
-    }
 }
