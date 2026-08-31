@@ -26,8 +26,8 @@ jobs:
         run: mvn test -pl gwent-engine --no-transfer-progress
         working-directory: backend
 
-      - name: Install gwent-engine
-        run: mvn install -pl gwent-engine -DskipTests --no-transfer-progress
+      - name: Install parent POM and gwent-engine
+        run: mvn install -pl .,gwent-engine -DskipTests --no-transfer-progress
         working-directory: backend
 
       - name: Run gwent-api tests
