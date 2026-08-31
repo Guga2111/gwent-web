@@ -134,12 +134,14 @@ export default function Game() {
       handlePlayWeatherCard();
       return;
     }
+    if (selectedCard.cardType === "SPECIAL") return;
     if (selectedCard.ability === "AGILE") return; // user must click a row
     if (selectedCard.rowType) handlePlayCard(selectedCard.rowType);
   };
 
   const canPlayOnRow = (row: RowType): boolean => {
     if (!selectedCard || !isMyTurn) return false;
+    if (selectedCard.cardType === "SPECIAL") return true;
     if (selectedCard.ability === "AGILE")
       return row === "MELEE" || row === "RANGED";
     return selectedCard.rowType === row;
@@ -216,6 +218,8 @@ export default function Game() {
       setTimeout(() => setLandedCardId(null), 100);
     }
   };
+
+  const canInteract = isMyTurn && gameState?.phase === "PLAY" && !gameState?.pendingAbility;
 
   if (!connected || !gameState || !me || !opponent) {
     return (
@@ -329,7 +333,7 @@ export default function Game() {
               rowLabel="Corpo"
               rowType="MELEE"
               side="player"
-              interactive={isMyTurn}
+              interactive={canInteract}
               isPlacementTarget={canPlayOnRow("MELEE")}
               onRowClick={
                 canPlayOnRow("MELEE") ? () => handlePlayCard("MELEE") : undefined
@@ -342,7 +346,7 @@ export default function Game() {
               rowLabel="Distância"
               rowType="RANGED"
               side="player"
-              interactive={isMyTurn}
+              interactive={canInteract}
               isPlacementTarget={canPlayOnRow("RANGED")}
               onRowClick={
                 canPlayOnRow("RANGED")
@@ -357,7 +361,7 @@ export default function Game() {
               rowLabel="Cerco"
               rowType="SIEGE"
               side="player"
-              interactive={isMyTurn}
+              interactive={canInteract}
               isPlacementTarget={canPlayOnRow("SIEGE")}
               onRowClick={
                 canPlayOnRow("SIEGE") ? () => handlePlayCard("SIEGE") : undefined
@@ -373,7 +377,7 @@ export default function Game() {
           <Hand
             cards={me.hand}
             isPlayer
-            interactive={isMyTurn}
+            interactive={canInteract}
             selectedCardId={selectedCardId ?? undefined}
             departingCardId={flyingCard?.card.id}
             onCardClick={(cardId) => {
@@ -542,7 +546,7 @@ export default function Game() {
               />
             ) : (
               <ControlBar
-                onSurrender={() => gameId && surrender(gameId).catch(() => {})}
+                onSurrender={() => gameId && surrender(gameId).catch(() => setError("Falha ao desistir. Tente novamente."))}
                 selectedCardId={selectedCardId}
                 onConfirmPlay={handleConfirmPlay}
               />

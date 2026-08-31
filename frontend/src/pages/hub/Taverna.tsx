@@ -49,6 +49,10 @@ export default function Taverna() {
     }).catch(() => {})
   }, [])
 
+  useEffect(() => {
+    return () => { useMatchmakingStore.getState().reset() }
+  }, [])
+
   async function handleCreateGame(deckId: string): Promise<string> {
     const { gameId } = await createGame(deckId)
     return gameId

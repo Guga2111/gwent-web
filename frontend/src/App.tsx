@@ -6,9 +6,10 @@ import Game from '@/pages/Game'
 import type { ReactNode } from 'react'
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
-  const token = useAuthStore((s) => s.token)
-  if (!token) return <Navigate to="/login" replace />
-  return children
+  const token = useAuthStore((s) => s.token);
+  const user = useAuthStore((s) => s.user);
+  if (!token || !user) return <Navigate to="/login" replace />
+  return children;
 }
 
 export default function App() {

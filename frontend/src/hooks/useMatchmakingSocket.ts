@@ -19,7 +19,7 @@ export function useMatchmakingSocket(active: boolean) {
       connectHeaders: {
         Authorization: `Bearer ${token}`,
       },
-      reconnectDelay: 0,
+      reconnectDelay: 2000,
       onConnect: () => {
         if (!isActive) return
         stompClient.subscribe(`/topic/matchmaking/${user.email}`, (message) => {
@@ -35,6 +35,7 @@ export function useMatchmakingSocket(active: boolean) {
       onStompError: (frame) => {
         if (!isActive) return
         console.error('STOMP matchmaking error:', frame.headers['message'])
+        useMatchmakingStore.getState().setError('Erro na conexão. Tente novamente.')
       },
     })
 

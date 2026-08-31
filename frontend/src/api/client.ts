@@ -1,3 +1,4 @@
+import { useAuthStore } from '@/stores/authStore'
 import axios from 'axios'
 
 const client = axios.create({
@@ -16,7 +17,7 @@ client.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401 || error.response?.status === 403) {
-      localStorage.removeItem('jwt')
+      useAuthStore.getState().logout();
       window.location.href = '/login'
     }
     return Promise.reject(error)

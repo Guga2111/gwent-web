@@ -29,7 +29,10 @@ export function useWebSocket(gameId: string | null) {
       onConnect: () => {
         if (!active) return
         setConnected(true)
-        getGameState(gameId).then(setGameState).catch(() => {})
+        getGameState(gameId).then(setGameState).catch((err) => {
+          console.error("Failed to fetch the game", err);
+          setError("Falha ao carregar estado do jogo. Recarregue a página.");
+        })
         stompClient.subscribe(`/topic/games/${gameId}/${user.email}`, (message) => {
           if (!active) return
           const state: GameStateDto = JSON.parse(message.body)
