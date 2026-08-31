@@ -153,16 +153,16 @@ public class CardCatalogLoader implements ApplicationRunner {
             card("NEUTRAL_CLEAR_WEATHER", "Clear Weather",      Faction.NEUTRAL, CardType.WEATHER, Ability.CLEAR_WEATHER, null, null, null, 3),
 
             // Neutral heroes
-            card("NEUTRAL_HERO_GERALT",       "Geralt of Rivia",        Faction.NEUTRAL, CardType.HERO, null,                 null, RowType.MELEE,  15, 0),
-            card("NEUTRAL_HERO_CIRI",         "Cirilla Fiona Elen Riannon", Faction.NEUTRAL, CardType.HERO, null,             null, RowType.MELEE,  15, 0),
-            card("NEUTRAL_HERO_TRISS",        "Triss Merigold",         Faction.NEUTRAL, CardType.HERO, null,                 null, RowType.MELEE,   7, 0),
-            card("NEUTRAL_HERO_YENNEFER",     "Yennefer of Vengerberg", Faction.NEUTRAL, CardType.HERO, Ability.MEDIC,        null, RowType.RANGED,  7, 0),
-            card("NEUTRAL_VILLENTRETENMERTH", "Villentretenmerth",      Faction.NEUTRAL, CardType.HERO, Ability.SCORCH,       null, RowType.MELEE,   7, 0),
+            card("NEUTRAL_HERO_GERALT",       "Geralt of Rivia",        Faction.NEUTRAL, CardType.HERO, null,                 null, RowType.MELEE,  15, 1),
+            card("NEUTRAL_HERO_CIRI",         "Cirilla Fiona Elen Riannon", Faction.NEUTRAL, CardType.HERO, null,             null, RowType.MELEE,  15, 1),
+            card("NEUTRAL_HERO_TRISS",        "Triss Merigold",         Faction.NEUTRAL, CardType.HERO, null,                 null, RowType.MELEE,   7, 1),
+            card("NEUTRAL_HERO_YENNEFER",     "Yennefer of Vengerberg", Faction.NEUTRAL, CardType.HERO, Ability.MEDIC,        null, RowType.RANGED,  7, 1),
+            card("NEUTRAL_VILLENTRETENMERTH", "Villentretenmerth",      Faction.NEUTRAL, CardType.HERO, Ability.SCORCH,       null, RowType.MELEE,   7, 1),
 
             // Neutral units (deckCopies=0 — for deck builder)
-            card("NEUTRAL_ZOLTAN",            "Zoltan Chivay",      Faction.NEUTRAL, CardType.UNIT, null,                 null, RowType.MELEE,  5, 0),
-            card("NEUTRAL_EMIEL_REGIS",       "Emiel Regis",        Faction.NEUTRAL, CardType.UNIT, Ability.MEDIC,        null, RowType.RANGED, 5, 0),
-            card("NEUTRAL_DANDELION",         "Dandelion",          Faction.NEUTRAL, CardType.UNIT, Ability.MORALE_BOOST, null, RowType.RANGED, 2, 0)
+            card("NEUTRAL_ZOLTAN",            "Zoltan Chivay",      Faction.NEUTRAL, CardType.UNIT, null,                 null, RowType.MELEE,  5, 1),
+            card("NEUTRAL_EMIEL_REGIS",       "Emiel Regis",        Faction.NEUTRAL, CardType.UNIT, Ability.MEDIC,        null, RowType.RANGED, 5, 1),
+            card("NEUTRAL_DANDELION",         "Dandelion",          Faction.NEUTRAL, CardType.UNIT, Ability.MORALE_BOOST, null, RowType.RANGED, 2, 1)
         );
     }
 
