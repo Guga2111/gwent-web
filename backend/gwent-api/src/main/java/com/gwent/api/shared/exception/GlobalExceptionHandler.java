@@ -2,6 +2,7 @@ package com.gwent.api.shared.exception;
 
 import com.gwent.api.deck.exception.DeckNotFoundException;
 import com.gwent.api.game.dto.ErrorDto;
+import com.gwent.api.user.UserNotFoundException;
 import com.gwent.api.game.exception.CardNotFoundException;
 import com.gwent.api.game.exception.GameNotFoundException;
 import com.gwent.api.game.exception.GameNotWaitingException;
@@ -49,6 +50,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorDto> handleDeckNotFound(DeckNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new ErrorDto("DECK_NOT_FOUND", ex.getMessage()));
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ErrorDto> handleUserNotFound(UserNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorDto("USER_NOT_FOUND", ex.getMessage()));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

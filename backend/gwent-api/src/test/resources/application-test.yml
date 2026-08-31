@@ -9,3 +9,10 @@ spring:
       ddl-auto: create-drop
     database-platform: org.hibernate.dialect.H2Dialect
     show-sql: false
+
+jwt:
+  secret: test-secret-key-for-unit-tests-only-32chars
+  expiration-ms: 3600000
+
+cors:
+  allowed-origins: http://localhost:3000
