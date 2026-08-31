@@ -77,6 +77,7 @@ export interface GameStateDto {
   winner: string | null
   endReason: string | null
   turnDeadlineUtc: number | null
+  abilityDeadlineUtc: number | null
   disconnectForfeit: boolean
 }
 

@@ -1,16 +1,19 @@
 import Card from '../card/Card'
+import OverlayCountdown from './OverlayCountdown'
 import type { CardDto } from '@/types/game'
 
 interface MedicOverlayProps {
   graveyard: CardDto[]
   onSelectCard: (cardId: string) => void
+  abilityDeadlineUtc: number | null
 }
 
-export default function MedicOverlay({ graveyard, onSelectCard }: MedicOverlayProps) {
+export default function MedicOverlay({ graveyard, onSelectCard, abilityDeadlineUtc }: MedicOverlayProps) {
   const revivableCards = graveyard.filter((c) => c.cardType === 'UNIT')
 
   return (
     <div className="board-overlay">
+      <OverlayCountdown deadlineUtc={abilityDeadlineUtc} />
       <h2 className="overlay-title">Escolha uma carta para reviver</h2>
 
       <p className="overlay-body">

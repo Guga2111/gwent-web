@@ -1,10 +1,23 @@
+import { useState } from 'react'
+import OverlayCountdown from './OverlayCountdown'
+
 interface ScoiataelOverlayProps {
   onChoose: (goFirst: boolean) => void
+  abilityDeadlineUtc: number | null
 }
 
-export default function ScoiataelOverlay({ onChoose }: ScoiataelOverlayProps) {
+export default function ScoiataelOverlay({ onChoose, abilityDeadlineUtc }: ScoiataelOverlayProps) {
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleChoose = (goFirst: boolean) => {
+    if (submitted) return;
+    setSubmitted(true);
+    onChoose(goFirst);
+  }
+
   return (
     <div className="board-overlay">
+      <OverlayCountdown deadlineUtc={abilityDeadlineUtc} />
       <h2 className="overlay-title">Vantagem Scoia'tael</h2>
       <p className="overlay-body">
         Como líder dos Scoia'tael, você escolhe quem joga primeiro nesta rodada.
@@ -12,14 +25,16 @@ export default function ScoiataelOverlay({ onChoose }: ScoiataelOverlayProps) {
 
       <div className="flex gap-6 justify-center mt-4">
         <button
-          onClick={() => onChoose(true)}
+          onClick={() => handleChoose(true)}
+          disabled={submitted}
           className="px-8 py-3 rounded-md font-semibold text-base cursor-pointer transition-colors duration-150 border-2 border-[var(--gold-dark)] bg-[var(--gold-dark)] text-[var(--bg-darkest)] hover:bg-[var(--gold)] hover:border-[var(--gold)]"
           style={{ fontFamily: 'var(--font-heading)' }}
         >
           Jogar Primeiro
         </button>
         <button
-          onClick={() => onChoose(false)}
+          onClick={() => handleChoose(false)}
+          disabled={submitted}
           className="px-8 py-3 rounded-md font-semibold text-base cursor-pointer transition-colors duration-150 border-2 border-[var(--gold-dark)] bg-transparent text-[var(--gold-light)] hover:bg-[var(--gold-dark)]/20"
           style={{ fontFamily: 'var(--font-heading)' }}
         >
