@@ -18,8 +18,6 @@ export function useTurnCountdown(turnDeadlineUtc: number | null): TurnCountdown 
       return;
     }
 
-    console.log('[turn-timer] deadline:', turnDeadlineUtc);
-
     const tick = () => {
       const ms = Math.max(0, Math.min(TURN_DURATION_MS, turnDeadlineUtc - Date.now()));
       setRemainingMs(ms);

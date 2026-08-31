@@ -1,6 +1,5 @@
 # Frontend Refactoring Plan — SRP & Hook Extraction
 
-> **Branch:** create a dedicated branch (e.g. `refactor/srp-hook-extraction`) for this work.
 > **Goal:** enforce Single Responsibility Principle by extracting inline logic from pages/components into dedicated custom hooks, aligning with the patterns defined in `patterns.md`.
 
 ---

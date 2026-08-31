@@ -1,16 +1,18 @@
 import { create } from 'zustand'
 import type { DeckDto } from '@/types/deck'
 
+export type TabId = 'home' | 'deck' | 'shop' | 'rank' | 'profile'
+
 interface HubState {
   activeDeck: DeckDto | null
   setActiveDeck: (deck: DeckDto | null) => void
-  setTab: ((tab: string) => void) | null
-  registerSetTab: (fn: (tab: string) => void) => void
+  activeTab: TabId
+  setActiveTab: (tab: TabId) => void
 }
 
 export const useHubStore = create<HubState>((set) => ({
   activeDeck: null,
   setActiveDeck: (deck) => set({ activeDeck: deck }),
-  setTab: null,
-  registerSetTab: (fn) => set({ setTab: fn }),
+  activeTab: 'home',
+  setActiveTab: (tab) => set({ activeTab: tab }),
 }))
