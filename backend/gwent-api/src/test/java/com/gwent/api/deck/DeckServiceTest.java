@@ -1,6 +1,6 @@
 package com.gwent.api.deck;
 
-import com.gwent.api.catalog.CardCatalogRepository;
+import com.gwent.api.catalog.CardCatalogCache;
 import com.gwent.api.catalog.CardEntity;
 import com.gwent.api.deck.dto.DeckCardEntryDto;
 import com.gwent.api.deck.dto.DeckDto;
@@ -15,7 +15,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -31,7 +33,7 @@ class DeckServiceTest {
     private DeckRepository deckRepository;
 
     @Mock
-    private CardCatalogRepository cardCatalogRepository;
+    private CardCatalogCache cardCatalogCache;
 
     @InjectMocks
     private DeckService deckService;
@@ -116,7 +118,7 @@ class DeckServiceTest {
     @Test
     void shouldThrow_whenLeaderNotFound() {
         SaveDeckRequest request = new SaveDeckRequest("Deck", Faction.NORTHERN_REALMS, "missing_leader", List.of(new DeckCardEntryDto("c1", 3)));
-        when(cardCatalogRepository.findById("missing_leader")).thenReturn(Optional.empty());
+        when(cardCatalogCache.getAllById(any())).thenThrow(new IllegalArgumentException("Card not found: missing_leader"));
 
         assertThrows(IllegalArgumentException.class, () -> deckService.createDeck("user1", request));
     }
@@ -125,7 +127,8 @@ class DeckServiceTest {
     void shouldThrow_whenLeaderCardIsNotLeaderType() {
         SaveDeckRequest request = new SaveDeckRequest("Deck", Faction.NORTHERN_REALMS, "not_leader", List.of(new DeckCardEntryDto("c1", 3)));
         CardEntity unitCard = makeUnitCardEntity("not_leader", Faction.NORTHERN_REALMS);
-        when(cardCatalogRepository.findById("not_leader")).thenReturn(Optional.of(unitCard));
+        CardEntity c1 = makeUnitCardEntity("c1", Faction.NORTHERN_REALMS);
+        stubAllById(unitCard, c1);
 
         assertThrows(IllegalArgumentException.class, () -> deckService.createDeck("user1", request));
     }
@@ -135,7 +138,8 @@ class DeckServiceTest {
         SaveDeckRequest request = new SaveDeckRequest("Deck", Faction.NORTHERN_REALMS, "ng_leader",
                 List.of(new DeckCardEntryDto("c1", 3)));
         CardEntity ngLeader = makeLeaderCardEntity("ng_leader", Faction.NILFGAARD, com.gwent.engine.domain.LeaderAbility.EMPEROR_OF_NILFGAARD);
-        when(cardCatalogRepository.findById("ng_leader")).thenReturn(Optional.of(ngLeader));
+        CardEntity c1 = makeUnitCardEntity("c1", Faction.NORTHERN_REALMS);
+        stubAllById(ngLeader, c1);
 
         assertThrows(IllegalArgumentException.class, () -> deckService.createDeck("user1", request));
     }
@@ -143,7 +147,6 @@ class DeckServiceTest {
     @Test
     void shouldThrow_whenCardListIsNull() {
         SaveDeckRequest request = new SaveDeckRequest("Deck", Faction.NORTHERN_REALMS, "leader_nr", null);
-        stubLeader(Faction.NORTHERN_REALMS);
 
         assertThrows(IllegalArgumentException.class, () -> deckService.createDeck("user1", request));
     }
@@ -151,7 +154,6 @@ class DeckServiceTest {
     @Test
     void shouldThrow_whenCardListIsEmpty() {
         SaveDeckRequest request = new SaveDeckRequest("Deck", Faction.NORTHERN_REALMS, "leader_nr", List.of());
-        stubLeader(Faction.NORTHERN_REALMS);
 
         assertThrows(IllegalArgumentException.class, () -> deckService.createDeck("user1", request));
     }
@@ -160,8 +162,7 @@ class DeckServiceTest {
     void shouldThrow_whenCardNotFoundInCatalog() {
         List<DeckCardEntryDto> cards = buildMinimalCards();
         SaveDeckRequest request = new SaveDeckRequest("Deck", Faction.NORTHERN_REALMS, "leader_nr", cards);
-        stubLeader(Faction.NORTHERN_REALMS);
-        when(cardCatalogRepository.findById("card_1")).thenReturn(Optional.empty());
+        when(cardCatalogCache.getAllById(any())).thenThrow(new IllegalArgumentException("Card not found: card_1"));
 
         assertThrows(IllegalArgumentException.class, () -> deckService.createDeck("user1", request));
     }
@@ -170,10 +171,10 @@ class DeckServiceTest {
     void shouldThrow_whenLeaderCardInCardList() {
         List<DeckCardEntryDto> cards = List.of(new DeckCardEntryDto("card_leader_in_list", 1));
         SaveDeckRequest request = new SaveDeckRequest("Deck", Faction.NORTHERN_REALMS, "leader_nr", cards);
-        stubLeader(Faction.NORTHERN_REALMS);
+        CardEntity leader = makeLeaderCardEntity("leader_nr", Faction.NORTHERN_REALMS, com.gwent.engine.domain.LeaderAbility.SIEGE_MASTER);
         CardEntity leaderInList = makeLeaderCardEntity("card_leader_in_list", Faction.NORTHERN_REALMS,
                 com.gwent.engine.domain.LeaderAbility.SIEGE_MASTER);
-        when(cardCatalogRepository.findById("card_leader_in_list")).thenReturn(Optional.of(leaderInList));
+        stubAllById(leader, leaderInList);
 
         assertThrows(IllegalArgumentException.class, () -> deckService.createDeck("user1", request));
     }
@@ -182,9 +183,9 @@ class DeckServiceTest {
     void shouldThrow_whenCardFactionDoesNotMatch() {
         List<DeckCardEntryDto> cards = List.of(new DeckCardEntryDto("ng_unit", 3));
         SaveDeckRequest request = new SaveDeckRequest("Deck", Faction.NORTHERN_REALMS, "leader_nr", cards);
-        stubLeader(Faction.NORTHERN_REALMS);
+        CardEntity leader = makeLeaderCardEntity("leader_nr", Faction.NORTHERN_REALMS, com.gwent.engine.domain.LeaderAbility.SIEGE_MASTER);
         CardEntity ngUnit = makeUnitCardEntity("ng_unit", Faction.NILFGAARD);
-        when(cardCatalogRepository.findById("ng_unit")).thenReturn(Optional.of(ngUnit));
+        stubAllById(leader, ngUnit);
 
         assertThrows(IllegalArgumentException.class, () -> deckService.createDeck("user1", request));
     }
@@ -193,7 +194,6 @@ class DeckServiceTest {
     void shouldAllow_whenNeutralCardInAnyFactionDeck() {
         List<DeckCardEntryDto> cards = buildMinimalCardsWithNeutral();
         SaveDeckRequest request = new SaveDeckRequest("Deck", Faction.NORTHERN_REALMS, "leader_nr", cards);
-        stubLeader(Faction.NORTHERN_REALMS);
         stubCardsForMinimalWithNeutral();
         when(deckRepository.save(any(Deck.class))).thenAnswer(inv -> {
             Deck d = inv.getArgument(0);
@@ -210,9 +210,9 @@ class DeckServiceTest {
     void shouldThrow_whenHeroQuantityExceedsOne() {
         List<DeckCardEntryDto> cards = List.of(new DeckCardEntryDto("hero_1", 2));
         SaveDeckRequest request = new SaveDeckRequest("Deck", Faction.NORTHERN_REALMS, "leader_nr", cards);
-        stubLeader(Faction.NORTHERN_REALMS);
+        CardEntity leader = makeLeaderCardEntity("leader_nr", Faction.NORTHERN_REALMS, com.gwent.engine.domain.LeaderAbility.SIEGE_MASTER);
         CardEntity hero = makeHeroCardEntity("hero_1", Faction.NORTHERN_REALMS);
-        when(cardCatalogRepository.findById("hero_1")).thenReturn(Optional.of(hero));
+        stubAllById(leader, hero);
 
         assertThrows(IllegalArgumentException.class, () -> deckService.createDeck("user1", request));
     }
@@ -221,8 +221,9 @@ class DeckServiceTest {
     void shouldThrow_whenTotalCountBelow22() {
         List<DeckCardEntryDto> cards = List.of(new DeckCardEntryDto("card_1", 3));
         SaveDeckRequest request = new SaveDeckRequest("Deck", Faction.NORTHERN_REALMS, "leader_nr", cards);
-        stubLeader(Faction.NORTHERN_REALMS);
-        stubUnitCard("card_1", Faction.NORTHERN_REALMS);
+        CardEntity leader = makeLeaderCardEntity("leader_nr", Faction.NORTHERN_REALMS, com.gwent.engine.domain.LeaderAbility.SIEGE_MASTER);
+        CardEntity card = makeUnitCardEntity("card_1", Faction.NORTHERN_REALMS);
+        stubAllById(leader, card);
 
         assertThrows(IllegalArgumentException.class, () -> deckService.createDeck("user1", request));
     }
@@ -234,28 +235,30 @@ class DeckServiceTest {
             cards.add(new DeckCardEntryDto("card_" + i, 3));
         }
         SaveDeckRequest request = new SaveDeckRequest("Deck", Faction.NORTHERN_REALMS, "leader_nr", cards);
-        stubLeader(Faction.NORTHERN_REALMS);
+        List<CardEntity> entities = new ArrayList<>();
+        entities.add(makeLeaderCardEntity("leader_nr", Faction.NORTHERN_REALMS, com.gwent.engine.domain.LeaderAbility.SIEGE_MASTER));
         for (int i = 1; i <= 14; i++) {
-            stubUnitCard("card_" + i, Faction.NORTHERN_REALMS);
+            entities.add(makeUnitCardEntity("card_" + i, Faction.NORTHERN_REALMS));
         }
+        stubAllById(entities.toArray(CardEntity[]::new));
 
         assertThrows(IllegalArgumentException.class, () -> deckService.createDeck("user1", request));
     }
 
     @Test
     void shouldAccept_whenTotalCountIs22() {
-        SaveDeckRequest request = makeValidSaveDeckRequest(Faction.NORTHERN_REALMS);
-        // 8 cards * 3 = 24, adjust to 22
         List<DeckCardEntryDto> cards = new ArrayList<>();
         for (int i = 1; i <= 7; i++) {
             cards.add(new DeckCardEntryDto("card_" + i, 3));
         }
         cards.add(new DeckCardEntryDto("card_8", 1));
         SaveDeckRequest req22 = new SaveDeckRequest("Deck", Faction.NORTHERN_REALMS, "leader_nr", cards);
-        stubLeader(Faction.NORTHERN_REALMS);
+        List<CardEntity> entities = new ArrayList<>();
+        entities.add(makeLeaderCardEntity("leader_nr", Faction.NORTHERN_REALMS, com.gwent.engine.domain.LeaderAbility.SIEGE_MASTER));
         for (int i = 1; i <= 8; i++) {
-            stubUnitCard("card_" + i, Faction.NORTHERN_REALMS);
+            entities.add(makeUnitCardEntity("card_" + i, Faction.NORTHERN_REALMS));
         }
+        stubAllById(entities.toArray(CardEntity[]::new));
         when(deckRepository.save(any(Deck.class))).thenAnswer(inv -> {
             Deck d = inv.getArgument(0);
             d.setId(UUID.randomUUID());
@@ -316,21 +319,21 @@ class DeckServiceTest {
 
     // ── Helpers ──
 
-    private void stubLeader(Faction faction) {
-        CardEntity leader = makeLeaderCardEntity("leader_nr", faction, com.gwent.engine.domain.LeaderAbility.SIEGE_MASTER);
-        when(cardCatalogRepository.findById("leader_nr")).thenReturn(Optional.of(leader));
-    }
-
-    private void stubUnitCard(String id, Faction faction) {
-        CardEntity unit = makeUnitCardEntity(id, faction);
-        when(cardCatalogRepository.findById(id)).thenReturn(Optional.of(unit));
+    private void stubAllById(CardEntity... cards) {
+        Map<String, CardEntity> map = new HashMap<>();
+        for (CardEntity c : cards) {
+            map.put(c.getId(), c);
+        }
+        when(cardCatalogCache.getAllById(any())).thenReturn(map);
     }
 
     private void stubValidDeckCards(SaveDeckRequest request) {
-        stubLeader(request.faction());
+        List<CardEntity> entities = new ArrayList<>();
+        entities.add(makeLeaderCardEntity("leader_nr", request.faction(), com.gwent.engine.domain.LeaderAbility.SIEGE_MASTER));
         for (DeckCardEntryDto entry : request.cards()) {
-            stubUnitCard(entry.cardId(), request.faction());
+            entities.add(makeUnitCardEntity(entry.cardId(), request.faction()));
         }
+        stubAllById(entities.toArray(CardEntity[]::new));
     }
 
     private List<DeckCardEntryDto> buildMinimalCards() {
@@ -351,10 +354,12 @@ class DeckServiceTest {
     }
 
     private void stubCardsForMinimalWithNeutral() {
+        List<CardEntity> entities = new ArrayList<>();
+        entities.add(makeLeaderCardEntity("leader_nr", Faction.NORTHERN_REALMS, com.gwent.engine.domain.LeaderAbility.SIEGE_MASTER));
         for (int i = 1; i <= 7; i++) {
-            stubUnitCard("card_" + i, Faction.NORTHERN_REALMS);
+            entities.add(makeUnitCardEntity("card_" + i, Faction.NORTHERN_REALMS));
         }
-        CardEntity neutralCard = makeUnitCardEntity("neutral_card", Faction.NEUTRAL);
-        when(cardCatalogRepository.findById("neutral_card")).thenReturn(Optional.of(neutralCard));
+        entities.add(makeUnitCardEntity("neutral_card", Faction.NEUTRAL));
+        stubAllById(entities.toArray(CardEntity[]::new));
     }
 }
