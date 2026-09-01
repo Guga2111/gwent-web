@@ -27,10 +27,6 @@ public class GwentEngine {
         }
     }
 
-    public int calculateScore(PlayerState player) {
-        return scoreCalculator.calculate(player);
-    }
-
     // --- Engine-initiated transitions ---
 
     public void resolveCoinFlip(GameState state, Turn firstPlayer) {
@@ -53,11 +49,6 @@ public class GwentEngine {
 
     public void startPlay(GameState state) {
         state.setPhase(GamePhase.PLAY);
-    }
-
-    public void surrender(GameState state, Turn player) {
-        Turn opposite = player == Turn.PLAYER_1 ? Turn.PLAYER_2 : Turn.PLAYER_1;
-        state.finishGame(opposite, EndReason.SURRENDER);
     }
 
     // --- Command handlers ---
@@ -87,9 +78,8 @@ public class GwentEngine {
 
         abilityResolver.resolve(state, card, targetRow);
 
-        if (state.getPendingAbility() == null) {
-            autoPassIfHandEmpty(state.getCurrentPlayer());
-            resolveAfterAction(state);
+        if (state.getPendingAbility() == null && !state.getOpponent().isPassed()) {
+            state.switchTurn();
         }
     }
 
@@ -121,7 +111,6 @@ public class GwentEngine {
         if (current.getMulligansRemaining() == 0)
             throw new NoMulligansRemainingException();
         if (!current.getHand().contains(card))
-
             throw new CardNotInHandException();
 
         current.removeFromHand(card);
@@ -131,23 +120,13 @@ public class GwentEngine {
     }
 
     private void handleConfirmMulligan(GameState state, ConfirmMulliganCommand command) {
+        // if both players confirmed → startPlay(state)
         Turn oppositePlayerTurn = command.player() == Turn.PLAYER_2 ? Turn.PLAYER_1 : Turn.PLAYER_2;
 
         PlayerState currentPlayer = state.getPlayer(command.player());
         PlayerState oppositePlayer = state.getPlayer(oppositePlayerTurn);
 
         if (state.getPhase() != GamePhase.REDRAW) throw new InvalidPhaseCommandException(GamePhase.REDRAW, state.getPhase());
-        if (currentPlayer.isMulliganConfirmed()) throw new PlayerAlreadyConfirmedMulliganException();
-
-        // Process mulligans atomically before confirming
-        for (Card card : command.cardsToReturn()) {
-            if (currentPlayer.getMulligansRemaining() == 0) break;
-            if (!currentPlayer.getHand().contains(card)) continue;
-            currentPlayer.removeFromHand(card);
-            currentPlayer.returnToDeck(card);
-            if (!currentPlayer.isDeckEmpty()) currentPlayer.drawCard();
-            currentPlayer.decrementMulligans();
-        }
 
         currentPlayer.confirmMulligan();
 
@@ -166,9 +145,7 @@ public class GwentEngine {
 
         current.useLeader();
         applyLeaderAbility(state, current.getLeader().leaderAbility());
-        if (state.getPendingAbility() == null && !state.getOpponent().isPassed()) {
-            state.switchTurn();
-        }
+        state.switchTurn();
     }
 
     private void handleResolveMedic(GameState state, ResolveMedicCommand command) {
@@ -179,7 +156,8 @@ public class GwentEngine {
             throw new InvalidPhaseCommandException(GamePhase.PLAY, state.getPhase());
         if (!current.getGraveyard().contains(card))
             throw new CardNotInGraveyardException();
-        if (card.cardType() != CardType.UNIT)
+        if (card.cardType() == CardType.SPECIAL || card.cardType() == CardType.WEATHER
+                || card.cardType() == CardType.LEADER)
             throw new InvalidRowException();
 
         current.removeFromGraveyard(card);
@@ -192,8 +170,7 @@ public class GwentEngine {
         abilityResolver.resolve(state, card, card.rowType());
 
         if (state.getPendingAbility() == null) {
-            autoPassIfHandEmpty(state.getCurrentPlayer());
-            resolveAfterAction(state);
+            state.switchTurn();
         }
     }
 
@@ -391,15 +368,8 @@ public class GwentEngine {
             loser = state.getCurrentTurn();
         }
 
-        boolean p1Out = state.getPlayer1().isEliminated();
-        boolean p2Out = state.getPlayer2().isEliminated();
-
-        if (p1Out && p2Out) {
-            state.finishGame(null, EndReason.NORMAL);
-        } else if (p1Out) {
-            state.finishGame(Turn.PLAYER_2, EndReason.NORMAL);
-        } else if (p2Out) {
-            state.finishGame(Turn.PLAYER_1, EndReason.NORMAL);
+        if (state.getPlayer1().isEliminated() || state.getPlayer2().isEliminated()) {
+            state.setPhase(GamePhase.GAME_OVER);
         } else {
             startNewRound(state, loser);
         }
@@ -420,6 +390,8 @@ public class GwentEngine {
         state.getPlayer1().resetPassed();
         state.getPlayer2().resetPassed();
         state.setCurrentTurn(loser);
+        drawCards(state.getPlayer1(), 2);
+        drawCards(state.getPlayer2(), 2);
         state.nextRound();
 
         if (state.getCurrentRound() == 3) {
@@ -431,23 +403,6 @@ public class GwentEngine {
     }
 
     // --- Helpers ---
-
-    private void autoPassIfHandEmpty(PlayerState player) {
-        if (player.getHand().isEmpty() && player.isLeaderUsed() && !player.isPassed()) {
-            player.pass();
-        }
-    }
-
-    private void resolveAfterAction(GameState state) {
-        PlayerState current = state.getCurrentPlayer();
-        PlayerState opponent = state.getOpponent();
-        if (current.isPassed() && opponent.isPassed()) {
-            resolveRound(state);
-        } else if (current.isPassed() || !opponent.isPassed()) {
-            state.switchTurn();
-        }
-        // else: opponent already passed, current can still play → no switch
-    }
 
     private void validateRowCompatibility(Card card, RowType targetRow) {
         if (card.cardType() == CardType.WEATHER || card.cardType() == CardType.SPECIAL) return;

@@ -9,7 +9,7 @@ import com.gwent.engine.state.PlayerState;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class ScoreCalculator {
+class ScoreCalculator {
 
     public ScoreCalculator () {}
 
@@ -19,7 +19,7 @@ public class ScoreCalculator {
                 + calculate(player.getSiegeRow());
     }
 
-    int calculate (BoardRow row) {
+    private int calculate (BoardRow row) {
 
         int total = 0;
 
@@ -50,7 +50,7 @@ public class ScoreCalculator {
         return total;
     }
 
-    public int calculateCardPower (Card card, BoardRow row) {
+    int calculateCardPower (Card card, BoardRow row) {
         Map<String, Long> countByName = row.getCards().stream()
                 .collect(Collectors.groupingBy(Card::name, Collectors.counting()));
 
