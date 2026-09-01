@@ -3,11 +3,13 @@ package com.gwent.api.catalog;
 import com.gwent.engine.domain.*;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component
+@Order(1)
 public class CardCatalogLoader implements ApplicationRunner {
 
     private final CardCatalogRepository repository;

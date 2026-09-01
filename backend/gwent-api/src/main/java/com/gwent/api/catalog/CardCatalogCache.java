@@ -1,7 +1,9 @@
 package com.gwent.api.catalog;
 
 import com.gwent.engine.domain.Faction;
-import jakarta.annotation.PostConstruct;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -11,7 +13,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
-public class CardCatalogCache {
+@Order(2)
+public class CardCatalogCache implements ApplicationRunner {
 
     private final CardCatalogRepository cardCatalogRepository;
     private Map<String, CardEntity> byId;
@@ -21,8 +24,8 @@ public class CardCatalogCache {
         this.cardCatalogRepository = cardCatalogRepository;
     }
 
-    @PostConstruct
-    void init() {
+    @Override
+    public void run(ApplicationArguments args) {
         List<CardEntity> all = cardCatalogRepository.findAll();
         byId = all.stream().collect(Collectors.toMap(CardEntity::getId, c -> c));
         byFaction = all.stream().collect(Collectors.groupingBy(CardEntity::getFaction));
