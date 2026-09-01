@@ -10,8 +10,12 @@ import com.gwent.engine.domain.CardType;
 import com.gwent.engine.domain.Faction;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class DeckService {
@@ -78,9 +82,23 @@ public class DeckService {
             throw new IllegalArgumentException("Deck name is required");
         }
 
+        // Validate card list entries
+        if (request.cards() == null || request.cards().isEmpty()) {
+            throw new IllegalArgumentException("Deck must contain cards");
+        }
+
+        // Batch-fetch all cards (leader + deck cards) in one query
+        List<String> allIds = new ArrayList<>();
+        allIds.add(request.leaderId());
+        request.cards().forEach(e -> allIds.add(e.cardId()));
+        Map<String, CardEntity> cardMap = cardCatalogRepository.findAllById(allIds).stream()
+                .collect(Collectors.toMap(CardEntity::getId, Function.identity()));
+
         // Validate leader
-        CardEntity leader = cardCatalogRepository.findById(request.leaderId())
-                .orElseThrow(() -> new IllegalArgumentException("Leader card not found: " + request.leaderId()));
+        CardEntity leader = cardMap.get(request.leaderId());
+        if (leader == null) {
+            throw new IllegalArgumentException("Leader card not found: " + request.leaderId());
+        }
         if (leader.getCardType() != CardType.LEADER) {
             throw new IllegalArgumentException("Card is not a leader: " + request.leaderId());
         }
@@ -88,15 +106,12 @@ public class DeckService {
             throw new IllegalArgumentException("Leader faction does not match deck faction");
         }
 
-        // Validate card list entries
-        if (request.cards() == null || request.cards().isEmpty()) {
-            throw new IllegalArgumentException("Deck must contain cards");
-        }
-
         int totalCount = 0;
         for (DeckCardEntryDto entry : request.cards()) {
-            CardEntity card = cardCatalogRepository.findById(entry.cardId())
-                    .orElseThrow(() -> new IllegalArgumentException("Card not found: " + entry.cardId()));
+            CardEntity card = cardMap.get(entry.cardId());
+            if (card == null) {
+                throw new IllegalArgumentException("Card not found: " + entry.cardId());
+            }
 
             if (card.getCardType() == CardType.LEADER) {
                 throw new IllegalArgumentException("Leader cards are not allowed in the card list");

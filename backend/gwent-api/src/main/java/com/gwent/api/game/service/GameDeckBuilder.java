@@ -3,6 +3,7 @@ package com.gwent.api.game.service;
 import com.gwent.api.catalog.CardCatalogRepository;
 import com.gwent.api.catalog.CardEntity;
 import com.gwent.api.deck.Deck;
+import com.gwent.api.deck.DeckCardEntry;
 import com.gwent.api.deck.DeckRepository;
 import com.gwent.api.deck.exception.DeckNotFoundException;
 import com.gwent.engine.domain.Card;
@@ -11,7 +12,10 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class GameDeckBuilder {
@@ -35,10 +39,19 @@ public class GameDeckBuilder {
     public List<Card> buildDeckFromDeckId(UUID deckId) {
         Deck deck = deckRepository.findById(deckId)
                 .orElseThrow(() -> new DeckNotFoundException(deckId));
+
+        List<String> cardIds = deck.getCards().stream()
+                .map(DeckCardEntry::getCardId)
+                .toList();
+        Map<String, CardEntity> cardMap = cardCatalogRepository.findAllById(cardIds).stream()
+                .collect(Collectors.toMap(CardEntity::getId, Function.identity()));
+
         List<Card> cards = new ArrayList<>();
         for (var entry : deck.getCards()) {
-            CardEntity template = cardCatalogRepository.findById(entry.getCardId())
-                    .orElseThrow(() -> new IllegalStateException("Card not found: " + entry.getCardId()));
+            CardEntity template = cardMap.get(entry.getCardId());
+            if (template == null) {
+                throw new IllegalStateException("Card not found: " + entry.getCardId());
+            }
             for (int i = 1; i <= entry.getQuantity(); i++) {
                 String instanceId = entry.getQuantity() > 1 ? entry.getCardId() + "_" + i : entry.getCardId();
                 cards.add(toEngineCard(template, instanceId));
