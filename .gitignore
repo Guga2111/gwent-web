@@ -1,6 +1,9 @@
 # Claude
 CLAUDE.md
 
+# Dependencies
+node_modules/
+
 # Secrets
 .env
 backend/.env
