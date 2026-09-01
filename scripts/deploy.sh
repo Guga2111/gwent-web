@@ -63,6 +63,14 @@ ssh ${VPS_USER}@${VPS_IP} "mkdir -p ~/projects/${PROJECT} /var/www/gwent"
 # Frontend static files
 scp -r "${FRONTEND_DIR}/dist/"* ${VPS_USER}@${VPS_IP}:/var/www/gwent/
 
+# Card images — only present on local machines (gitignored, not available in CI).
+# Existing images on the VPS are preserved across CI deploys because scp does not
+# delete files that are absent from the source.
+if find "${FRONTEND_DIR}/public/cards" -name '*.webp' -print -quit 2>/dev/null | grep -q .; then
+  echo "Syncing card images..."
+  scp -r "${FRONTEND_DIR}/public/cards" ${VPS_USER}@${VPS_IP}:/var/www/gwent/
+fi
+
 # Backend image + compose file
 scp gwent-api-${VERSION}.tar.gz ${VPS_USER}@${VPS_IP}:~/projects/${PROJECT}/
 scp "${BASE_DIR}/docker-compose-prod.yml" ${VPS_USER}@${VPS_IP}:~/projects/${PROJECT}/
