@@ -1,9 +1,7 @@
-import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { X, Plus, LogIn } from 'lucide-react'
 import PrimaryButton from '@/components/ui/PrimaryButton'
-import { getUserDecks } from '@/api/deck'
-import type { DeckDto } from '@/types/deck'
+import { useMesaPrivada } from '@/hooks/useMesaPrivada'
 
 interface MesaPrivadaModalProps {
   open: boolean
@@ -16,75 +14,12 @@ interface MesaPrivadaModalProps {
 export default function MesaPrivadaModal({ open, onClose, onCreateGame, onJoinGame, defaultDeckId }: MesaPrivadaModalProps) {
   const navigate = useNavigate()
 
-  const [createdId, setCreatedId] = useState('')
-  const [joinCode, setJoinCode] = useState('')
-  const [showJoinInput, setShowJoinInput] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [decks, setDecks] = useState<DeckDto[]>([])
-  const [selectedDeckId, setSelectedDeckId] = useState<string | null>(defaultDeckId)
-
-  useEffect(() => {
-    if (!open) return
-    getUserDecks().then((d) => {
-      setDecks(d)
-      if (!selectedDeckId && d.length > 0) setSelectedDeckId(d[0].id)
-    }).catch(() => {})
-  }, [open])
-
-  useEffect(() => {
-    if (defaultDeckId) setSelectedDeckId(defaultDeckId)
-  }, [defaultDeckId])
+  const {
+    decks, selectedDeckId, setSelectedDeckId, createdId, joinCode, setJoinCode,
+    showJoinInput, setShowJoinInput, loading, error, handleCreate, handleJoin, handleClose,
+  } = useMesaPrivada(open, defaultDeckId, onCreateGame, onJoinGame, onClose)
 
   if (!open) return null
-
-  function resetState() {
-    setCreatedId('')
-    setJoinCode('')
-    setShowJoinInput(false)
-    setLoading(false)
-    setError('')
-  }
-
-  function handleClose() {
-    resetState()
-    onClose()
-  }
-
-  async function handleCreate() {
-    if (!selectedDeckId) {
-      setError('Selecione um baralho antes de criar a partida')
-      return
-    }
-    setError('')
-    setLoading(true)
-    try {
-      const gameId = await onCreateGame(selectedDeckId)
-      setCreatedId(gameId)
-    } catch {
-      setError('Falha ao criar partida')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  async function handleJoin() {
-    if (!joinCode.trim()) return
-    if (!selectedDeckId) {
-      setError('Selecione um baralho antes de entrar na partida')
-      return
-    }
-    setError('')
-    setLoading(true)
-    try {
-      await onJoinGame(joinCode.trim(), selectedDeckId)
-      navigate(`/game/${joinCode.trim()}`)
-    } catch {
-      setError('Falha ao entrar na partida')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   return (
     <div

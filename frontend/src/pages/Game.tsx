@@ -1,11 +1,17 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGameStore } from "@/stores/gameStore";
 import { useAuthStore } from "@/stores/authStore";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { surrender } from "@/api/game";
-import type { CardDto, RowType } from "@/types/game";
+
+import { useCardSelection } from "@/hooks/useCardSelection";
+import { useFlyingCard } from "@/hooks/useFlyingCard";
+import { useGameActions } from "@/hooks/useGameActions";
+import { useRevealedCards } from "@/hooks/useRevealedCards";
+import { useErrorAutoDismiss } from "@/hooks/useErrorAutoDismiss";
+import { useTurnCountdown } from "@/hooks/useTurnCountdown";
 
 import PlayerPanel from "@/components/board/rail/PlayerPanel";
 import LeaderCard from "@/components/board/card/LeaderCard";
@@ -28,7 +34,6 @@ import ScoiataelOverlay from "@/components/board/overlays/ScoiataelOverlay";
 import TurnCountdown from "@/components/board/overlays/TurnCountdown";
 import DisconnectedBanner from "@/components/board/overlays/DisconnectedBanner";
 import FlyingCard from "@/components/board/card/FlyingCard";
-import { useTurnCountdown } from "@/hooks/useTurnCountdown";
 
 export default function Game() {
   const { gameId } = useParams<{ gameId: string }>();
@@ -42,30 +47,7 @@ export default function Game() {
   const opponentConnected = useGameStore((s) => s.opponentConnected);
   const forfeitDeadlineUtc = useGameStore((s) => s.forfeitDeadlineUtc);
   const reset = useGameStore((s) => s.reset);
-  const user = useAuthStore((s) => s.user);
-
-  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
-  const [inspectedBoardCard, setInspectedBoardCard] = useState<CardDto | null>(null);
-  const [inspectedLeader, setInspectedLeader] = useState<{ card: CardDto; side: 'player' | 'opponent' } | null>(null);
-  const [showRevealedCards, setShowRevealedCards] = useState(false);
-
-  // Flying card animation state
-  const [flyingCard, setFlyingCard] = useState<{
-    card: CardDto;
-    fromRect: DOMRect;
-    toRect: DOMRect;
-    targetRow: RowType;
-  } | null>(null);
-  const [landedCardId, setLandedCardId] = useState<string | null>(null);
-  const flyingAnimDone = useRef(false);
-  const flyingCardInRow = useRef(false);
-
-  // Show revealed cards overlay when backend sends them (EMPEROR_OF_NILFGAARD)
-  useEffect(() => {
-    if (gameState?.revealedCards && gameState.revealedCards.length > 0) {
-      setShowRevealedCards(true);
-    }
-  }, [gameState?.revealedCards]);
+  const playerId = useAuthStore((s) => s.user)?.email;
 
   const { sendCommand } = useWebSocket(gameId ?? null);
 
@@ -75,151 +57,29 @@ export default function Game() {
     return () => reset();
   }, [gameId]);
 
-  // Auto-dismiss errors after 3s
-  useEffect(() => {
-    if (!error) return;
-    const t = setTimeout(() => setError(null), 3000);
-    return () => clearTimeout(t);
-  }, [error, setError]);
+  useErrorAutoDismiss();
 
   const me = gameState?.me;
   const opponent = gameState?.opponent;
-  const isMyTurn = gameState
-    ? gameState.currentTurn === gameState.myTurn
-    : false;
 
+  const {
+    selectedCardId, selectedCard, inspectedBoardCard, inspectedLeader,
+    selectHandCard, inspectHandCard, inspectBoardCard, inspectLeader,
+    clearSelection, clearInspectedBoardCard, clearInspectedLeader,
+  } = useCardSelection(me?.hand ?? []);
+
+  const { flyingCard, landedCardId, launchCard, handleFlightComplete } =
+    useFlyingCard(me, opponent, error);
+
+  const {
+    isMyTurn, canInteract, playCard, playWeatherCard, confirmPlay,
+    pass, useLeader, canPlayOnRow,
+  } = useGameActions(sendCommand, gameState, selectedCard, selectedCardId, clearSelection, launchCard);
+
+  const { showRevealedCards, dismissRevealedCards } = useRevealedCards(gameState?.revealedCards);
   const { remainingPct, remainingSeconds, isUrgent } = useTurnCountdown(gameState?.turnDeadlineUtc ?? null);
 
-  const playerId = user?.email;
-
-  const selectedCard = me?.hand.find((c) => c.id === selectedCardId) ?? null;
   const isWeatherCard = selectedCard?.cardType === 'WEATHER';
-
-  // Clear other inspections when a hand card is selected
-  useEffect(() => {
-    if (selectedCardId) {
-      setInspectedBoardCard(null);
-      setInspectedLeader(null);
-    }
-  }, [selectedCardId]);
-
-  const handleBoardCardClick = (card: CardDto) => {
-    if (selectedCardId) return; // hand selection takes priority
-    setInspectedLeader(null);
-    setInspectedBoardCard((prev) => (prev?.id === card.id ? null : card));
-  };
-
-  const handleLeaderClick = (card: CardDto, side: 'player' | 'opponent') => {
-    setSelectedCardId(null);
-    setInspectedBoardCard(null);
-    setInspectedLeader((prev) =>
-      prev?.card.id === card.id ? null : { card, side }
-    );
-  };
-
-  const handlePlayWeatherCard = () => {
-    if (!selectedCardId || !isMyTurn) return;
-    sendCommand({
-      commandType: "PLAY_CARD",
-      playerId,
-      cardId: selectedCardId,
-      targetRow: "MELEE",
-    });
-    setSelectedCardId(null);
-  };
-
-  const handleConfirmPlay = () => {
-    if (!selectedCard || !isMyTurn) return;
-    if (selectedCard.cardType === "WEATHER") {
-      handlePlayWeatherCard();
-      return;
-    }
-    if (selectedCard.cardType === "SPECIAL") return;
-    if (selectedCard.ability === "AGILE") return; // user must click a row
-    if (selectedCard.rowType) handlePlayCard(selectedCard.rowType);
-  };
-
-  const canPlayOnRow = (row: RowType): boolean => {
-    if (!selectedCard || !isMyTurn) return false;
-    if (selectedCard.cardType === "SPECIAL") return true;
-    if (selectedCard.ability === "AGILE")
-      return row === "MELEE" || row === "RANGED";
-    return selectedCard.rowType === row;
-  };
-
-  const handlePlayCard = (targetRow: RowType) => {
-    if (!selectedCardId || !isMyTurn) return;
-
-    const card = me?.hand.find((c) => c.id === selectedCardId);
-    const isSpy = card?.ability === 'SPY';
-    const cardEl = document.querySelector(`[data-card-id="${selectedCardId}"]`);
-    const rowEl = document.querySelector(
-      `[data-row-type="${targetRow}"][data-row-side="${isSpy ? 'opponent' : 'player'}"]`
-    );
-
-    if (card && cardEl && rowEl) {
-      const fromRect = cardEl.getBoundingClientRect();
-      const toRect = rowEl.getBoundingClientRect();
-      flyingAnimDone.current = false;
-      flyingCardInRow.current = false;
-      setFlyingCard({ card, fromRect, toRect, targetRow });
-    }
-
-    sendCommand({
-      commandType: "PLAY_CARD",
-      playerId,
-      cardId: selectedCardId,
-      targetRow,
-    });
-    setSelectedCardId(null);
-  };
-
-  // Check if the flying card has arrived in row data (WS update)
-  useEffect(() => {
-    if (!flyingCard || !me || !opponent) return;
-    const isSpy = flyingCard.card.ability === 'SPY';
-    const source = isSpy ? opponent : me;
-    const rowMap: Record<RowType, CardDto[]> = {
-      MELEE: source.meleeRow.cards ?? [],
-      RANGED: source.rangedRow.cards ?? [],
-      SIEGE: source.siegeRow.cards ?? [],
-    };
-    const inRow = rowMap[flyingCard.targetRow].some(
-      (c) => c.id === flyingCard.card.id
-    );
-    if (inRow) {
-      flyingCardInRow.current = true;
-      if (flyingAnimDone.current) {
-        clearFlyingCard();
-      }
-    }
-  }, [me?.meleeRow, me?.rangedRow, me?.siegeRow, opponent?.meleeRow, opponent?.rangedRow, opponent?.siegeRow, flyingCard]);
-
-  // Also clear on error (backend rejected command) — card stays in hand
-  useEffect(() => {
-    if (!flyingCard) return;
-    if (error) {
-      setFlyingCard(null);
-    }
-  }, [error, flyingCard]);
-
-  const handleFlightComplete = () => {
-    flyingAnimDone.current = true;
-    if (flyingCardInRow.current) {
-      clearFlyingCard();
-    }
-  };
-
-  const clearFlyingCard = () => {
-    const cardId = flyingCard?.card.id ?? null;
-    setFlyingCard(null);
-    if (cardId) {
-      setLandedCardId(cardId);
-      setTimeout(() => setLandedCardId(null), 100);
-    }
-  };
-
-  const canInteract = isMyTurn && gameState?.phase === "PLAY" && !gameState?.pendingAbility;
 
   if (!connected || !gameState || !me || !opponent) {
     return (
@@ -247,7 +107,7 @@ export default function Game() {
         <LeaderCard
           leader={opponent.leader}
           leaderUsed={opponent.leaderUsed}
-          onClick={() => handleLeaderClick(opponent.leader, 'opponent')}
+          onClick={() => inspectLeader(opponent.leader, 'opponent')}
           side="top"
         />
         <PlayerPanel player={opponent} isActive={!isMyTurn} side="top" />
@@ -256,10 +116,10 @@ export default function Game() {
           weatherEffects={gameState.weatherCards.map((c) => c.ability ?? "")}
           isTargeting={isMyTurn && !!isWeatherCard}
           targetAbility={isWeatherCard ? selectedCard!.ability : null}
-          onSlotClick={handlePlayWeatherCard}
+          onSlotClick={playWeatherCard}
         />
         <PassButton
-          onClick={() => sendCommand({ commandType: "PASS", playerId })}
+          onClick={pass}
           disabled={!isMyTurn || me.passed}
         />
         <div className="flex-1" />
@@ -267,7 +127,7 @@ export default function Game() {
         <LeaderCard
           leader={me.leader}
           leaderUsed={me.leaderUsed}
-          onClick={() => handleLeaderClick(me.leader, 'player')}
+          onClick={() => inspectLeader(me.leader, 'player')}
           side="bottom"
         />
       </div>
@@ -297,77 +157,31 @@ export default function Game() {
             faction={opponent.leader.faction}
           />
 
-          {/* Board mat — leather playing surface */}
+          {/* Board mat */}
           <div className="board-mat flex flex-col flex-1 min-h-0">
-            {/* Opponent rows: siege, ranged, melee (top to bottom) */}
-            <BoardRow
-              row={opponent.siegeRow}
-              rowLabel="Cerco"
-              rowType="SIEGE"
-              side="opponent"
-              interactive={false}
-              onInspectCard={handleBoardCardClick}
-            />
-            <BoardRow
-              row={opponent.rangedRow}
-              rowLabel="Distância"
-              rowType="RANGED"
-              side="opponent"
-              interactive={false}
-              onInspectCard={handleBoardCardClick}
-            />
-            <BoardRow
-              row={opponent.meleeRow}
-              rowLabel="Corpo"
-              rowType="MELEE"
-              side="opponent"
-              interactive={false}
-              onInspectCard={handleBoardCardClick}
-            />
+            <BoardRow row={opponent.siegeRow} rowLabel="Cerco" rowType="SIEGE" side="opponent" interactive={false} onInspectCard={inspectBoardCard} />
+            <BoardRow row={opponent.rangedRow} rowLabel="Distância" rowType="RANGED" side="opponent" interactive={false} onInspectCard={inspectBoardCard} />
+            <BoardRow row={opponent.meleeRow} rowLabel="Corpo" rowType="MELEE" side="opponent" interactive={false} onInspectCard={inspectBoardCard} />
 
             <CentralDivider turnRemainingPct={remainingPct} isMyTurn={isMyTurn} isUrgent={isUrgent} />
 
-            {/* Player rows: melee, ranged, siege (top to bottom) */}
             <BoardRow
-              row={me.meleeRow}
-              rowLabel="Corpo"
-              rowType="MELEE"
-              side="player"
-              interactive={canInteract}
-              isPlacementTarget={canPlayOnRow("MELEE")}
-              onRowClick={
-                canPlayOnRow("MELEE") ? () => handlePlayCard("MELEE") : undefined
-              }
-              onInspectCard={handleBoardCardClick}
-              suppressEnterCardId={landedCardId}
+              row={me.meleeRow} rowLabel="Corpo" rowType="MELEE" side="player"
+              interactive={canInteract} isPlacementTarget={canPlayOnRow("MELEE")}
+              onRowClick={canPlayOnRow("MELEE") ? () => playCard("MELEE") : undefined}
+              onInspectCard={inspectBoardCard} suppressEnterCardId={landedCardId}
             />
             <BoardRow
-              row={me.rangedRow}
-              rowLabel="Distância"
-              rowType="RANGED"
-              side="player"
-              interactive={canInteract}
-              isPlacementTarget={canPlayOnRow("RANGED")}
-              onRowClick={
-                canPlayOnRow("RANGED")
-                  ? () => handlePlayCard("RANGED")
-                  : undefined
-              }
-              onInspectCard={handleBoardCardClick}
-              suppressEnterCardId={landedCardId}
+              row={me.rangedRow} rowLabel="Distância" rowType="RANGED" side="player"
+              interactive={canInteract} isPlacementTarget={canPlayOnRow("RANGED")}
+              onRowClick={canPlayOnRow("RANGED") ? () => playCard("RANGED") : undefined}
+              onInspectCard={inspectBoardCard} suppressEnterCardId={landedCardId}
             />
             <BoardRow
-              row={me.siegeRow}
-              rowLabel="Cerco"
-              rowType="SIEGE"
-              side="player"
-              interactive={canInteract}
-              isPlacementTarget={canPlayOnRow("SIEGE")}
-              onRowClick={
-                canPlayOnRow("SIEGE") ? () => handlePlayCard("SIEGE") : undefined
-              }
-              onInspectCard={handleBoardCardClick}
-              suppressEnterCardId={landedCardId}
+              row={me.siegeRow} rowLabel="Cerco" rowType="SIEGE" side="player"
+              interactive={canInteract} isPlacementTarget={canPlayOnRow("SIEGE")}
+              onRowClick={canPlayOnRow("SIEGE") ? () => playCard("SIEGE") : undefined}
+              onInspectCard={inspectBoardCard} suppressEnterCardId={landedCardId}
             />
           </div>
 
@@ -382,14 +196,10 @@ export default function Game() {
             departingCardId={flyingCard?.card.id}
             onCardClick={(cardId) => {
               if (isMyTurn) {
-                setSelectedCardId((prev) => (prev === cardId ? null : cardId));
+                selectHandCard(cardId);
               } else {
                 const card = me.hand.find((c) => c.id === cardId) ?? null;
-                if (card) {
-                  setInspectedBoardCard((prev) =>
-                    prev?.id === card.id ? null : card
-                  );
-                }
+                if (card) inspectHandCard(card);
               }
             }}
           />
@@ -493,7 +303,7 @@ export default function Game() {
             gameState.revealedCards.length > 0 && (
               <RevealedCardsOverlay
                 cards={gameState.revealedCards}
-                onDismiss={() => setShowRevealedCards(false)}
+                onDismiss={dismissRevealedCards}
               />
             )}
           {gameState.phase === "GAME_OVER" && (
@@ -518,12 +328,12 @@ export default function Game() {
             {selectedCard ? (
               <CardDetailPanel
                 card={selectedCard}
-                onClose={() => setSelectedCardId(null)}
+                onClose={clearSelection}
               />
             ) : inspectedLeader ? (
               <CardDetailPanel
                 card={inspectedLeader.card}
-                onClose={() => setInspectedLeader(null)}
+                onClose={clearInspectedLeader}
                 action={
                   inspectedLeader.side === 'player'
                     ? me.leaderUsed
@@ -531,8 +341,8 @@ export default function Game() {
                       : {
                           label: 'Usar Habilidade',
                           onClick: () => {
-                            sendCommand({ commandType: "USE_LEADER", playerId });
-                            setInspectedLeader(null);
+                            useLeader();
+                            clearInspectedLeader();
                           },
                           disabled: !isMyTurn,
                         }
@@ -542,13 +352,13 @@ export default function Game() {
             ) : inspectedBoardCard ? (
               <CardDetailPanel
                 card={inspectedBoardCard}
-                onClose={() => setInspectedBoardCard(null)}
+                onClose={clearInspectedBoardCard}
               />
             ) : (
               <ControlBar
                 onSurrender={() => gameId && surrender(gameId).catch(() => setError("Falha ao desistir. Tente novamente."))}
                 selectedCardId={selectedCardId}
-                onConfirmPlay={handleConfirmPlay}
+                onConfirmPlay={confirmPlay}
               />
             )}
           </div>

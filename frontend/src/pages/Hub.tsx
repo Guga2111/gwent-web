@@ -11,9 +11,7 @@ import Shop from '@/pages/hub/Shop'
 import Leaderboard from '@/pages/hub/Leaderboard'
 import Profile from '@/pages/hub/Profile'
 import { useTutorial } from '@/hooks/useTutorial'
-import { useHubStore } from '@/stores/hubStore'
-
-type TabId = 'home' | 'deck' | 'shop' | 'rank' | 'profile'
+import { useHubStore, type TabId } from '@/stores/hubStore'
 
 const tabContent: Record<TabId, React.ComponentType> = {
   home: Taverna,
@@ -24,20 +22,16 @@ const tabContent: Record<TabId, React.ComponentType> = {
 }
 
 export default function Hub() {
-  const [activeTab, setActiveTab] = useState<TabId>('home')
+  const activeTab = useHubStore((s) => s.activeTab)
+  const setActiveTab = useHubStore((s) => s.setActiveTab)
   const [activeGameId, setActiveGameId] = useState<string | null>(null)
   const user = useAuthStore((s) => s.user)
   const navigate = useNavigate()
   const ActiveTab = tabContent[activeTab]
   const { tutorialOpen, openTutorial, closeTutorial } = useTutorial()
-  const registerSetTab = useHubStore((s) => s.registerSetTab)
 
   useEffect(() => {
     getActiveGame().then(setActiveGameId).catch(() => {})
-  }, [])
-
-  useEffect(() => {
-    registerSetTab((tab) => setActiveTab(tab as TabId))
   }, [])
 
   return (
