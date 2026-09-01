@@ -35,29 +35,51 @@ public class MatchmakingService {
      * or empty when the player is placed in the queue (Player 1 / waiter).
      * Throws {@link AlreadyInQueueException} if the player is already queued.
      */
-    public synchronized Optional<UUID> joinQueue(String playerEmail, UUID deckId) {
+    public Optional<UUID> joinQueue(String playerEmail, UUID deckId) {
+        MatchmakingEntry opponent = pollOpponent(playerEmail, deckId);
+
+        if (opponent != null) {
+            try {
+                CreateGameDto game = gameSessionService.createSession(opponent.playerEmail(), opponent.deckId());
+                gameSessionService.joinSession(game.gameId(), playerEmail, deckId);
+
+                messagingTemplate.convertAndSend("/topic/matchmaking/" + opponent.playerEmail(), new MatchFoundDto(game.gameId()));
+
+                return Optional.of(game.gameId());
+            } catch (Exception e) {
+                requeueOpponent(opponent);
+                throw e;
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    /**
+     * Queue-only operations under the lock: check duplicates, poll or enqueue.
+     * Returns the matched opponent, or null if the player was placed in the queue.
+     */
+    private synchronized MatchmakingEntry pollOpponent(String playerEmail, UUID deckId) {
         if (queueIndex.containsKey(playerEmail)) throw new AlreadyInQueueException();
 
         MatchmakingEntry opponent = queue.poll();
         if (opponent != null) {
             queueIndex.remove(opponent.playerEmail());
             cancelTimeout(opponent.playerEmail());
-
-            CreateGameDto game = gameSessionService.createSession(opponent.playerEmail(), opponent.deckId());
-            gameSessionService.joinSession(game.gameId(), playerEmail, deckId);
-
-            // Only notify the waiting player via WebSocket — they are already subscribed.
-            // The joining player receives the gameId directly in the HTTP response.
-            messagingTemplate.convertAndSend("/topic/matchmaking/" + opponent.playerEmail(), new MatchFoundDto(game.gameId()));
-
-            return Optional.of(game.gameId());
+            return opponent;
         }
 
         MatchmakingEntry entry = new MatchmakingEntry(playerEmail, deckId);
         queue.offer(entry);
         queueIndex.put(playerEmail, entry);
         scheduleTimeout(playerEmail);
-        return Optional.empty();
+        return null;
+    }
+
+    private synchronized void requeueOpponent(MatchmakingEntry opponent) {
+        queue.offer(opponent);
+        queueIndex.put(opponent.playerEmail(), opponent);
+        scheduleTimeout(opponent.playerEmail());
     }
 
     public synchronized boolean leaveQueue(String playerEmail) {
