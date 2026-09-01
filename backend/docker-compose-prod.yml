@@ -1,0 +1,15 @@
+services:
+  api:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/gwent-api:latest
+    container_name: gwent-api
+    restart: always
+    ports:
+      - "8082:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: ${DB_URL}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
