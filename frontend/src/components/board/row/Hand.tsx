@@ -13,7 +13,7 @@ interface HandProps {
   departingCardId?: string | null
 }
 
-export default function Hand({ cards: rawCards, opponentHandSize, isPlayer, onCardClick, interactive, selectedCardId, faction, departingCardId }: HandProps) {
+export default function Hand({ cards: rawCards, opponentHandSize, isPlayer, onCardClick, selectedCardId, faction, departingCardId }: HandProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const cards = rawCards ?? []
   const count = isPlayer ? cards.length : (opponentHandSize ?? 0)

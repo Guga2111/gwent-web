@@ -1,3 +1,4 @@
+import React from 'react'
 import type { Faction } from '@/types/game'
 
 interface CardBackProps {
@@ -95,7 +96,7 @@ function SkelligeEmblem() {
   )
 }
 
-export const emblems: Record<Faction, () => JSX.Element> = {
+export const emblems: Record<Faction, () => React.JSX.Element> = {
   NILFGAARD: NilfgaardEmblem,
   MONSTER: MonstersEmblem,
   NORTHERN_REALMS: NorthernRealmsEmblem,

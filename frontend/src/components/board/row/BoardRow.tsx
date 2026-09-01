@@ -32,7 +32,7 @@ function useScoreFlash(score: number) {
   return flash
 }
 
-export default function BoardRow({ row, rowType, side, onCardClick, onRowClick, onInspectCard, isPlacementTarget, interactive, suppressEnterCardId }: BoardRowProps) {
+export default function BoardRow({ row, rowType, side, onCardClick, onRowClick, onInspectCard, isPlacementTarget, suppressEnterCardId }: BoardRowProps) {
   const cards = row.cards ?? []
   const score = cards.reduce((sum, c) => sum + (c.currentPower ?? c.basePower ?? 0), 0)
   const scoreFlash = useScoreFlash(score)
