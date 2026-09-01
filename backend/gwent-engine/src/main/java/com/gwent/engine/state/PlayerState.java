@@ -164,4 +164,10 @@ public class PlayerState {
         rangedRow.clear();
         siegeRow.clear();
     }
+
+    public void shuffleDeck() {
+        List<Card> list = new ArrayList<>(deck);
+        Collections.shuffle(list);
+        deck = new ArrayDeque<>(list);
+    }
 }

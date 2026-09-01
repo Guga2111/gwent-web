@@ -1,2 +1,9 @@
 # Claude
 CLAUDE.md
+
+# Secrets
+.env
+backend/.env
+frontend/public/cards/*
+.claude/*
+skills-lock.json

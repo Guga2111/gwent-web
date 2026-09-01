@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: false
+
+jwt:
+  secret: test-secret-key-for-unit-tests-only-32chars
+  expiration-ms: 3600000
+
+cors:
+  allowed-origins: http://localhost:3000
