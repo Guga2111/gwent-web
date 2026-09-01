@@ -15,10 +15,10 @@ import java.util.List;
 @RequestMapping("/api/catalog")
 public class CatalogController {
 
-    private final CardCatalogRepository cardCatalogRepository;
+    private final CardCatalogCache cardCatalogCache;
 
-    public CatalogController(CardCatalogRepository cardCatalogRepository) {
-        this.cardCatalogRepository = cardCatalogRepository;
+    public CatalogController(CardCatalogCache cardCatalogCache) {
+        this.cardCatalogCache = cardCatalogCache;
     }
 
     @GetMapping
@@ -32,7 +32,7 @@ public class CatalogController {
             factions.add(Faction.NEUTRAL);
         }
 
-        List<CatalogCardDto> cards = cardCatalogRepository.findByFactionIn(factions).stream()
+        List<CatalogCardDto> cards = cardCatalogCache.getByFactionIn(factions).stream()
                 .map(e -> new CatalogCardDto(
                         e.getId(), e.getName(), e.getFaction(), e.getCardType(),
                         e.getAbility(), e.getLeaderAbility(), e.getRowType(),
