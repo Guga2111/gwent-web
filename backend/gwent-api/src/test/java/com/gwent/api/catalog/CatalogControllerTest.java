@@ -29,13 +29,13 @@ class CatalogControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private CardCatalogRepository cardCatalogRepository;
+    private CardCatalogCache cardCatalogRepository;
 
     @Test
     @WithMockUser(username = "test@test.com")
     void shouldReturn200_withCards() throws Exception {
         CardEntity card = makeUnitCardEntity("nr_infantry", Faction.NORTHERN_REALMS);
-        when(cardCatalogRepository.findByFactionIn(anyList())).thenReturn(List.of(card));
+        when(cardCatalogCache.getByFactionIn(anyList())).thenReturn(List.of(card));
 
         mockMvc.perform(get("/api/catalog").param("faction", "NORTHERN_REALMS"))
                 .andExpect(status().isOk())
@@ -47,7 +47,7 @@ class CatalogControllerTest {
     @WithMockUser(username = "test@test.com")
     void shouldReturn200_withoutNeutral() throws Exception {
         CardEntity card = makeUnitCardEntity("nr_unit", Faction.NORTHERN_REALMS);
-        when(cardCatalogRepository.findByFactionIn(List.of(Faction.NORTHERN_REALMS)))
+        when(cardCatalogCache.getByFactionIn(List.of(Faction.NORTHERN_REALMS)))
                 .thenReturn(List.of(card));
 
         mockMvc.perform(get("/api/catalog")
@@ -74,7 +74,7 @@ class CatalogControllerTest {
     @Test
     @WithMockUser(username = "test@test.com")
     void shouldReturn200_withEmptyList() throws Exception {
-        when(cardCatalogRepository.findByFactionIn(anyList())).thenReturn(List.of());
+        when(cardCatalogCache.getByFactionIn(anyList())).thenReturn(List.of());
 
         mockMvc.perform(get("/api/catalog").param("faction", "NORTHERN_REALMS"))
                 .andExpect(status().isOk())
