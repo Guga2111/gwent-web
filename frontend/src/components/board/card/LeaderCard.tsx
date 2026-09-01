@@ -10,7 +10,6 @@ interface LeaderCardProps {
 
 export default function LeaderCard({ leader, leaderUsed, onClick, side = 'bottom' }: LeaderCardProps) {
   const rotation = side === 'top' ? -4 : 4
-  const shortName = leader.name.includes(':') ? leader.name.split(':')[0].trim() : leader.name
 
   return (
     <div className="flex justify-center py-4">

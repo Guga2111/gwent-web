@@ -109,7 +109,7 @@ const leaderAbilityDescriptions: Record<string, string> = {
   CLAN_AN_CRAITE: 'Embaralha o cemiterio de volta ao baralho.',
 }
 
-export default function CardDetailPanel({ card, onClose, action }: CardDetailPanelProps) {
+export default function CardDetailPanel({ card, action }: CardDetailPanelProps) {
   const isHero = card.cardType === 'HERO'
   const isUnit = card.cardType === 'UNIT' || isHero
   const hasPower = isUnit && card.basePower != null

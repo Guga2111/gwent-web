@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import Card from '../card/Card'
 import PrimaryButton from '@/components/ui/PrimaryButton'
 import OverlayCountdown from './OverlayCountdown'

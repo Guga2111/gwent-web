@@ -5,6 +5,7 @@ import { useMatchmakingSocket } from '@/hooks/useMatchmakingSocket'
 import { useAuthStore } from '@/stores/authStore'
 import { getFactionConfig } from '@/utils/factionConfig'
 import { useHubStore } from '@/stores/hubStore'
+import type { Faction } from '@/types/game'
 
 interface MatchmakingModalProps {
   open: boolean
@@ -12,7 +13,7 @@ interface MatchmakingModalProps {
 }
 
 function FactionShield({ faction }: { faction: string | null }) {
-  const config = getFactionConfig(faction)
+  const config = getFactionConfig(faction as Faction | null)
   return (
     <div
       className="flex items-center justify-center"
