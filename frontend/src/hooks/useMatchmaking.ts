@@ -6,6 +6,7 @@ export function useMatchmaking(activeDeckId: string | null) {
   const [matchmakingOpen, setMatchmakingOpen] = useState(false)
   const setSearching = useMatchmakingStore((s) => s.setSearching)
   const setFound = useMatchmakingStore((s) => s.setFound)
+  const setError = useMatchmakingStore((s) => s.setError)
   const reset = useMatchmakingStore((s) => s.reset)
 
   useEffect(() => {
@@ -14,21 +15,19 @@ export function useMatchmaking(activeDeckId: string | null) {
 
   const searchOpponent = useCallback(async () => {
     if (!activeDeckId) return
+    setSearching()
+    setMatchmakingOpen(true)
     try {
       const matchedGameId = await joinMatchmakingQueue(activeDeckId)
       if (matchedGameId) {
         setFound(matchedGameId)
-      } else {
-        setSearching()
       }
-      setMatchmakingOpen(true)
-    } catch (err: any) {
-      if (err?.response?.status === 409) {
-        setSearching()
-        setMatchmakingOpen(true)
-      }
+    } catch {
+      reset()
+      setMatchmakingOpen(false)
+      setError('Erro ao entrar na fila. Tente novamente.')
     }
-  }, [activeDeckId, setFound, setSearching])
+  }, [activeDeckId, setFound, setSearching, reset, setError])
 
   const cancelMatchmaking = useCallback(async () => {
     await leaveMatchmakingQueue().catch(() => {})
