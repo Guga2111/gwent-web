@@ -29,7 +29,7 @@ class CatalogControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private CardCatalogCache cardCatalogRepository;
+    private CardCatalogCache cardCatalogCache;
 
     @Test
     @WithMockUser(username = "test@test.com")
