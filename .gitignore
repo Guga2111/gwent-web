@@ -10,3 +10,6 @@ backend/.env
 frontend/public/cards/*
 .claude/*
 skills-lock.json
+
+# Deploying
+frontend/dist/*
