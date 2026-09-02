@@ -36,65 +36,102 @@ export default function Login() {
   }
 
   return (
-    <div className="flex h-full items-center justify-center">
-      <div className="w-full max-w-sm rounded-lg border border-[var(--border-gold)] p-8 bg-[var(--bg-card)]">
-        <h1
-          className="mb-6 text-center text-2xl text-[var(--gold-light)]"
-          style={{ fontFamily: 'var(--font-display)' }}
-        >
-          Gwent Online
-        </h1>
+    <div className="login-page">
+      {/* Left panel — login form */}
+      <div className="login-panel">
+        <img src="/gwent-logo.svg" alt="Gwent Online" className="login-brand-logo" />
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="rounded border border-[var(--border-subtle)] px-3 py-2 outline-none focus:border-[var(--gold)] bg-[var(--bg-medium)] text-[var(--text-primary)]"
-          />
+        <div className="login-card">
+          <h1 className="login-card__title">
+            {isRegister ? 'Registre Seu Brasão' : 'Entrar no Gwent'}
+          </h1>
+          <p className="login-card__subtitle">
+            {isRegister
+              ? 'Crie sua conta para entrar no jogo'
+              : 'Entre com suas credenciais para jogar'}
+          </p>
 
-          {isRegister && (
-            <input
-              type="text"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-              className="rounded border border-[var(--border-subtle)] px-3 py-2 outline-none focus:border-[var(--gold)] bg-[var(--bg-medium)] text-[var(--text-primary)]"
-            />
-          )}
+          <form onSubmit={handleSubmit} className="login-card__form">
+            <div className="form-field">
+              <label htmlFor="email" className="form-label">Email</label>
+              <input
+                id="email"
+                type="email"
+                placeholder="seu@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="form-input"
+              />
+            </div>
 
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="rounded border border-[var(--border-subtle)] px-3 py-2 outline-none focus:border-[var(--gold)] bg-[var(--bg-medium)] text-[var(--text-primary)]"
-          />
+            {isRegister && (
+              <div className="form-field">
+                <label htmlFor="username" className="form-label">Nome de Usuário</label>
+                <input
+                  id="username"
+                  type="text"
+                  placeholder="Escolha um nome"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                  className="form-input"
+                />
+              </div>
+            )}
 
-          {error && (
-            <p className="text-sm text-[var(--red)]">{error}</p>
-          )}
+            <div className="form-field">
+              <label htmlFor="password" className="form-label">Senha</label>
+              <input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="form-input"
+              />
+            </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded py-2 font-semibold transition-colors disabled:opacity-50 bg-[var(--gold-dark)] text-[var(--bg-darkest)]"
-            style={{ fontFamily: 'var(--font-heading)' }}
-          >
-            {loading ? '...' : isRegister ? 'Register' : 'Login'}
-          </button>
-        </form>
+            {error && <p className="form-error">{error}</p>}
 
-        <button
-          onClick={() => { setIsRegister(!isRegister); setError('') }}
-          className="mt-4 w-full text-center text-sm underline text-[var(--text-secondary)]"
-        >
-          {isRegister ? 'Already have an account? Login' : 'Need an account? Register'}
-        </button>
+            <button type="submit" disabled={loading} className="btn-gold w-full py-3 rounded-lg border-none cursor-pointer font-bold text-sm text-[var(--bg-darkest)] tracking-widest uppercase disabled:opacity-50 disabled:cursor-not-allowed">
+              {loading ? '...' : isRegister ? 'Registrar' : 'Entrar'}
+            </button>
+          </form>
+
+          <div className="form-divider">
+            <span className="form-divider__text">ou</span>
+          </div>
+
+          <div className="login-card__footer">
+            <button
+              type="button"
+              onClick={() => { setIsRegister(!isRegister); setError('') }}
+              className="form-link"
+            >
+              {isRegister
+                ? 'Já tem uma conta? '
+                : 'Não tem uma conta? '}
+              <span className="form-link__highlight">
+                {isRegister ? 'Entrar' : 'Registrar'}
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Vertical divider */}
+      <div className="login-divider-gold" />
+
+      {/* Right panel — image */}
+      <div className="login-image-panel">
+        <img
+          src="/the_witcher_3_gwent.webp"
+          alt="Gwent"
+          className="login-image-panel__img"
+        />
+        <div className="login-image-panel__overlay" />
       </div>
     </div>
   )
