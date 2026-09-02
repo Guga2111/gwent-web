@@ -18,7 +18,7 @@ export default function ControlBar({ onSurrender, selectedCardId, onConfirmPlay 
         <button
           onClick={() => setShowDialog(true)}
           data-tooltip="Desistir"
-          className="w-12 h-12 flex items-center justify-center bg-[var(--bg-medium)] border border-[var(--border-subtle)] rounded cursor-pointer"
+          className="w-12 h-12 flex items-center justify-center bg-bg-medium border border-border-subtle rounded cursor-pointer"
           style={{ color: 'var(--red)' }}
         >
           <Flag size={20} strokeWidth={1.5} />
@@ -26,7 +26,7 @@ export default function ControlBar({ onSurrender, selectedCardId, onConfirmPlay 
         <button
           onClick={canPlay ? onConfirmPlay : undefined}
           data-tooltip="Jogar carta"
-          className="w-12 h-12 flex items-center justify-center bg-[var(--bg-medium)] border border-[var(--border-subtle)] rounded"
+          className="w-12 h-12 flex items-center justify-center bg-bg-medium border border-border-subtle rounded"
           style={{
             color: canPlay ? 'var(--text-muted)' : 'var(--text-muted)',
             opacity: canPlay ? 1 : 0.3,

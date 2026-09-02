@@ -100,7 +100,7 @@ export default function RulesModal({ open, onClose }: RulesModalProps) {
           className="flex-shrink-0 flex items-center justify-between px-7 pt-6 pb-4"
           style={{ borderBottom: '1px solid rgba(90,63,28,.2)' }}
         >
-          <h2 className="font-heading text-[18px] tracking-[2px] uppercase text-[var(--parchment-heading)]">
+          <h2 className="font-heading text-[18px] tracking-[2px] uppercase text-parchment-heading">
             Regras do Gwent
           </h2>
           <button onClick={onClose} className="rules-modal-close">
@@ -116,12 +116,12 @@ export default function RulesModal({ open, onClose }: RulesModalProps) {
           {sections.map((section, i) => (
             <div key={i}>
               {i > 0 && <div className="parchment-separator h-px mb-5" />}
-              <h3 className="font-heading text-[12.5px] tracking-[1.5px] uppercase mb-[10px] text-[var(--parchment-heading)]">
+              <h3 className="font-heading text-[12.5px] tracking-[1.5px] uppercase mb-[10px] text-parchment-heading">
                 {section.title}
               </h3>
 
               {section.body && (
-                <p className="font-body italic text-[14.5px] leading-[1.65] text-[var(--parchment-text)]">
+                <p className="font-bodytext-[14.5px] leading-[1.65] text-parchment-text">
                   {section.body}
                 </p>
               )}
@@ -140,8 +140,8 @@ export default function RulesModal({ open, onClose }: RulesModalProps) {
                       >
                         <Icon size={13} strokeWidth={1.8} />
                       </div>
-                      <p className="font-body italic text-[14px] leading-[1.55] text-[var(--parchment-text)]">
-                        <span className="font-heading not-italic text-[11px] tracking-[1px] uppercase text-[var(--parchment-heading)] mr-1">
+                      <p className="font-bodytext-[14px] leading-[1.55] text-parchment-text">
+                        <span className="font-headingtext-[11px] tracking-[1px] uppercase text-parchment-heading mr-1">
                           {label}
                         </span>
                         — {desc}
@@ -153,7 +153,7 @@ export default function RulesModal({ open, onClose }: RulesModalProps) {
             </div>
           ))}
 
-          <div className="font-body text-[10.5px] italic text-right text-[var(--parchment-muted)] mt-1">
+          <div className="font-body text-[10.5px]text-right text-parchment-muted mt-1">
             que os dados sejam favoráveis em vossos duelos
           </div>
         </div>

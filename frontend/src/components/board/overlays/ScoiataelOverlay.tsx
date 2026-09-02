@@ -18,8 +18,8 @@ export default function ScoiataelOverlay({ onChoose, abilityDeadlineUtc }: Scoia
   return (
     <div className="board-overlay">
       <OverlayCountdown deadlineUtc={abilityDeadlineUtc} />
-      <h2 className="overlay-title">Vantagem Scoia'tael</h2>
-      <p className="overlay-body">
+      <h2 className="text-2xl text-gold-light font-display">Vantagem Scoia'tael</h2>
+      <p className="text-sm text-text-secondary font-body">
         Como líder dos Scoia'tael, você escolhe quem joga primeiro nesta rodada.
       </p>
 
@@ -27,16 +27,14 @@ export default function ScoiataelOverlay({ onChoose, abilityDeadlineUtc }: Scoia
         <button
           onClick={() => handleChoose(true)}
           disabled={submitted}
-          className="px-8 py-3 rounded-md font-semibold text-base cursor-pointer transition-colors duration-150 border-2 border-[var(--gold-dark)] bg-[var(--gold-dark)] text-[var(--bg-darkest)] hover:bg-[var(--gold)] hover:border-[var(--gold)]"
-          style={{ fontFamily: 'var(--font-heading)' }}
+          className="px-8 py-3 rounded-md font-semibold text-base cursor-pointer transition-colors duration-150 border-2 border-gold-dark bg-gold-dark text-bg-darkest hover:bg-gold hover:border-gold font-heading"
         >
           Jogar Primeiro
         </button>
         <button
           onClick={() => handleChoose(false)}
           disabled={submitted}
-          className="px-8 py-3 rounded-md font-semibold text-base cursor-pointer transition-colors duration-150 border-2 border-[var(--gold-dark)] bg-transparent text-[var(--gold-light)] hover:bg-[var(--gold-dark)]/20"
-          style={{ fontFamily: 'var(--font-heading)' }}
+          className="px-8 py-3 rounded-md font-semibold text-base cursor-pointer transition-colors duration-150 border-2 border-gold-dark bg-transparent text-gold-light hover:bg-gold-dark/20 font-heading"
         >
           Jogar Segundo
         </button>

@@ -120,7 +120,7 @@ export default function CardDetailPanel({ card, action }: CardDetailPanelProps) 
     : undefined
 
   const panelClass = [
-    'card-detail-panel',
+    'card-detail-panel flex flex-col overflow-hidden',
     isHero && 'card-detail-panel--hero',
   ]
     .filter(Boolean)
@@ -157,7 +157,7 @@ export default function CardDetailPanel({ card, action }: CardDetailPanelProps) 
         )}
 
         {ability && !isLeader && (
-          <div className="card-detail-ability-container">
+          <div className="absolute top-2 right-2 z-[3] flex flex-col items-center gap-1">
             <AbilityIcon ability={ability} size="lg" />
             <span className="card-detail-ability-label">
               {abilityNames[ability]}
@@ -166,7 +166,7 @@ export default function CardDetailPanel({ card, action }: CardDetailPanelProps) 
         )}
 
         {isLeader && (
-          <div className="card-detail-ability-container">
+          <div className="absolute top-2 right-2 z-[3] flex flex-col items-center gap-1">
             <span className="card-detail-ability-label">
               {leaderAbilityNames[card.leaderAbility!]}
             </span>
@@ -174,13 +174,13 @@ export default function CardDetailPanel({ card, action }: CardDetailPanelProps) 
         )}
       </div>
 
-      <div className="card-detail-info">
-        <span className="card-detail-name">{card.name}</span>
-        <span className="card-detail-type">{cardTypeNames[card.cardType]}</span>
+      <div className="card-detail-info flex flex-col gap-1 items-center flex-1 overflow-y-auto min-h-0">
+        <span className="font-heading text-sm leading-[1.2] text-gold-light text-center">{card.name}</span>
+        <span className="font-ui text-[10px] uppercase tracking-[1px] text-text-muted">{cardTypeNames[card.cardType]}</span>
         {description && (
           <>
-            <div className="card-detail-separator" />
-            <p className="card-detail-description">{description}</p>
+            <div className="h-px w-4/5 bg-gold-dim opacity-50 self-center" />
+            <p className="font-body text-[11px] text-text-secondary text-center leading-[1.4] m-0">{description}</p>
           </>
         )}
         {action && (

@@ -49,8 +49,8 @@ export default function CurrencyBadge({
       </div>
       <div style={{ lineHeight: 1 }}>
         <div
+          className="font-heading"
           style={{
-            fontFamily: 'var(--font-heading)',
             fontWeight: 700,
             color: countColor,
             fontSize: 15,

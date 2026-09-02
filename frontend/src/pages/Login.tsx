@@ -52,8 +52,8 @@ export default function Login() {
           </p>
 
           <form onSubmit={handleSubmit} className="login-card__form">
-            <div className="form-field">
-              <label htmlFor="email" className="form-label">Email</label>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="email" className="font-heading text-[11px] font-semibold uppercase tracking-[1.5px] text-text-secondary">Email</label>
               <input
                 id="email"
                 type="email"
@@ -66,8 +66,8 @@ export default function Login() {
             </div>
 
             {isRegister && (
-              <div className="form-field">
-                <label htmlFor="username" className="form-label">Nome de Usuário</label>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="username" className="font-heading text-[11px] font-semibold uppercase tracking-[1.5px] text-text-secondary">Nome de Usuário</label>
                 <input
                   id="username"
                   type="text"
@@ -80,8 +80,8 @@ export default function Login() {
               </div>
             )}
 
-            <div className="form-field">
-              <label htmlFor="password" className="form-label">Senha</label>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="password" className="font-heading text-[11px] font-semibold uppercase tracking-[1.5px] text-text-secondary">Senha</label>
               <input
                 id="password"
                 type="password"
@@ -93,9 +93,9 @@ export default function Login() {
               />
             </div>
 
-            {error && <p className="form-error">{error}</p>}
+            {error && <p className="font-ui text-[13px] text-red">{error}</p>}
 
-            <button type="submit" disabled={loading} className="btn-gold w-full py-3 rounded-lg border-none cursor-pointer font-bold text-sm text-[var(--bg-darkest)] tracking-widest uppercase disabled:opacity-50 disabled:cursor-not-allowed">
+            <button type="submit" disabled={loading} className="btn-gold w-full py-3 rounded-lg border-none cursor-pointer font-bold text-sm text-bg-darkest tracking-widest uppercase disabled:opacity-50 disabled:cursor-not-allowed">
               {loading ? '...' : isRegister ? 'Registrar' : 'Entrar'}
             </button>
           </form>

@@ -1,0 +1,88 @@
+@layer components {
+  /* ── Player Panel ── */
+
+  .player-panel {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 10px;
+    min-height: min(112px, calc(var(--card-h) + 6px));
+    border-radius: 6px;
+    width: 100%;
+    background: linear-gradient(
+      180deg,
+      rgba(42, 33, 24, 0.35) 0%,
+      rgba(26, 20, 16, 0.5) 100%
+    );
+    border: 1px solid rgba(58, 48, 32, 0.4);
+    margin: 0 6px;
+    width: calc(100% - 12px);
+  }
+
+  .player-panel--active {
+    animation: tb-turn 2s ease-in-out infinite;
+    border-color: var(--gold-dim);
+  }
+
+  .player-panel__avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: var(--bg-medium);
+    border: 2px solid var(--gold-dim);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  }
+
+  .player-panel__faction-emblem {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-dark);
+    border: 1px solid var(--gold-dim);
+    border-radius: 50%;
+    padding: 2px;
+  }
+
+  .player-panel__name {
+    font-family: var(--font-heading);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .player-panel__faction-name {
+    font-family: var(--font-body);
+    font-size: 13px;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .player-panel__gem {
+    width: 16px;
+    height: 22px;
+    clip-path: polygon(50% 0%, 100% 35%, 100% 70%, 50% 100%, 0% 70%, 0% 35%);
+  }
+
+  .player-panel__gem--alive {
+    background: linear-gradient(145deg, #e55, var(--red));
+    filter: drop-shadow(0 0 4px var(--red));
+    box-shadow: inset 0 1px 2px rgba(255, 200, 200, 0.3);
+  }
+
+  .player-panel__gem--lost {
+    background-color: var(--bg-medium);
+    border: 1px solid rgba(58, 48, 32, 0.3);
+    opacity: 0.6;
+  }
+}

@@ -28,7 +28,7 @@ export function CatalogCardItem({ card, onAdd, qty }: CatalogCardItemProps) {
     .join(' ')
 
   const cardClass = [
-    'card-base card-face',
+    'card-base card-face shrink-0 flex items-center justify-center',
     isHero && 'card-face--hero',
     qty > 0 && 'deckforge-catalog-card--selected',
   ]
@@ -48,11 +48,11 @@ export function CatalogCardItem({ card, onAdd, qty }: CatalogCardItemProps) {
           <AbilityIcon ability={card.ability as any} />
         )}
       </div>
-      <p className="text-xs text-center text-[var(--text-primary)] truncate w-full mt-1">
+      <p className="text-xs text-center text-text-primary truncate w-full mt-1">
         {card.name}
       </p>
-      <p className="text-[11px] text-center text-[var(--text-muted)]">
-        {qty > 0 && <span className="text-[var(--gold)] font-bold">{qty}/</span>}
+      <p className="text-[11px] text-center text-text-muted">
+        {qty > 0 && <span className="text-gold font-bold">{qty}/</span>}
         {maxCopies}
       </p>
     </div>

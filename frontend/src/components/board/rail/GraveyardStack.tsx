@@ -25,7 +25,7 @@ export default function GraveyardStack({ count }: GraveyardStackProps) {
           <CountBadge value={count} size={27} fontSize={14} />
         </div>
       </div>
-      <div className="label-muted">Graveyard</div>
+      <div className="text-[9px] text-text-muted font-heading">Graveyard</div>
     </div>
   );
 }

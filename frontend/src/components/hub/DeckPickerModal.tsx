@@ -36,7 +36,7 @@ export default function DeckPickerModal({ open, decks, activeDeckId, onSelect, o
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 w-[30px] h-[30px] rounded-full flex items-center justify-center text-[var(--gold)] border-none"
+          className="absolute top-4 right-4 w-[30px] h-[30px] rounded-full flex items-center justify-center text-gold border-none"
           style={{
             background: 'color-mix(in srgb, var(--bg-darkest) 30%, transparent)',
             boxShadow: 'inset 0 0 0 1px color-mix(in srgb, var(--gold) 25%, transparent)',
@@ -48,8 +48,7 @@ export default function DeckPickerModal({ open, decks, activeDeckId, onSelect, o
         {/* Header */}
         <div className="px-[34px] pt-8 pb-5">
           <div
-            className="text-[10.5px] tracking-[4px] uppercase font-bold text-[var(--gold)]"
-            style={{ fontFamily: 'var(--font-heading)' }}
+            className="text-[10.5px] tracking-[4px] uppercase font-bold text-gold font-heading"
           >
             Escolher Baralho
           </div>
@@ -58,7 +57,7 @@ export default function DeckPickerModal({ open, decks, activeDeckId, onSelect, o
         {/* Deck list */}
         <div className="overflow-y-auto px-[34px] pb-8 max-h-[60vh]">
           {decks.length === 0 ? (
-            <p className="text-center italic text-sm text-[var(--text-muted)] py-6">
+            <p className="text-centertext-sm text-text-muted py-6">
               Nenhum baralho criado
             </p>
           ) : (
@@ -72,7 +71,7 @@ export default function DeckPickerModal({ open, decks, activeDeckId, onSelect, o
                   <button
                     key={deck.id}
                     onClick={() => onSelect(deck)}
-                    className={`w-full flex items-center gap-3 px-4 py-[11px] rounded-[7px] border-none text-left transition-colors hover:bg-[var(--bg-hover)] ${isActive ? 'bg-[var(--bg-hover)]' : ''}`}
+                    className={`w-full flex items-center gap-3 px-4 py-[11px] rounded-[7px] border-none text-left transition-colors hover:bg-bg-hover ${isActive ? 'bg-bg-hover' : ''}`}
                     style={{
                       borderLeft: isActive ? '3px solid var(--gold)' : '3px solid transparent',
                     }}
@@ -86,23 +85,21 @@ export default function DeckPickerModal({ open, decks, activeDeckId, onSelect, o
                     {/* Name + faction label */}
                     <div className="flex-1 min-w-0">
                       <div
-                        className="font-bold text-[14px] text-[var(--text-primary)] truncate"
-                        style={{ fontFamily: 'var(--font-heading)' }}
+                        className="font-bold text-[14px] text-text-primary truncate font-heading"
                       >
                         {deck.name}
                       </div>
-                      <div className="text-[11.5px] text-[var(--text-muted)] mt-px">
+                      <div className="text-[11.5px] text-text-muted mt-px">
                         {cfg.label}
                       </div>
                     </div>
 
                     {/* Card count badge */}
                     <div
-                      className="flex-shrink-0 px-[9px] py-[3px] rounded-full text-[11.5px] font-bold text-[var(--gold)]"
+                      className="flex-shrink-0 px-[9px] py-[3px] rounded-full text-[11.5px] font-bold text-gold font-heading"
                       style={{
                         background: 'color-mix(in srgb, var(--gold) 12%, transparent)',
                         boxShadow: 'inset 0 0 0 1px color-mix(in srgb, var(--gold) 25%, transparent)',
-                        fontFamily: 'var(--font-heading)',
                       }}
                     >
                       {cardCount}

@@ -24,11 +24,10 @@ export default function GameOverOverlay({ myState, opponentState, winner, discon
   const titleGlow = !disconnectForfeit && won ? '0 0 20px rgba(246, 221, 151, 0.5)' : 'none'
 
   return (
-    <div className="absolute inset-0 bg-[var(--bg-darkest)] flex flex-col items-center justify-center gap-5 z-50">
+    <div className="absolute inset-0 bg-bg-darkest flex flex-col items-center justify-center gap-5 z-50">
       <h1
-        className="text-[36px]"
+        className="text-[36px] font-display"
         style={{
-          fontFamily: 'var(--font-display)',
           color: titleColor,
           textShadow: titleGlow,
         }}
@@ -37,29 +36,24 @@ export default function GameOverOverlay({ myState, opponentState, winner, discon
       </h1>
       {subtitle && (
         <p
-          className="text-[18px]"
-          style={{
-            fontFamily: 'var(--font-heading)',
-            color: 'var(--text-muted)',
-          }}
+          className="text-[18px] font-heading text-text-muted"
         >
           {subtitle}
         </p>
       )}
 
       <div
-        className="flex gap-12 text-[18px]"
-        style={{ fontFamily: 'var(--font-heading)' }}
+        className="flex gap-12 text-[18px] font-heading"
       >
         <div className="text-center">
-          <div className="text-xs text-[var(--text-muted)] mb-1">Você</div>
-          <div className="text-[28px] text-[var(--gold-light)]">{myState.score}</div>
-          <div className="text-sm text-[var(--text-secondary)]">{myState.lives} vidas</div>
+          <div className="text-xs text-text-muted mb-1">Você</div>
+          <div className="text-[28px] text-gold-light">{myState.score}</div>
+          <div className="text-sm text-text-secondary">{myState.lives} vidas</div>
         </div>
         <div className="text-center">
-          <div className="text-xs text-[var(--text-muted)] mb-1">Oponente</div>
-          <div className="text-[28px] text-[var(--text-secondary)]">{opponentState.score}</div>
-          <div className="text-sm text-[var(--text-secondary)]">{opponentState.lives} vidas</div>
+          <div className="text-xs text-text-muted mb-1">Oponente</div>
+          <div className="text-[28px] text-text-secondary">{opponentState.score}</div>
+          <div className="text-sm text-text-secondary">{opponentState.lives} vidas</div>
         </div>
       </div>
 

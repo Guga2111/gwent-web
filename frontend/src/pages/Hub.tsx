@@ -47,13 +47,13 @@ export default function Hub() {
         <div className="relative z-10 flex items-center justify-between px-5 py-2 hub-active-banner">
           <div className="flex items-center gap-2.5">
             <div className="w-2 h-2 rounded-full bg-[#4ade80] shadow-[0_0_6px_#4ade80]" />
-            <span className="font-heading text-[11px] tracking-[1.5px] uppercase font-bold text-[var(--gold-light)]">
+            <span className="font-heading text-[11px] tracking-[1.5px] uppercase font-bold text-gold-light">
               Partida em andamento
             </span>
           </div>
           <button
             onClick={() => navigate(`/game/${activeGameId}`)}
-            className="font-heading hub-active-banner__btn px-4 py-1 rounded text-[var(--gold-light)] text-[11px] font-bold tracking-[1.5px] uppercase cursor-pointer"
+            className="font-heading hub-active-banner__btn px-4 py-1 rounded text-gold-light text-[11px] font-bold tracking-[1.5px] uppercase cursor-pointer"
           >
             Retomar
           </button>

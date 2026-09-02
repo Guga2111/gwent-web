@@ -1,0 +1,67 @@
+@layer components {
+  /* ── Form Components ── */
+
+  .form-input {
+    padding: 10px 12px;
+    background-color: var(--bg-medium);
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-family: var(--font-ui);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .form-input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .form-input:focus {
+    border-color: var(--gold);
+  }
+
+  .form-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .form-divider::before,
+  .form-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: var(--border-subtle);
+  }
+
+  .form-divider__text {
+    font-family: var(--font-body);
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .form-link {
+    background: none;
+    border: none;
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+
+  .form-link:hover {
+    color: var(--gold-light);
+  }
+
+  .form-link__highlight {
+    color: var(--gold);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .form-link:hover .form-link__highlight {
+    color: var(--gold-light);
+  }
+}

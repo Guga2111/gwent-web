@@ -1,0 +1,68 @@
+/* ── Medieval Theme ── */
+
+:root {
+  /* Background tones */
+  --bg-darkest: #0d0a07;
+  --bg-dark: #1a1410;
+  --bg-medium: #2a2118;
+  --bg-card: #332a20;
+  --bg-hover: #3d3228;
+
+  /* Gold palette */
+  --gold-light: #f6dd97;
+  --gold: #caa057;
+  --gold-dark: #a07830;
+  --gold-dim: #7a5c24;
+  --gold-rgb: 202, 160, 87;
+
+  /* Gem */
+  --gem-inner: #3a2e20;
+
+  /* Text */
+  --text-primary: #e8dcc8;
+  --text-secondary: #b0a08a;
+  --text-muted: #7a6c5a;
+
+  /* Accents */
+  --red: #c44;
+  --green: #5a8a3c;
+  --blue: #4a7a9c;
+  --blue-light: #c8def0;
+  --blue-dim: #5e7790;
+  --blue-dark: #16314d;
+
+  /* Parchment (quest cards, "coming soon" stubs) */
+  --parchment-light: #e9d6a6;
+  --parchment-mid: #dcc795;
+  --parchment-dark: #cbb279;
+  --parchment-text: #3d2b14;
+  --parchment-heading: #5a3f1c;
+  --parchment-muted: #7a5e34;
+  --parchment-accent: #7a5620;
+
+  /* Faction palette */
+  --faction-nilfgaard-primary: #c8a84e;
+  --faction-nilfgaard-secondary: #2a2a2e;
+  --faction-monsters-primary: #c43030;
+  --faction-monsters-secondary: #1a0808;
+  --faction-northern-primary: #9a9a9e;
+  --faction-northern-secondary: #2a4a8a;
+  --faction-scoiatael-primary: #8a7a3a;
+  --faction-scoiatael-secondary: #2a5a2a;
+  --faction-skellige-primary: #8a8a9a;
+  --faction-skellige-secondary: #4a2a6a;
+
+  /* Borders */
+  --border-subtle: #3a3020;
+  --border-gold: #6a5530;
+
+  /* Card dimensions — scale with viewport so the board fits ~900px screens */
+  --card-h: min(106px, calc((100vh - 100px) / 8));
+  --card-w: min(72px, calc(var(--card-h) * 72 / 106));
+
+  /* Fonts */
+  --font-display: "Cinzel Decorative", serif;
+  --font-heading: "Cinzel", serif;
+  --font-body: "Alegreya", serif;
+  --font-ui: "Alegreya", serif;
+}

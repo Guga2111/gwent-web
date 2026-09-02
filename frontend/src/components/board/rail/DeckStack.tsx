@@ -28,7 +28,7 @@ export default function DeckStack({ count, label, faction }: DeckStackProps) {
           <CountBadge value={count} size={27} fontSize={14} />
         </div>
       </div>
-      <div className="label-muted">{label}</div>
+      <div className="text-[9px] text-text-muted font-heading">{label}</div>
     </div>
   )
 }

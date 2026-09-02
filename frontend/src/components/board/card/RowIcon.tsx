@@ -49,7 +49,7 @@ export default function RowIcon({ rowType, size = 'sm' }: RowIconProps) {
   const Icon = ROW_ICONS[rowType]
   const iconSize = size === 'sm' ? 14 : 28
   return (
-    <div className={size === 'lg' ? 'card-detail-row-icon' : 'card-row-icon'}>
+    <div className={size === 'lg' ? 'w-7 h-7 flex items-center justify-center text-text-muted' : 'card-row-icon'}>
       <Icon size={iconSize} strokeWidth={2} />
     </div>
   )

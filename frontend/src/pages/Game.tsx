@@ -83,16 +83,15 @@ export default function Game() {
 
   if (!connected || !gameState || !me || !opponent) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen gap-4 bg-[var(--bg-darkest)]">
+      <div className="flex flex-col items-center justify-center h-screen gap-4 bg-bg-darkest">
         <p
-          className="text-[var(--text-secondary)]"
-          style={{ fontFamily: "var(--font-heading)" }}
+          className="text-text-secondary font-heading"
         >
           {!connected ? "Conectando..." : "Aguardando estado do jogo..."}
         </p>
         <button
           onClick={() => navigate("/hub")}
-          className="text-sm underline text-[var(--text-muted)] bg-transparent border-none cursor-pointer"
+          className="text-sm underline text-text-muted bg-transparent border-none cursor-pointer"
         >
           Voltar à Taverna
         </button>
@@ -137,9 +136,8 @@ export default function Game() {
           {/* Error notification */}
           {error && (
             <div
-              className="absolute top-3 left-1/2 -translate-x-1/2 z-20 rounded-md px-4.5 py-2 text-[13px] text-white pointer-events-none border border-[rgba(255,100,100,0.4)]"
+              className="absolute top-3 left-1/2 -translate-x-1/2 z-20 rounded-md px-4.5 py-2 text-[13px] text-white pointer-events-none border border-[rgba(255,100,100,0.4)] font-ui"
               style={{
-                fontFamily: "var(--font-ui)",
                 backgroundColor: "rgba(204, 68, 68, 0.92)",
               }}
             >
