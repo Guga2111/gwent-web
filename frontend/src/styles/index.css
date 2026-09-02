@@ -412,7 +412,6 @@
   line-height: 1;
   color: var(--gold-light);
   opacity: 0.6;
-  text-shadow: 0 0 20px rgba(202, 160, 87, 0.5), 0 0 40px rgba(202, 160, 87, 0.3);
   animation: countdown-pulse 1s ease-out;
 }
 
@@ -644,7 +643,6 @@
 /* ── Utility Classes ── */
 
 .gold-glow {
-  text-shadow: 0 0 10px rgba(202, 160, 87, 0.4);
 }
 
 .card-shadow {
@@ -957,7 +955,6 @@
   .card-detail-description {
     font-family: var(--font-body);
     font-size: 11px;
-    font-style: italic;
     color: var(--text-secondary);
     text-align: center;
     line-height: 1.4;
@@ -1201,7 +1198,6 @@
   .overlay-body {
     font-size: 14px;
     color: var(--text-secondary);
-    font-style: italic;
     font-family: var(--font-body);
   }
 
@@ -1210,6 +1206,94 @@
     font-size: 9px;
     color: var(--text-muted);
     font-family: var(--font-heading);
+  }
+
+  /* ── Form Components ── */
+
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-label {
+    font-family: var(--font-heading);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-secondary);
+  }
+
+  .form-input {
+    padding: 10px 12px;
+    background-color: var(--bg-medium);
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-family: var(--font-ui);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .form-input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .form-input:focus {
+    border-color: var(--gold);
+  }
+
+  .form-error {
+    font-family: var(--font-ui);
+    font-size: 13px;
+    color: var(--red);
+  }
+
+
+  .form-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .form-divider::before,
+  .form-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: var(--border-subtle);
+  }
+
+  .form-divider__text {
+    font-family: var(--font-body);
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .form-link {
+    background: none;
+    border: none;
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+
+  .form-link:hover {
+    color: var(--gold-light);
+  }
+
+  .form-link__highlight {
+    color: var(--gold);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .form-link:hover .form-link__highlight {
+    color: var(--gold-light);
   }
 
   /* ── Player Panel ── */
@@ -1291,7 +1375,6 @@
   .player-panel__faction-name {
     font-family: var(--font-body);
     font-size: 13px;
-    font-style: italic;
     color: var(--text-secondary);
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1344,6 +1427,102 @@
     border: 1px solid rgba(58, 48, 32, 0.3);
     opacity: 0.6;
   }
+}
+
+/* ── Login Page ── */
+
+.login-page {
+  display: flex;
+  height: 100vh;
+}
+
+.login-panel {
+  width: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-darkest);
+  position: relative;
+}
+
+.login-brand-logo {
+  position: absolute;
+  top: 24px;
+  left: 28px;
+  width: 56px;
+  height: 56px;
+}
+
+.login-card {
+  max-width: 380px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 0 24px;
+}
+
+.login-card__title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--gold-light);
+  text-align: center;
+}
+
+.login-card__subtitle {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: -12px;
+}
+
+.login-card__form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.login-card__footer {
+  text-align: center;
+}
+
+.login-divider-gold {
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    var(--gold-dim) 15%,
+    var(--gold) 50%,
+    var(--gold-dim) 85%,
+    transparent 100%
+  );
+  flex-shrink: 0;
+}
+
+.login-image-panel {
+  width: 50%;
+  overflow: hidden;
+  position: relative;
+}
+
+.login-image-panel__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.login-image-panel__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    var(--bg-darkest) 0%,
+    rgba(13, 10, 7, 0.6) 15%,
+    transparent 40%
+  );
+  pointer-events: none;
 }
 
 /* ── Keyframe Animations ── */
@@ -1463,7 +1642,6 @@
   border-left: 1px solid rgba(240,205,120,.16);
 }
 .top-hud-logo {
-  text-shadow: 0 1px 0 rgba(0,0,0,.7), 0 0 20px rgba(240,200,110,.3);
 }
 
 /* ── Rules modal ── */
@@ -1515,7 +1693,6 @@
 }
 .nav-card__label--active {
   color: var(--gold-light);
-  text-shadow: 0 0 8px rgba(202,160,87,.6);
 }
 
 /* ── Taverna ── */
@@ -1541,7 +1718,6 @@
   animation: gw-glow 3.4s ease-in-out infinite;
 }
 .taverna-cta-label {
-  text-shadow: 0 1px 0 rgba(255,240,200,.5);
 }
 .taverna-diamond {
   transform: rotate(45deg);
@@ -1680,7 +1856,7 @@
   font-size: 42px;
   font-weight: 900;
   color: var(--gold-light);
-  text-shadow: 0 0 24px rgba(240,200,110,.7), 0 2px 0 rgba(0,0,0,.8);
+  text-shadow: 0 2px 0 rgba(0,0,0,.8);
   animation: mq-vs-reveal .6s cubic-bezier(.22,1,.36,1) both;
 }
 
