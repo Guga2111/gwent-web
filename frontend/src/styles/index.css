@@ -1,5 +1,39 @@
 @import "tailwindcss";
 
+@theme {
+  --color-bg-darkest: #0d0a07;
+  --color-bg-dark: #1a1410;
+  --color-bg-medium: #2a2118;
+  --color-bg-card: #332a20;
+  --color-bg-hover: #3d3228;
+  --color-gold-light: #f6dd97;
+  --color-gold: #caa057;
+  --color-gold-dark: #a07830;
+  --color-gold-dim: #7a5c24;
+  --color-text-primary: #e8dcc8;
+  --color-text-secondary: #b0a08a;
+  --color-text-muted: #7a6c5a;
+  --color-red: #c44;
+  --color-green: #5a8a3c;
+  --color-blue: #4a7a9c;
+  --color-blue-light: #c8def0;
+  --color-blue-dim: #5e7790;
+  --color-blue-dark: #16314d;
+  --color-parchment-light: #e9d6a6;
+  --color-parchment-mid: #dcc795;
+  --color-parchment-dark: #cbb279;
+  --color-parchment-text: #3d2b14;
+  --color-parchment-heading: #5a3f1c;
+  --color-parchment-muted: #7a5e34;
+  --color-parchment-accent: #7a5620;
+  --color-border-subtle: #3a3020;
+  --color-border-gold: #6a5530;
+  --font-display: "Cinzel Decorative", serif;
+  --font-heading: "Cinzel", serif;
+  --font-body: "IM Fell English", serif;
+  --font-ui: "Barlow", sans-serif;
+}
+
 /* ── Medieval Theme ── */
 
 :root {
