@@ -61,8 +61,8 @@
   --card-w: min(72px, calc(var(--card-h) * 72 / 106));
 
   /* Fonts */
-  --font-display: "Cinzel Decorative", serif;
+  --font-display: "Bebas Neue", sans-serif;
   --font-heading: "Cinzel", serif;
-  --font-body: "IM Fell English", serif;
-  --font-ui: "Barlow", sans-serif;
+  --font-body: "Alegreya", serif;
+  --font-ui: "Alegreya", serif;
 }

@@ -28,10 +28,10 @@
   --color-parchment-accent: #7a5620;
   --color-border-subtle: #3a3020;
   --color-border-gold: #6a5530;
-  --font-display: "Cinzel Decorative", serif;
+  --font-display: "Bebas Neue", sans-serif;
   --font-heading: "Cinzel", serif;
-  --font-body: "IM Fell English", serif;
-  --font-ui: "Barlow", sans-serif;
+  --font-body: "Alegreya", serif;
+  --font-ui: "Alegreya", serif;
 }
 
 @import "./tokens.css";
