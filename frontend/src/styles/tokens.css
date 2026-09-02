@@ -13,6 +13,10 @@
   --gold: #caa057;
   --gold-dark: #a07830;
   --gold-dim: #7a5c24;
+  --gold-rgb: 202, 160, 87;
+
+  /* Gem */
+  --gem-inner: #3a2e20;
 
   /* Text */
   --text-primary: #e8dcc8;

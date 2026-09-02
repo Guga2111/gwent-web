@@ -115,9 +115,9 @@
 }
 
 .board-row__horn--active {
-  background-color: rgba(202, 160, 87, 0.2);
+  background-color: rgba(var(--gold-rgb), 0.2);
   border-color: var(--gold-dim);
-  box-shadow: inset 0 0 8px rgba(202, 160, 87, 0.15);
+  box-shadow: inset 0 0 8px rgba(var(--gold-rgb), 0.15);
 }
 
 /* Central divider */
@@ -212,7 +212,7 @@
 
 .central-divider__timer-bar--my-turn {
   background: linear-gradient(90deg, var(--gold-dim), var(--gold), var(--gold-light));
-  box-shadow: 0 0 6px rgba(202, 160, 87, 0.5);
+  box-shadow: 0 0 6px rgba(var(--gold-rgb), 0.5);
 }
 
 .central-divider__timer-bar--opponent-turn {

@@ -1,7 +1,7 @@
 /* ── Utility Classes ── */
 
 .card-shadow {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), 0 0 1px rgba(202, 160, 87, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), 0 0 1px rgba(var(--gold-rgb), 0.2);
 }
 
 /* ── Component Classes ── */
@@ -96,8 +96,8 @@
   .card-face--hero {
     border-color: var(--gold);
     box-shadow:
-      inset 0 0 8px rgba(202, 160, 87, 0.25),
-      0 0 6px rgba(202, 160, 87, 0.15);
+      inset 0 0 8px rgba(var(--gold-rgb), 0.25),
+      0 0 6px rgba(var(--gold-rgb), 0.15);
   }
 
   .card-face--interactive {
@@ -136,7 +136,7 @@
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, #3a2e20, var(--bg-dark));
+    background: radial-gradient(circle at 35% 35%, var(--gem-inner), var(--bg-dark));
     border: 1.5px solid var(--gold-dim);
     display: flex;
     align-items: center;
@@ -153,7 +153,7 @@
   .card-power-gem--hero {
     background: radial-gradient(circle at 35% 35%, #c8a050, var(--gold-dark));
     border-color: var(--gold);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5), 0 0 4px rgba(202, 160, 87, 0.3);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5), 0 0 4px rgba(var(--gold-rgb), 0.3);
   }
 
   .card-power-gem--buffed {
@@ -208,7 +208,7 @@
 
   .card-detail-panel--hero {
     border-color: var(--gold);
-    box-shadow: inset 0 0 12px rgba(202, 160, 87, 0.25);
+    box-shadow: inset 0 0 12px rgba(var(--gold-rgb), 0.25);
   }
 
   .card-detail-art {
@@ -333,7 +333,7 @@
 
   .card-detail-action-btn:hover:not(:disabled) {
     background: linear-gradient(180deg, #b8862a 0%, var(--gold-dark) 100%);
-    box-shadow: 0 0 12px rgba(202, 160, 87, 0.4);
+    box-shadow: 0 0 12px rgba(var(--gold-rgb), 0.4);
   }
 
   .card-detail-action-btn:disabled {
@@ -365,7 +365,7 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, #3a2e20, var(--bg-dark));
+    background: radial-gradient(circle at 35% 35%, var(--gem-inner), var(--bg-dark));
     border: 2px solid var(--gold-dim);
     display: flex;
     align-items: center;
@@ -382,7 +382,7 @@
   .card-detail-power-gem--hero {
     background: radial-gradient(circle at 35% 35%, #c8a050, var(--gold-dark));
     border-color: var(--gold);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), 0 0 6px rgba(202, 160, 87, 0.3);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), 0 0 6px rgba(var(--gold-rgb), 0.3);
   }
 
   .card-detail-power-gem--buffed {
@@ -531,7 +531,7 @@
       rgba(32, 25, 18, 0.9) 100%
     );
     border-color: var(--gold);
-    box-shadow: 0 0 10px rgba(202, 160, 87, 0.15);
+    box-shadow: 0 0 10px rgba(var(--gold-rgb), 0.15);
   }
 
   .pass-button:active:not(:disabled) {

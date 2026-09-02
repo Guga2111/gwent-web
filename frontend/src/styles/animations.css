@@ -58,7 +58,7 @@
   position: absolute;
   inset: -6px;
   border-radius: 8px;
-  background: radial-gradient(ellipse at center, rgba(202, 160, 87, 0.25) 0%, transparent 70%);
+  background: radial-gradient(ellipse at center, rgba(var(--gold-rgb), 0.25) 0%, transparent 70%);
   animation: flying-card-glow 0.45s ease-out forwards;
   pointer-events: none;
 }
@@ -85,7 +85,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  box-shadow: inset 0 0 14px rgba(202, 160, 87, 0.15);
+  box-shadow: inset 0 0 14px rgba(var(--gold-rgb), 0.15);
   pointer-events: none;
   z-index: 1;
   animation: row-target-glow 1.5s ease-in-out infinite;
@@ -104,14 +104,14 @@
 /* Weather slot targeting */
 .weather-slot--target {
   border: 1.5px solid var(--gold);
-  box-shadow: 0 0 8px rgba(202, 160, 87, 0.4);
+  box-shadow: 0 0 8px rgba(var(--gold-rgb), 0.4);
   cursor: pointer;
   animation: weather-slot-pulse 1.5s ease-in-out infinite;
 }
 
 @keyframes weather-slot-pulse {
-  0%, 100% { border-color: var(--gold-dim); box-shadow: 0 0 6px rgba(202, 160, 87, 0.2); }
-  50% { border-color: var(--gold-light); box-shadow: 0 0 12px rgba(202, 160, 87, 0.5); }
+  0%, 100% { border-color: var(--gold-dim); box-shadow: 0 0 6px rgba(var(--gold-rgb), 0.2); }
+  50% { border-color: var(--gold-light); box-shadow: 0 0 12px rgba(var(--gold-rgb), 0.5); }
 }
 
 /* Score badge pulse on change */
@@ -179,11 +179,11 @@
 
 @keyframes tb-turn {
   0%, 100% {
-    box-shadow: 0 0 8px rgba(202, 160, 87, 0.3);
+    box-shadow: 0 0 8px rgba(var(--gold-rgb), 0.3);
     border-color: var(--gold-dim);
   }
   50% {
-    box-shadow: 0 0 18px rgba(202, 160, 87, 0.6);
+    box-shadow: 0 0 18px rgba(var(--gold-rgb), 0.6);
     border-color: var(--gold);
   }
 }
