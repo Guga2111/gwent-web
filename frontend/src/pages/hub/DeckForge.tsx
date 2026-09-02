@@ -22,7 +22,7 @@ export default function DeckForge() {
         />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <p className="font-body text-[17px] italic text-[var(--text-muted)] mb-4">
+            <p className="font-body text-[17px]text-[var(--text-muted)] mb-4">
               Selecione um baralho ou crie um novo
             </p>
             <button

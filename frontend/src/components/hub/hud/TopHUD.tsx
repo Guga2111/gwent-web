@@ -23,7 +23,7 @@ export default function TopHUD({ user, onSettingsClick }: TopHUDProps) {
           <div className="font-heading font-bold text-lg text-[var(--text-primary)] tracking-[.3px]">
             {user?.username ?? user?.email ?? 'Jogador'}
           </div>
-          <div className="font-body italic text-[13px] text-[var(--text-muted)] mt-px">
+          <div className="font-bodytext-[13px] text-[var(--text-muted)] mt-px">
             &laquo; &mdash; &raquo;
           </div>
         </div>
@@ -38,7 +38,7 @@ export default function TopHUD({ user, onSettingsClick }: TopHUDProps) {
           <span className="font-heading font-semibold text-[13px] text-[var(--gold)] tracking-[.5px]">
             {activeDeck ? config.label : '—'}
           </span>
-          <span className="font-body italic text-[13px] text-[var(--text-muted)]">
+          <span className="font-bodytext-[13px] text-[var(--text-muted)]">
             · —
           </span>
         </div>

@@ -124,22 +124,22 @@ export default function Taverna() {
 
       {/* Matchmaking error */}
       {matchmakingError && (
-        <p className="font-body italic text-[12.5px] text-[var(--red)]">{matchmakingError}</p>
+        <p className="font-bodytext-[12.5px] text-[var(--red)]">{matchmakingError}</p>
       )}
 
       {/* Win streak + amistosa link */}
       <div className="relative flex items-center gap-4 mt-3.5">
-        <span className="font-body italic text-[13.5px] text-[var(--text-muted)]">
+        <span className="font-bodytext-[13.5px] text-[var(--text-muted)]">
           sequência de - vitórias
         </span>
         <span className="w-1 h-1 rounded-full bg-[var(--border-gold)]" />
-        <span className="font-body italic text-[13.5px] text-[var(--text-muted)]">
+        <span className="font-bodytext-[13.5px] text-[var(--text-muted)]">
           320 PR até o Ouro
         </span>
         <span className="w-1 h-1 rounded-full bg-[var(--border-gold)]" />
         <button
           onClick={() => setModalOpen(true)}
-          className="font-body bg-transparent border-none cursor-pointer italic text-[13.5px] underline underline-offset-[3px] text-[var(--blue)]"
+          className="font-body bg-transparent border-none cursor-pointertext-[13.5px] underline underline-offset-[3px] text-[var(--blue)]"
         >
           trocar tapas numa amistosa
         </button>
@@ -153,7 +153,7 @@ export default function Taverna() {
           </span>
           <button
             onClick={() => setPickerOpen(true)}
-            className="font-body italic text-[12.5px] text-[var(--text-muted)] bg-transparent border-none cursor-pointer p-0 hover:text-[var(--text-primary)] transition-colors"
+            className="font-bodytext-[12.5px] text-[var(--text-muted)] bg-transparent border-none cursor-pointer p-0 hover:text-[var(--text-primary)] transition-colors"
           >
             {activeDeck
               ? `${activeDeck.name} · ${activeDeck.cards.reduce((sum, e) => sum + e.quantity, 0)}`
@@ -199,7 +199,7 @@ export default function Taverna() {
                 />
               )}
               <div className="taverna-leader-overlay absolute left-0 right-0 bottom-0 px-1.5 py-[5px] text-center">
-                <div className="font-body italic text-[8px] text-[var(--gold)]">
+                <div className="font-bodytext-[8px] text-[var(--gold)]">
                   {config.label}
                 </div>
               </div>
@@ -247,7 +247,7 @@ export default function Taverna() {
           ))}
         </div>
 
-        <div className="font-body italic text-[10.5px] text-right text-[var(--parchment-muted)] mt-2.5">
+        <div className="font-bodytext-[10.5px] text-right text-[var(--parchment-muted)] mt-2.5">
           novas encomendas ao raiar do dia · 06:42
         </div>
       </div>

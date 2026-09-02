@@ -43,7 +43,7 @@ export function DeckPreviewPanel({ leaders, leaderId, cards, cardById, onLeaderC
 
       <div className="flex-1 overflow-y-auto p-3">
         {cards.length === 0 && (
-          <p className="font-body text-center text-[12px] italic text-[var(--text-muted)] mt-4">
+          <p className="font-body text-center text-[12px]text-[var(--text-muted)] mt-4">
             Clique nas cartas do catálogo para adicioná-las
           </p>
         )}

@@ -87,7 +87,7 @@ export default function MatchmakingModal({ open, onCancel }: MatchmakingModalPro
               Procurando adversário...
             </div>
             <p
-              className="text-[13px] text-[var(--text-muted)] italic text-center"
+              className="text-[13px] text-[var(--text-muted)]text-center"
               style={{ fontFamily: 'var(--font-body)' }}
             >
               Aguarde enquanto buscamos um oponente digno.
@@ -122,7 +122,7 @@ export default function MatchmakingModal({ open, onCancel }: MatchmakingModalPro
               </div>
             </div>
             <p
-              className="text-[13px] text-[var(--text-secondary)] italic"
+              className="text-[13px] text-[var(--text-secondary)]"
               style={{ fontFamily: 'var(--font-body)' }}
             >
               Iniciando duelo...

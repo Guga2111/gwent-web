@@ -19,7 +19,7 @@ export default function ComingSoonPage({ title }: ComingSoonPageProps) {
           {title}
         </div>
         <div
-          className="italic text-[15px] text-[var(--parchment-muted)]"
+          className="text-[15px] text-[var(--parchment-muted)]"
           style={{ fontFamily: 'var(--font-body)' }}
         >
           Em breve

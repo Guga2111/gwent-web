@@ -43,7 +43,7 @@ export default function Profile() {
         <div
           style={{
             fontFamily: 'var(--font-body)',
-            fontStyle: 'italic',
+
             fontSize: 14,
             color: 'var(--text-secondary)',
             marginBottom: 24,

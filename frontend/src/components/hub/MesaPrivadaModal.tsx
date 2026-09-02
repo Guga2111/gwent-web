@@ -90,7 +90,7 @@ export default function MesaPrivadaModal({ open, onClose, onCreateGame, onJoinGa
         )}
 
         {decks.length === 0 && (
-          <p className="text-[13px] text-center text-[var(--gold)] mb-4 italic" style={{ fontFamily: 'var(--font-body)' }}>
+          <p className="text-[13px] text-center text-[var(--gold)] mb-4" style={{ fontFamily: 'var(--font-body)' }}>
             Crie um baralho na Forja antes de jogar
           </p>
         )}
@@ -129,7 +129,7 @@ export default function MesaPrivadaModal({ open, onClose, onCreateGame, onJoinGa
                   {loading ? '...' : 'Criar Mesa'}
                 </div>
                 <div
-                  className="italic text-[12.5px] text-[var(--text-muted)] text-center leading-[1.35]"
+                  className="text-[12.5px] text-[var(--text-muted)] text-center leading-[1.35]"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
                   Gere um código e convide um amigo pelo link
@@ -138,7 +138,7 @@ export default function MesaPrivadaModal({ open, onClose, onCreateGame, onJoinGa
             ) : (
               <>
                 <div
-                  className="italic text-[13px] text-[var(--green)] mb-1"
+                  className="text-[13px] text-[var(--green)] mb-1"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
                   Partida criada!
@@ -187,7 +187,7 @@ export default function MesaPrivadaModal({ open, onClose, onCreateGame, onJoinGa
                   Entrar com Código
                 </div>
                 <div
-                  className="italic text-[12.5px] text-[var(--text-muted)] text-center leading-[1.35]"
+                  className="text-[12.5px] text-[var(--text-muted)] text-center leading-[1.35]"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
                   Recebeu um convite? Digite o código aqui

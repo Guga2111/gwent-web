@@ -30,7 +30,7 @@ export function DeckListSidebar({ decks, onNew, onEdit, onDelete }: DeckListSide
       <div className="flex-1 overflow-y-auto">
         {decks.length === 0 && (
           <div className="px-5 py-8 text-center">
-            <p className="font-body italic text-[13px] text-[var(--text-muted)]">
+            <p className="font-bodytext-[13px] text-[var(--text-muted)]">
               Nenhum baralho ainda
             </p>
             <button

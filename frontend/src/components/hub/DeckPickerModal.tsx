@@ -58,7 +58,7 @@ export default function DeckPickerModal({ open, decks, activeDeckId, onSelect, o
         {/* Deck list */}
         <div className="overflow-y-auto px-[34px] pb-8 max-h-[60vh]">
           {decks.length === 0 ? (
-            <p className="text-center italic text-sm text-[var(--text-muted)] py-6">
+            <p className="text-centertext-sm text-[var(--text-muted)] py-6">
               Nenhum baralho criado
             </p>
           ) : (

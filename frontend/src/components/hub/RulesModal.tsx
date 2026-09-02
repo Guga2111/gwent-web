@@ -121,7 +121,7 @@ export default function RulesModal({ open, onClose }: RulesModalProps) {
               </h3>
 
               {section.body && (
-                <p className="font-body italic text-[14.5px] leading-[1.65] text-[var(--parchment-text)]">
+                <p className="font-bodytext-[14.5px] leading-[1.65] text-[var(--parchment-text)]">
                   {section.body}
                 </p>
               )}
@@ -140,8 +140,8 @@ export default function RulesModal({ open, onClose }: RulesModalProps) {
                       >
                         <Icon size={13} strokeWidth={1.8} />
                       </div>
-                      <p className="font-body italic text-[14px] leading-[1.55] text-[var(--parchment-text)]">
-                        <span className="font-heading not-italic text-[11px] tracking-[1px] uppercase text-[var(--parchment-heading)] mr-1">
+                      <p className="font-bodytext-[14px] leading-[1.55] text-[var(--parchment-text)]">
+                        <span className="font-headingtext-[11px] tracking-[1px] uppercase text-[var(--parchment-heading)] mr-1">
                           {label}
                         </span>
                         — {desc}
@@ -153,7 +153,7 @@ export default function RulesModal({ open, onClose }: RulesModalProps) {
             </div>
           ))}
 
-          <div className="font-body text-[10.5px] italic text-right text-[var(--parchment-muted)] mt-1">
+          <div className="font-body text-[10.5px]text-right text-[var(--parchment-muted)] mt-1">
             que os dados sejam favoráveis em vossos duelos
           </div>
         </div>
