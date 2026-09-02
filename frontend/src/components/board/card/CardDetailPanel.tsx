@@ -120,7 +120,7 @@ export default function CardDetailPanel({ card, action }: CardDetailPanelProps) 
     : undefined
 
   const panelClass = [
-    'card-detail-panel',
+    'card-detail-panel flex flex-col overflow-hidden',
     isHero && 'card-detail-panel--hero',
   ]
     .filter(Boolean)
@@ -174,7 +174,7 @@ export default function CardDetailPanel({ card, action }: CardDetailPanelProps) 
         )}
       </div>
 
-      <div className="card-detail-info">
+      <div className="card-detail-info flex flex-col gap-1 items-center flex-1 overflow-y-auto min-h-0">
         <span className="font-heading text-sm leading-[1.2] text-gold-light text-center">{card.name}</span>
         <span className="font-ui text-[10px] uppercase tracking-[1px] text-text-muted">{cardTypeNames[card.cardType]}</span>
         {description && (

@@ -113,7 +113,7 @@ export default function CardBack({ faction }: CardBackProps) {
     : undefined
 
   return (
-    <div className="card-base card-back" style={style}>
+    <div className="card-base card-back shrink-0 flex items-center justify-center" style={style}>
       <div className="card-back-border" />
       {Emblem && (
         <div className="card-back-circle" style={{ color: tokens!.primary }}>

@@ -29,7 +29,7 @@ export default function Card({ card, onClick, interactive = false, faction, supp
     : undefined
 
   const className = [
-    'card-base card-face',
+    'card-base card-face shrink-0 flex items-center justify-center',
     isHero && 'card-face--hero',
     interactive && 'card-face--interactive',
     !interactive && 'cursor-default',

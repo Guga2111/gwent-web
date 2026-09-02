@@ -28,7 +28,7 @@ export function CatalogCardItem({ card, onAdd, qty }: CatalogCardItemProps) {
     .join(' ')
 
   const cardClass = [
-    'card-base card-face',
+    'card-base card-face shrink-0 flex items-center justify-center',
     isHero && 'card-face--hero',
     qty > 0 && 'deckforge-catalog-card--selected',
   ]
