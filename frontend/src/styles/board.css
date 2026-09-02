@@ -1,0 +1,360 @@
+/* ── Board Surface ── */
+
+.game-table {
+  background:
+    /* Vignette darkening at edges */
+    radial-gradient(ellipse at 50% 50%, transparent 30%, rgba(0,0,0,0.4) 100%),
+    /* Subtle wood grain lines */
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 28px,
+      rgba(0,0,0,0.06) 28px,
+      rgba(0,0,0,0.06) 29px
+    ),
+    /* Secondary grain offset */
+    repeating-linear-gradient(
+      87deg,
+      transparent,
+      transparent 43px,
+      rgba(0,0,0,0.03) 43px,
+      rgba(0,0,0,0.03) 44px
+    ),
+    /* Wood color base */
+    linear-gradient(
+      180deg,
+      #1c1610 0%,
+      #201a14 25%,
+      #1a1410 50%,
+      #1e1812 75%,
+      #161210 100%
+    );
+}
+
+.board-mat {
+  position: relative;
+  background:
+    /* Fine diagonal grain (leather/fabric feel) */
+    repeating-linear-gradient(
+      120deg,
+      transparent,
+      transparent 1.5px,
+      rgba(0,0,0,0.02) 1.5px,
+      rgba(0,0,0,0.02) 3px
+    ),
+    /* Cross grain */
+    repeating-linear-gradient(
+      30deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.015) 2px,
+      rgba(0,0,0,0.015) 4px
+    ),
+    /* Center lightening */
+    radial-gradient(
+      ellipse at 50% 50%,
+      rgba(42, 33, 24, 0.3) 0%,
+      transparent 70%
+    ),
+    var(--bg-darkest);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: 6px;
+  box-shadow:
+    /* Stitched border — inner gold line */
+    inset 0 0 0 3px rgba(13, 10, 7, 0.8),
+    inset 0 0 0 4px rgba(106, 85, 48, 0.2),
+    /* Depth shadows */
+    inset 0 3px 10px rgba(0, 0, 0, 0.4),
+    inset 0 -3px 10px rgba(0, 0, 0, 0.4),
+    /* Lift from table */
+    0 4px 20px rgba(0, 0, 0, 0.5),
+    0 1px 4px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+/* Board row */
+.board-row {
+  box-shadow:
+    inset 0 1px 4px rgba(0, 0, 0, 0.25),
+    inset 0 -1px 3px rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid rgba(58, 48, 32, 0.4);
+}
+
+.board-row--melee {
+  background: linear-gradient(
+    90deg,
+    rgba(80, 45, 20, 0.28) 0%,
+    rgba(80, 45, 20, 0.18) 50%,
+    rgba(80, 45, 20, 0.28) 100%
+  );
+}
+
+.board-row--ranged {
+  background: linear-gradient(
+    90deg,
+    rgba(30, 55, 20, 0.28) 0%,
+    rgba(30, 55, 20, 0.18) 50%,
+    rgba(30, 55, 20, 0.28) 100%
+  );
+}
+
+.board-row--siege {
+  background: linear-gradient(
+    90deg,
+    rgba(20, 35, 65, 0.28) 0%,
+    rgba(20, 35, 65, 0.18) 50%,
+    rgba(20, 35, 65, 0.28) 100%
+  );
+}
+
+/* Horn slot */
+.board-row__horn {
+  background-color: rgba(42, 33, 24, 0.3);
+  border: 1px solid rgba(58, 48, 32, 0.4);
+  border-radius: 3px;
+}
+
+.board-row__horn--active {
+  background-color: rgba(202, 160, 87, 0.2);
+  border-color: var(--gold-dim);
+  box-shadow: inset 0 0 8px rgba(202, 160, 87, 0.15);
+}
+
+/* Central divider */
+.central-divider {
+  position: relative;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.central-divider__line {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--gold-dim) 15%,
+    var(--gold) 50%,
+    var(--gold-dim) 85%,
+    transparent 100%
+  );
+  transform: translateY(-50%);
+}
+
+.central-divider__medallion {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(
+    145deg,
+    var(--bg-dark) 0%,
+    var(--bg-medium) 50%,
+    var(--bg-dark) 100%
+  );
+  border: 2px solid var(--gold-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold);
+  z-index: 2;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.5),
+    inset 0 1px 2px rgba(246, 221, 151, 0.08);
+}
+
+.central-divider__accent {
+  position: absolute;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  background-color: var(--gold-dim);
+  transform: translateY(-50%) rotate(45deg);
+  z-index: 1;
+}
+
+.central-divider__accent--left {
+  left: calc(50% - 34px);
+}
+
+.central-divider__accent--right {
+  right: calc(50% - 34px);
+}
+
+/* Timer bar track (visible empty portion) */
+.central-divider__timer-track {
+  position: absolute;
+  top: calc(50% + 4px);
+  left: 0;
+  width: 100%;
+  height: 5px;
+  border-radius: 3px;
+  z-index: 1;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+/* Timer bar fill */
+.central-divider__timer-bar {
+  position: absolute;
+  top: calc(50% + 4px);
+  left: 0;
+  height: 5px;
+  border-radius: 3px;
+  z-index: 2;
+  transition: width 150ms linear, background-color 0.5s ease;
+}
+
+.central-divider__timer-bar--my-turn {
+  background: linear-gradient(90deg, var(--gold-dim), var(--gold), var(--gold-light));
+  box-shadow: 0 0 6px rgba(202, 160, 87, 0.5);
+}
+
+.central-divider__timer-bar--opponent-turn {
+  background: var(--gold-dim);
+  opacity: 0.5;
+}
+
+.central-divider__timer-bar--urgent {
+  background: linear-gradient(90deg, #a33, var(--red), #e55);
+  box-shadow: 0 0 8px rgba(204, 68, 68, 0.6);
+}
+
+/* Disconnected banner */
+.disconnected-banner {
+  position: absolute;
+  top: 44px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  pointer-events: none;
+  padding: 6px 20px;
+  border-radius: 4px;
+  border: 1px solid var(--red);
+  background-color: rgba(204, 68, 68, 0.18);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  animation: disconnected-banner-enter 0.3s ease-out;
+}
+
+@keyframes disconnected-banner-enter {
+  from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* Turn countdown number */
+.turn-countdown-number {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 40;
+  pointer-events: none;
+  font-family: var(--font-heading);
+  font-size: 120px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--gold-light);
+  opacity: 0.6;
+  animation: countdown-pulse 1s ease-out;
+}
+
+@keyframes countdown-pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1.3);
+    opacity: 0.8;
+  }
+  60% {
+    transform: translate(-50%, -50%) scale(0.95);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.6;
+  }
+}
+
+/* Weather overlays — pseudo-element effects on affected rows */
+
+.board-row--frost::after,
+.board-row--fog::after,
+.board-row--rain::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Frost — icy blue shimmer */
+.board-row--frost::after {
+  background: linear-gradient(
+    90deg,
+    rgba(140, 190, 230, 0.12) 0%,
+    rgba(180, 215, 245, 0.06) 25%,
+    rgba(140, 190, 230, 0.1) 50%,
+    rgba(180, 215, 245, 0.06) 75%,
+    rgba(140, 190, 230, 0.12) 100%
+  );
+  animation: weather-frost 3s ease-in-out infinite;
+}
+
+.board-row--frost {
+  border-bottom-color: rgba(140, 190, 230, 0.3);
+}
+
+/* Fog — misty haze thicker at edges */
+.board-row--fog::after {
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    rgba(200, 200, 210, 0.04) 0%,
+    rgba(200, 200, 210, 0.14) 70%,
+    rgba(200, 200, 210, 0.18) 100%
+  );
+  animation: weather-fog 4s ease-in-out infinite;
+}
+
+.board-row--fog {
+  border-bottom-color: rgba(200, 200, 210, 0.25);
+}
+
+/* Rain — animated diagonal streaks with blue tint */
+.board-row--rain::after {
+  background:
+    repeating-linear-gradient(
+      175deg,
+      transparent 0px,
+      transparent 4px,
+      rgba(100, 150, 200, 0.07) 4px,
+      transparent 5px
+    ),
+    rgba(50, 80, 120, 0.08);
+  background-size: 10px 24px, auto;
+  animation: weather-rain 0.35s linear infinite;
+}
+
+.board-row--rain {
+  border-bottom-color: rgba(100, 150, 200, 0.3);
+}
+
+@keyframes weather-frost {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+@keyframes weather-fog {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes weather-rain {
+  from { background-position: 0 0, 0 0; }
+  to { background-position: -2px 24px, 0 0; }
+}
