@@ -14,7 +14,7 @@ export function CatalogPanel({ faction, catalog, editorCards, onAdd }: CatalogPa
 
   return (
     <div className="flex-1 flex flex-col min-w-0 border-r deckforge-catalog-panel">
-      <div className="px-4 py-2 text-[10px] font-bold tracking-[2px] uppercase text-[var(--gold)] border-b flex-shrink-0 deckforge-catalog-header">
+      <div className="px-4 py-2 text-[10px] font-bold tracking-[2px] uppercase text-gold border-b flex-shrink-0 deckforge-catalog-header">
         Catálogo · {factionLabel}
       </div>
       <div className="flex-1 overflow-y-auto">

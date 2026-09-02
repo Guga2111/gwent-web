@@ -29,8 +29,8 @@ export default function Profile() {
         }}
       >
         <div
+          className="font-display"
           style={{
-            fontFamily: 'var(--font-display)',
             fontWeight: 700,
             fontSize: 26,
             color: 'var(--gold-light)',
@@ -41,9 +41,8 @@ export default function Profile() {
         </div>
 
         <div
+          className="font-body"
           style={{
-            fontFamily: 'var(--font-body)',
-
             fontSize: 14,
             color: 'var(--text-secondary)',
             marginBottom: 24,
@@ -53,6 +52,7 @@ export default function Profile() {
         </div>
 
         <button
+          className="font-heading"
           onClick={() => {
             logout()
             navigate('/login')
@@ -66,7 +66,6 @@ export default function Profile() {
             cursor: 'pointer',
             fontSize: 13,
             fontWeight: 600,
-            fontFamily: 'var(--font-heading)',
             border: 'none',
           }}
         >

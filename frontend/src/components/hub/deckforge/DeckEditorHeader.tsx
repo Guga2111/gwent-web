@@ -26,7 +26,7 @@ export function DeckEditorHeader({
     <div className="flex items-center gap-4 px-5 py-3 border-b flex-shrink-0 deckforge-editor-header">
       <button
         onClick={onBack}
-        className="flex items-center gap-1.5 bg-transparent border-none cursor-pointer text-[var(--text-muted)] text-[12px]"
+        className="flex items-center gap-1.5 bg-transparent border-none cursor-pointer text-text-muted text-[12px]"
       >
         <ChevronLeft size={14} />
         Voltar
@@ -36,7 +36,7 @@ export function DeckEditorHeader({
         value={name}
         onChange={(e) => onNameChange(e.target.value)}
         placeholder="Nome do baralho"
-        className="font-heading flex-1 bg-transparent border-none outline-none text-[16px] font-bold text-[var(--gold-light)]"
+        className="font-heading flex-1 bg-transparent border-none outline-none text-[16px] font-bold text-gold-light"
       />
       <div className="flex gap-1.5">
         {FACTIONS.map((f) => (
@@ -49,11 +49,11 @@ export function DeckEditorHeader({
           </button>
         ))}
       </div>
-      {error && <span className="text-[11px] text-[var(--red)]">{error}</span>}
+      {error && <span className="text-[11px] text-red">{error}</span>}
       <button
         onClick={onSave}
         disabled={saving}
-        className={`flex items-center gap-1.5 px-4 py-2 rounded border-none cursor-pointer font-bold text-[12px] text-[var(--bg-darkest)] btn-gold ${saving ? 'opacity-60' : ''}`}
+        className={`flex items-center gap-1.5 px-4 py-2 rounded border-none cursor-pointer font-bold text-[12px] text-bg-darkest btn-gold ${saving ? 'opacity-60' : ''}`}
       >
         <Check size={14} strokeWidth={2.5} />
         {saving ? 'Salvando…' : 'Salvar'}

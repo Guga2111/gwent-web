@@ -9,8 +9,8 @@ interface PrimaryButtonProps {
 }
 
 const variantClasses: Record<'dark' | 'light', string> = {
-  dark: 'bg-[var(--gold-dark)] border border-[var(--gold)] text-[var(--text-primary)]',
-  light: 'border-none text-[var(--bg-darkest)] shadow-[0_5px_12px_rgba(0,0,0,.4)]',
+  dark: 'bg-gold-dark border border-gold text-text-primary',
+  light: 'border-none text-bg-darkest shadow-[0_5px_12px_rgba(0,0,0,.4)]',
 }
 
 export default function PrimaryButton({
@@ -24,9 +24,8 @@ export default function PrimaryButton({
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`px-8 py-2.5 rounded font-bold text-base ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} ${variantClasses[variant]}`}
+      className={`px-8 py-2.5 rounded font-bold text-base font-heading ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} ${variantClasses[variant]}`}
       style={{
-        fontFamily: 'var(--font-heading)',
         ...(variant === 'light' ? { background: 'linear-gradient(180deg, var(--gold-light), var(--gold))' } : {}),
         ...style,
       }}

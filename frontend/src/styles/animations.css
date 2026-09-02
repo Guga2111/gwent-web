@@ -188,9 +188,3 @@
   }
 }
 
-/* ── Font utilities ── */
-
-.font-heading { font-family: var(--font-heading); }
-.font-body    { font-family: var(--font-body); }
-.font-display { font-family: var(--font-display); }
-.font-ui      { font-family: var(--font-ui); }

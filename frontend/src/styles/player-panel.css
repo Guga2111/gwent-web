@@ -24,14 +24,6 @@
     border-color: var(--gold-dim);
   }
 
-  .player-panel__avatar-group {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-    flex-shrink: 0;
-  }
-
   .player-panel__avatar {
     width: 48px;
     height: 48px;
@@ -57,14 +49,6 @@
     padding: 2px;
   }
 
-  .player-panel__info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    min-width: 0;
-    flex: 1;
-  }
-
   .player-panel__name {
     font-family: var(--font-heading);
     font-size: 14px;
@@ -82,34 +66,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-
-  .player-panel__passed {
-    font-family: var(--font-ui);
-    font-size: 10px;
-    text-transform: uppercase;
-    color: var(--text-muted);
-  }
-
-  .player-panel__stats {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-shrink: 0;
-  }
-
-  .player-panel__hand-count {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-family: var(--font-ui);
-    font-size: 15px;
-    color: var(--text-secondary);
-  }
-
-  .player-panel__lives {
-    display: flex;
-    gap: 5px;
   }
 
   .player-panel__gem {

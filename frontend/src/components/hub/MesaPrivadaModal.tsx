@@ -37,7 +37,7 @@ export default function MesaPrivadaModal({ open, onClose, onCreateGame, onJoinGa
         {/* Close button */}
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 w-[30px] h-[30px] rounded-full border-none cursor-pointer flex items-center justify-center text-[var(--gold)]"
+          className="absolute top-4 right-4 w-[30px] h-[30px] rounded-full border-none cursor-pointer flex items-center justify-center text-gold"
           style={{
             background: 'rgba(0,0,0,.3)',
             boxShadow: 'inset 0 0 0 1px rgba(240,205,120,.25)',
@@ -49,14 +49,12 @@ export default function MesaPrivadaModal({ open, onClose, onCreateGame, onJoinGa
         {/* Header */}
         <div className="text-center mb-[26px]">
           <div
-            className="text-[10.5px] tracking-[4px] uppercase font-bold text-[var(--gold)]"
-            style={{ fontFamily: 'var(--font-heading)' }}
+            className="text-[10.5px] tracking-[4px] uppercase font-bold text-gold font-heading"
           >
             Mesa Privada
           </div>
           <h2
-            className="mt-1.5 text-[23px] font-bold text-[var(--gold-light)] tracking-[1px]"
-            style={{ fontFamily: 'var(--font-display)' }}
+            className="mt-1.5 text-[23px] font-bold text-gold-light tracking-[1px] font-display"
           >
             Uma Amistosa entre Amigos
           </h2>
@@ -66,17 +64,15 @@ export default function MesaPrivadaModal({ open, onClose, onCreateGame, onJoinGa
         {decks.length > 0 && (
           <div className="mb-5">
             <div
-              className="text-[10px] tracking-[2px] uppercase font-bold text-[var(--gold)] mb-1.5"
-              style={{ fontFamily: 'var(--font-heading)' }}
+              className="text-[10px] tracking-[2px] uppercase font-bold text-gold mb-1.5 font-heading"
             >
               Baralho
             </div>
             <select
               value={selectedDeckId ?? ''}
               onChange={(e) => setSelectedDeckId(e.target.value)}
-              className="w-full px-3 py-2 rounded-[7px] border-none outline-none text-sm text-[var(--text-primary)] bg-[var(--bg-darkest)] cursor-pointer"
+              className="w-full px-3 py-2 rounded-[7px] border-none outline-none text-sm text-text-primary bg-bg-darkest cursor-pointer font-ui"
               style={{
-                fontFamily: 'var(--font-ui)',
                 boxShadow: 'inset 0 0 0 1px var(--border-gold)',
               }}
             >
@@ -90,13 +86,13 @@ export default function MesaPrivadaModal({ open, onClose, onCreateGame, onJoinGa
         )}
 
         {decks.length === 0 && (
-          <p className="text-[13px] text-center text-[var(--gold)] mb-4" style={{ fontFamily: 'var(--font-body)' }}>
+          <p className="text-[13px] text-center text-gold mb-4 font-body">
             Crie um baralho na Forja antes de jogar
           </p>
         )}
 
         {error && (
-          <p className="text-[13px] text-center text-[var(--red)] mb-4">{error}</p>
+          <p className="text-[13px] text-center text-red mb-4">{error}</p>
         )}
 
         {/* Two side-by-side option cards */}
@@ -114,7 +110,7 @@ export default function MesaPrivadaModal({ open, onClose, onCreateGame, onJoinGa
             {!createdId ? (
               <>
                 <div
-                  className="w-[52px] h-[52px] rounded-full flex items-center justify-center text-[var(--bg-darkest)]"
+                  className="w-[52px] h-[52px] rounded-full flex items-center justify-center text-bg-darkest"
                   style={{
                     background: 'radial-gradient(circle at 35% 30%, var(--gold-light), var(--gold-dark))',
                     boxShadow: '0 4px 10px rgba(0,0,0,.4)',
@@ -123,14 +119,12 @@ export default function MesaPrivadaModal({ open, onClose, onCreateGame, onJoinGa
                   <Plus size={26} strokeWidth={1.8} />
                 </div>
                 <div
-                  className="font-bold text-[15px] text-[var(--gold-light)] tracking-[.5px]"
-                  style={{ fontFamily: 'var(--font-heading)' }}
+                  className="font-bold text-[15px] text-gold-light tracking-[.5px] font-heading"
                 >
                   {loading ? '...' : 'Criar Mesa'}
                 </div>
                 <div
-                  className="text-[12.5px] text-[var(--text-muted)] text-center leading-[1.35]"
-                  style={{ fontFamily: 'var(--font-body)' }}
+                  className="text-[12.5px] text-text-muted text-center leading-[1.35] font-body"
                 >
                   Gere um código e convide um amigo pelo link
                 </div>
@@ -138,13 +132,12 @@ export default function MesaPrivadaModal({ open, onClose, onCreateGame, onJoinGa
             ) : (
               <>
                 <div
-                  className="text-[13px] text-[var(--green)] mb-1"
-                  style={{ fontFamily: 'var(--font-body)' }}
+                  className="text-[13px] text-green mb-1 font-body"
                 >
                   Partida criada!
                 </div>
                 <code
-                  className="block px-4 py-3 rounded-[8px] bg-[var(--bg-darkest)] text-[var(--gold-light)] font-mono text-[13px] break-all select-all text-center"
+                  className="block px-4 py-3 rounded-[8px] bg-bg-darkest text-gold-light font-mono text-[13px] break-all select-all text-center"
                 >
                   {createdId}
                 </code>
@@ -172,7 +165,7 @@ export default function MesaPrivadaModal({ open, onClose, onCreateGame, onJoinGa
             {!showJoinInput ? (
               <>
                 <div
-                  className="w-[52px] h-[52px] rounded-full flex items-center justify-center text-[var(--gold)]"
+                  className="w-[52px] h-[52px] rounded-full flex items-center justify-center text-gold"
                   style={{
                     background: 'rgba(0,0,0,.3)',
                     boxShadow: 'inset 0 0 0 1.5px rgba(240,205,120,.45)',
@@ -181,14 +174,12 @@ export default function MesaPrivadaModal({ open, onClose, onCreateGame, onJoinGa
                   <LogIn size={26} strokeWidth={1.8} />
                 </div>
                 <div
-                  className="font-bold text-[15px] text-[var(--gold-light)] tracking-[.5px]"
-                  style={{ fontFamily: 'var(--font-heading)' }}
+                  className="font-bold text-[15px] text-gold-light tracking-[.5px] font-heading"
                 >
                   Entrar com Código
                 </div>
                 <div
-                  className="text-[12.5px] text-[var(--text-muted)] text-center leading-[1.35]"
-                  style={{ fontFamily: 'var(--font-body)' }}
+                  className="text-[12.5px] text-text-muted text-center leading-[1.35] font-body"
                 >
                   Recebeu um convite? Digite o código aqui
                 </div>
@@ -201,9 +192,8 @@ export default function MesaPrivadaModal({ open, onClose, onCreateGame, onJoinGa
                   onChange={(e) => setJoinCode(e.target.value)}
                   placeholder="Cole o código aqui"
                   autoFocus
-                  className="w-full px-[14px] py-3 rounded-[7px] border-none outline-none text-center text-sm text-[var(--text-primary)] bg-[var(--bg-darkest)]"
+                  className="w-full px-[14px] py-3 rounded-[7px] border-none outline-none text-center text-sm text-text-primary bg-bg-darkest font-ui"
                   style={{
-                    fontFamily: 'var(--font-ui)',
                     boxShadow: 'inset 0 0 0 1px var(--border-gold)',
                   }}
                 />

@@ -30,11 +30,11 @@ function FactionShield({ faction }: { faction: string | null }) {
           style={{ width: 4, height: 32, background: 'linear-gradient(180deg, var(--gold-light), var(--gold))' }}
         />
         <div
-          className="absolute left-1/2 top-[7px] -translate-x-1/2 rounded-sm bg-[var(--gold-light)]"
+          className="absolute left-1/2 top-[7px] -translate-x-1/2 rounded-sm bg-gold-light"
           style={{ width: 18, height: 3 }}
         />
         <div
-          className="absolute left-1/2 top-px -translate-x-1/2 rounded-full bg-[var(--gold-light)]"
+          className="absolute left-1/2 top-px -translate-x-1/2 rounded-full bg-gold-light"
           style={{ width: 8, height: 8 }}
         />
       </div>
@@ -71,8 +71,7 @@ export default function MatchmakingModal({ open, onCancel }: MatchmakingModalPro
       >
         {/* Header label */}
         <div
-          className="text-[10.5px] tracking-[4px] uppercase font-bold text-[var(--gold)]"
-          style={{ fontFamily: 'var(--font-heading)' }}
+          className="text-[10.5px] tracking-[4px] uppercase font-bold text-gold font-heading"
         >
           {phase === 'found' ? 'Partida encontrada!' : 'Matchmaking'}
         </div>
@@ -81,14 +80,12 @@ export default function MatchmakingModal({ open, onCancel }: MatchmakingModalPro
           <>
             <div className="mq-spinner" />
             <div
-              className="text-[20px] font-bold text-[var(--gold-light)] tracking-[1px]"
-              style={{ fontFamily: 'var(--font-display)' }}
+              className="text-[20px] font-bold text-gold-light tracking-[1px] font-display"
             >
               Procurando adversário...
             </div>
             <p
-              className="text-[13px] text-[var(--text-muted)]text-center"
-              style={{ fontFamily: 'var(--font-body)' }}
+              className="text-[13px] text-text-muted text-center font-body"
             >
               Aguarde enquanto buscamos um oponente digno.
             </p>
@@ -104,8 +101,7 @@ export default function MatchmakingModal({ open, onCancel }: MatchmakingModalPro
               <div className="flex flex-col items-center gap-2">
                 <FactionShield faction={activeDeck?.faction ?? null} />
                 <span
-                  className="text-[11px] tracking-[2px] uppercase font-bold text-[var(--gold)]"
-                  style={{ fontFamily: 'var(--font-heading)' }}
+                  className="text-[11px] tracking-[2px] uppercase font-bold text-gold font-heading"
                 >
                   {user?.username ?? 'Você'}
                 </span>
@@ -114,16 +110,14 @@ export default function MatchmakingModal({ open, onCancel }: MatchmakingModalPro
               <div className="flex flex-col items-center gap-2">
                 <FactionShield faction={null} />
                 <span
-                  className="text-[11px] tracking-[2px] uppercase font-bold text-[var(--text-muted)]"
-                  style={{ fontFamily: 'var(--font-heading)' }}
+                  className="text-[11px] tracking-[2px] uppercase font-bold text-text-muted font-heading"
                 >
                   Oponente
                 </span>
               </div>
             </div>
             <p
-              className="text-[13px] text-[var(--text-secondary)]"
-              style={{ fontFamily: 'var(--font-body)' }}
+              className="text-[13px] text-text-secondary font-body"
             >
               Iniciando duelo...
             </p>

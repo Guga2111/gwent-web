@@ -38,9 +38,9 @@ export default function MulliganOverlay({ hand, onConfirm, mulligansRemaining, a
   return (
     <div className="board-overlay">
       <OverlayCountdown deadlineUtc={abilityDeadlineUtc} />
-      <h2 className="overlay-title">Escolha cartas para trocar</h2>
+      <h2 className="text-2xl text-gold-light font-display">Escolha cartas para trocar</h2>
 
-      <p className="overlay-body">
+      <p className="text-sm text-text-secondary font-body">
         Você pode trocar até {mulligansRemaining} cartas
       </p>
 

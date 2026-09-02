@@ -36,6 +36,7 @@ export default function PlayerShield({ level, size = 'sm' }: PlayerShieldProps) 
       </div>
       {level !== undefined && (
         <div
+          className="font-heading"
           style={{
             position: 'absolute',
             bottom: -6,
@@ -43,7 +44,6 @@ export default function PlayerShield({ level, size = 'sm' }: PlayerShieldProps) 
             transform: 'translateX(-50%)',
             background: 'linear-gradient(180deg, var(--gold-light), var(--gold-dark))',
             color: 'var(--bg-darkest)',
-            fontFamily: 'var(--font-heading)',
             fontWeight: 700,
             fontSize: '10.5px',
             padding: '1px 8px',

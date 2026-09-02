@@ -26,7 +26,7 @@ export default function NavigationCard({ label, icon: Icon, active, onClick }: N
       </div>
       {/* Label */}
       <span
-        className={`font-heading relative font-semibold text-[11.5px] tracking-[.4px] leading-[1.15] min-h-[2lh] text-center flex items-center justify-center transition-colors duration-200 text-[var(--text-muted)] ${active ? 'nav-card__label--active' : ''}`}
+        className={`font-heading relative font-semibold text-[11.5px] tracking-[.4px] leading-[1.15] min-h-[2lh] text-center flex items-center justify-center transition-colors duration-200 text-text-muted ${active ? 'nav-card__label--active' : ''}`}
       >
         {label}
       </span>

@@ -31,8 +31,7 @@ export default function PassButton({ onClick, disabled }: PassButtonProps) {
         PASSAR
       </button>
       <div
-        className="text-[10px] text-[var(--text-muted)] mt-1"
-        style={{ fontFamily: 'var(--font-ui)' }}
+        className="text-[10px] text-text-muted mt-1 font-ui"
       >
         [ESPAÇO] segure
       </div>

@@ -20,10 +20,10 @@ export default function TopHUD({ user, onSettingsClick }: TopHUDProps) {
       <div className="flex items-center gap-3.5">
         <PlayerShield level={1} />
         <div>
-          <div className="font-heading font-bold text-lg text-[var(--text-primary)] tracking-[.3px]">
+          <div className="font-heading font-bold text-lg text-text-primary tracking-[.3px]">
             {user?.username ?? user?.email ?? 'Jogador'}
           </div>
-          <div className="font-bodytext-[13px] text-[var(--text-muted)] mt-px">
+          <div className="font-bodytext-[13px] text-text-muted mt-px">
             &laquo; &mdash; &raquo;
           </div>
         </div>
@@ -35,10 +35,10 @@ export default function TopHUD({ user, onSettingsClick }: TopHUDProps) {
               clipPath: 'polygon(0 0, 100% 0, 100% 64%, 50% 100%, 0 64%)',
             }}
           />
-          <span className="font-heading font-semibold text-[13px] text-[var(--gold)] tracking-[.5px]">
+          <span className="font-heading font-semibold text-[13px] text-gold tracking-[.5px]">
             {activeDeck ? config.label : '—'}
           </span>
-          <span className="font-bodytext-[13px] text-[var(--text-muted)]">
+          <span className="font-bodytext-[13px] text-text-muted">
             · —
           </span>
         </div>
@@ -46,7 +46,7 @@ export default function TopHUD({ user, onSettingsClick }: TopHUDProps) {
 
       {/* Center: Logo */}
       <div className="absolute left-1/2 top-[14px] -translate-x-1/2 text-center pointer-events-none">
-        <div className="font-display top-hud-logo font-black text-[22px] tracking-[6px] text-[var(--gold-light)]">
+        <div className="font-display top-hud-logo font-black text-[22px] tracking-[6px] text-gold-light">
           GWENT
         </div>
       </div>
@@ -75,7 +75,7 @@ export default function TopHUD({ user, onSettingsClick }: TopHUDProps) {
         {/* Settings */}
         <button
           onClick={onSettingsClick}
-          className="bg-transparent border-none cursor-pointer text-[var(--gold)] p-2 rounded-full"
+          className="bg-transparent border-none cursor-pointer text-gold p-2 rounded-full"
         >
           <Settings size={18} strokeWidth={1.8} />
         </button>

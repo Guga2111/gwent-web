@@ -14,9 +14,9 @@ export default function MedicOverlay({ graveyard, onSelectCard, abilityDeadlineU
   return (
     <div className="board-overlay">
       <OverlayCountdown deadlineUtc={abilityDeadlineUtc} />
-      <h2 className="overlay-title">Escolha uma carta para reviver</h2>
+      <h2 className="text-2xl text-gold-light font-display">Escolha uma carta para reviver</h2>
 
-      <p className="overlay-body">
+      <p className="text-sm text-text-secondary font-body">
         O Medic permite restaurar uma unidade do cemiterio
       </p>
 
@@ -25,7 +25,7 @@ export default function MedicOverlay({ graveyard, onSelectCard, abilityDeadlineU
           <div
             key={card.id}
             onClick={() => onSelectCard(card.id)}
-            className="border-2 border-transparent rounded-md p-0.5 cursor-pointer transition-colors duration-150 hover:border-[var(--gold-light)]"
+            className="border-2 border-transparent rounded-md p-0.5 cursor-pointer transition-colors duration-150 hover:border-gold-light"
           >
             <Card card={card} interactive={false} />
           </div>

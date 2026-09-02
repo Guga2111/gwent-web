@@ -14,32 +14,29 @@ export default function SurrenderDialog({ open, onConfirm, onCancel }: Surrender
       onClick={onCancel}
     >
       <div
-        className="flex flex-col items-center gap-5 px-10 py-8 rounded-lg border border-[var(--border-gold)] bg-[var(--bg-dark)]"
+        className="flex flex-col items-center gap-5 px-10 py-8 rounded-lg border border-border-gold bg-bg-dark"
         onClick={(e) => e.stopPropagation()}
       >
         <h2
-          className="text-xl"
-          style={{ fontFamily: 'var(--font-heading)', color: 'var(--gold-light)' }}
+          className="text-xl font-heading text-gold-light"
         >
           Desistir da Partida?
         </h2>
         <p
-          className="text-sm"
-          style={{ fontFamily: 'var(--font-body)', color: 'var(--text-secondary)' }}
+          className="text-sm font-body text-text-secondary"
         >
           Esta acao nao pode ser desfeita.
         </p>
         <div className="flex gap-4 mt-2">
           <button
             onClick={onCancel}
-            className="px-5 py-2 rounded border border-[var(--border-subtle)] bg-transparent text-[var(--text-secondary)] text-sm cursor-pointer hover:bg-[var(--bg-medium)]"
+            className="px-5 py-2 rounded border border-border-subtle bg-transparent text-text-secondary text-sm cursor-pointer hover:bg-bg-medium"
           >
             Cancelar
           </button>
           <button
             onClick={onConfirm}
-            className="px-5 py-2 rounded border border-[var(--red)] text-sm cursor-pointer"
-            style={{ backgroundColor: 'var(--red)', color: 'var(--text-primary)' }}
+            className="px-5 py-2 rounded border border-red text-sm cursor-pointer bg-red text-text-primary"
           >
             Confirmar
           </button>
