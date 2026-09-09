@@ -208,6 +208,15 @@ class ScoreCalculatorTest {
         assertEquals(3, scoreRow(meleeRow));
     }
 
+    @Test
+    void shouldNotApplyMoraleBoostToHero() {
+        // hero15 = 15 (immune to morale), moraleBoost3 = 3 → total = 18
+        meleeRow.addCard(hero15);
+        meleeRow.addCard(moraleBoost3);
+
+        assertEquals(18, scoreRow(meleeRow));
+    }
+
     // --- COMMANDERS_HORN ---
 
     @Test
@@ -218,6 +227,27 @@ class ScoreCalculatorTest {
         meleeRow.setHornActive(true);
 
         assertEquals(16, scoreRow(meleeRow));
+    }
+
+    @Test
+    void shouldNotApplyHornToHero() {
+        // hero15 = 15 (immune to horn), unit5 = 5*2=10 → total = 25
+        meleeRow.addCard(hero15);
+        meleeRow.addCard(unit5);
+        meleeRow.setHornActive(true);
+
+        assertEquals(25, scoreRow(meleeRow));
+    }
+
+    @Test
+    void shouldNotApplyHornOrMoraleToHero() {
+        // hero15 = 15 (immune), unit5 = (5+1)*2=12, moraleBoost3 = (3+0)*2=6 → total = 33
+        meleeRow.addCard(hero15);
+        meleeRow.addCard(unit5);
+        meleeRow.addCard(moraleBoost3);
+        meleeRow.setHornActive(true);
+
+        assertEquals(33, scoreRow(meleeRow));
     }
 
     @Test
