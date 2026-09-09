@@ -15,17 +15,20 @@ const score = useGameStore(s => s.gameState?.player1.totalScore)
 
 ---
 
-## 2. Hardcodar valores de tema
+## 2. Hardcodar valores de tema ou usar CSS variables
 
-Cores, fontes e sombras do tema medieval estão em CSS variables.
-Usar valores hex/rgb diretos nos componentes quebra a consistência visual e dificulta mudanças de tema.
+Cores e fontes do tema medieval estão definidas como tokens Tailwind no bloco `@theme`.
+Usar valores hex/rgb diretos ou `var(--...)` inline nos componentes quebra a consistência e ignora o sistema de utilidades.
 
 ```tsx
-// ERRADO
+// ERRADO — valores hardcoded
 <div style={{ color: '#f6dd97', fontFamily: "'Cinzel', serif" }}>
 
-// CORRETO
+// ERRADO — CSS variables inline (anti-pattern com Tailwind disponível)
 <div style={{ color: 'var(--gold-light)', fontFamily: 'var(--font-heading)' }}>
+
+// CORRETO — Tailwind utilities
+<div className="text-gold-light font-heading">
 ```
 
 ---

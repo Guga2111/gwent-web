@@ -20,34 +20,35 @@ Protótipos criados no Claude Design. Arquivos fonte em:
 
 ## Design System — Tema Medieval
 
-Extraído dos protótipos e fixado em `src/styles/index.css`.
+Extraído dos protótipos e definido como tokens Tailwind no bloco `@theme` de `src/styles/index.css`.
+Todos os valores são consumidos via classes utilitárias do Tailwind (e.g., `bg-bg-dark`, `text-gold-light`, `font-heading`).
 
 ### Fontes
 
-| Uso | Fonte | Variável |
+| Uso | Fonte | Tailwind class |
 |---|---|---|
-| Títulos decorativos (logo, nomes de tela) | Cinzel Decorative 700/900 | `--font-display` |
-| Headings, labels, scores | Cinzel 500-700 | `--font-heading` |
-| Corpo, descrições, flavor text | IM Fell English (italic) | `--font-body` |
-| UI funcional (botões, inputs, stats) | Barlow 400-700 | `--font-ui` |
+| Títulos decorativos (logo, nomes de tela) | Cinzel Decorative 700/900 | `font-display` |
+| Headings, labels, scores | Cinzel 500-700 | `font-heading` |
+| Corpo, descrições, flavor text | Alegreya (italic) | `font-body` |
+| UI funcional (botões, inputs, stats) | Alegreya 400-700 | `font-ui` |
 
 ### Paleta de cores
 
-| Token | Hex | Uso |
+| Tailwind class | Hex | Uso |
 |---|---|---|
-| `--bg-darkest` | `#0d0a07` | Fundo geral da aplicação |
-| `--bg-dark` | `#1a1410` | Painéis, sidebars |
-| `--bg-medium` | `#2a2118` | Inputs, áreas internas |
-| `--bg-card` | `#332a20` | Cards de UI, containers |
-| `--gold-light` | `#f6dd97` | Destaques, títulos, scores |
-| `--gold` | `#caa057` | Labels, bordas ativas, text secondary gold |
-| `--gold-dark` | `#a07830` | Botões primários, backgrounds de CTA |
-| `--text-primary` | `#e8dcc8` | Texto principal |
-| `--text-secondary` | `#b0a08a` | Texto complementar |
-| `--text-muted` | `#7a6c5a` | Texto desabilitado, hints |
-| `--red` | `#c44` | Oponente, erros, derrotas |
-| `--green` | `#5a8a3c` | Vitórias, validações |
-| `--blue` | `#4a7a9c` | Facção do Norte, ranks |
+| `bg-bg-darkest` / `text-bg-darkest` | `#0d0a07` | Fundo geral da aplicação |
+| `bg-bg-dark` | `#1a1410` | Painéis, sidebars |
+| `bg-bg-medium` | `#2a2118` | Inputs, áreas internas |
+| `bg-bg-card` | `#332a20` | Cards de UI, containers |
+| `text-gold-light` | `#f6dd97` | Destaques, títulos, scores |
+| `text-gold` / `border-gold` | `#caa057` | Labels, bordas ativas, text secondary gold |
+| `bg-gold-dark` | `#a07830` | Botões primários, backgrounds de CTA |
+| `text-text-primary` | `#e8dcc8` | Texto principal |
+| `text-text-secondary` | `#b0a08a` | Texto complementar |
+| `text-text-muted` | `#7a6c5a` | Texto desabilitado, hints |
+| `text-red` | `#c44` | Oponente, erros, derrotas |
+| `text-green` | `#5a8a3c` | Vitórias, validações |
+| `text-blue` | `#4a7a9c` | Facção do Norte, ranks |
 
 ### Animações (do protótipo)
 
