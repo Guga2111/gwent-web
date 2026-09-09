@@ -80,6 +80,7 @@ export default function Game() {
   const { remainingPct, remainingSeconds, isUrgent } = useTurnCountdown(gameState?.turnDeadlineUtc ?? null);
 
   const isWeatherCard = selectedCard?.cardType === 'WEATHER';
+  const isMulligan = gameState?.phase === 'REDRAW' && !me?.mulliganConfirmed;
 
   if (!connected || !gameState || !me || !opponent) {
     return (
@@ -102,7 +103,7 @@ export default function Game() {
   return (
     <div className="flex h-screen game-table">
       {/* Left Rail */}
-      <div className="flex flex-col bg-(--bg-dark)/90 border-r border-(--border-subtle) overflow-hidden w-84">
+      <div className={`flex flex-col bg-(--bg-dark)/90 border-r border-(--border-subtle) overflow-hidden w-84 transition-opacity duration-300 ${isMulligan ? 'opacity-15 pointer-events-none' : ''}`}>
         <LeaderCard
           leader={opponent.leader}
           leaderUsed={opponent.leaderUsed}
@@ -316,7 +317,7 @@ export default function Game() {
         </div>
 
         {/* Right Rail */}
-        <div className="flex flex-col items-center bg-(--bg-dark)/90 border-l border-(--border-subtle) py-3 gap-3 w-70 overflow-hidden">
+        <div className={`flex flex-col items-center bg-(--bg-dark)/90 border-l border-(--border-subtle) py-3 gap-3 w-70 overflow-hidden transition-opacity duration-300 ${isMulligan ? 'opacity-15 pointer-events-none' : ''}`}>
           <div className="flex items-center gap-16 py-11">
             <GraveyardStack count={opponent.graveyard.length} />
             <DeckStack count={opponent.deckSize} label="Deck" faction={opponent.leader.faction} />

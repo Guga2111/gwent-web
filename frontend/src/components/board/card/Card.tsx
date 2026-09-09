@@ -1,6 +1,6 @@
 import type { CardDto, Faction } from '@/types/game'
 import CardBack from './CardBack'
-import { factionTokens } from './CardBack'
+import { getFactionConfig } from '@/utils/factionConfig'
 import CardArtImage from './CardArtImage'
 import PowerGem from './PowerGem'
 import RowIcon from './RowIcon'
@@ -23,7 +23,7 @@ export default function Card({ card, onClick, interactive = false, faction, supp
   const isUnit = card.cardType === 'UNIT' || isHero
   const hasPower = isUnit && card.basePower != null
 
-  const tokens = factionTokens[card.faction]
+  const { tokens } = getFactionConfig(card.faction)
   const artStyle = tokens
     ? { background: `linear-gradient(160deg, ${tokens.secondary} 0%, color-mix(in srgb, ${tokens.primary} 25%, ${tokens.secondary}) 50%, ${tokens.secondary} 100%)` }
     : undefined

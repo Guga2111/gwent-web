@@ -1,5 +1,5 @@
+import { Button } from '@/components/ui/button'
 import type { PlayerStateDto, OpponentStateDto } from '@/types/game'
-import PrimaryButton from '@/components/ui/PrimaryButton'
 
 interface GameOverOverlayProps {
   myState: PlayerStateDto
@@ -57,9 +57,9 @@ export default function GameOverOverlay({ myState, opponentState, winner, discon
         </div>
       </div>
 
-      <PrimaryButton onClick={onBack} style={{ marginTop: 12 }}>
+      <Button onClick={onBack} variant="cta" className="mt-3">
         Voltar à Taverna
-      </PrimaryButton>
+      </Button>
     </div>
   )
 }

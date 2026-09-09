@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import Card from '../card/Card'
-import PrimaryButton from '@/components/ui/PrimaryButton'
 import OverlayCountdown from './OverlayCountdown'
 import type { CardDto } from '@/types/game'
+import { Button } from '@/components/ui/button'
 
 interface MulliganOverlayProps {
   hand: CardDto[]
@@ -59,7 +59,7 @@ export default function MulliganOverlay({ hand, onConfirm, mulligansRemaining, a
         ))}
       </div>
 
-      <PrimaryButton onClick={handleConfirm} disabled={submitted}>Confirmar</PrimaryButton>
+      <Button onClick={handleConfirm} disabled={submitted}>Confirmar</Button>
     </div>
   )
 }
