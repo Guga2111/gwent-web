@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
+import axios from 'axios'
 import { getUserDecks } from '@/api/deck'
 import type { DeckDto } from '@/types/deck'
 
@@ -69,8 +71,14 @@ export function useMesaPrivada(
     try {
       await onJoinGame(joinCode.trim(), selectedDeckId)
       navigate(`/game/${joinCode.trim()}`)
-    } catch {
-      setError('Falha ao entrar na partida')
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.data?.error === 'PLAYER_ALREADY_IN_GAME') {
+        toast.error('Você não pode entrar na própria partida', {
+          description: 'Envie o código para um amigo para que ele entre na mesa.',
+        })
+      } else {
+        setError('Falha ao entrar na partida')
+      }
     } finally {
       setLoading(false)
     }
