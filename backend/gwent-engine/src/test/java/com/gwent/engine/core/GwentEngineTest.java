@@ -34,6 +34,27 @@ class GwentEngineTest {
         assertEquals(GamePhase.REDRAW, state.getPhase());
     }
 
+    @Test
+    void shouldRandomlyAssignFirstPlayer() {
+        boolean sawPlayer1 = false;
+        boolean sawPlayer2 = false;
+
+        for (int i = 0; i < 100; i++) {
+            GameState state = new GameState(makePlayer(), makePlayer());
+            engine.resolveCoinFlip(state);
+
+            assertEquals(GamePhase.REDRAW, state.getPhase());
+
+            if (state.getCurrentTurn() == Turn.PLAYER_1) sawPlayer1 = true;
+            if (state.getCurrentTurn() == Turn.PLAYER_2) sawPlayer2 = true;
+
+            if (sawPlayer1 && sawPlayer2) break;
+        }
+
+        assertTrue(sawPlayer1, "Expected PLAYER_1 to be chosen at least once in 100 flips");
+        assertTrue(sawPlayer2, "Expected PLAYER_2 to be chosen at least once in 100 flips");
+    }
+
     // =========================================================
     // drawInitialCards
     // =========================================================

@@ -54,7 +54,7 @@ public class GameSessionService {
             GameState gameState = new GameState(player1, player2);
 
             engine.drawInitialCards(gameState, 10);
-            engine.resolveCoinFlip(gameState, Turn.PLAYER_1);
+            engine.resolveCoinFlip(gameState);
 
             SessionContext ctx = new SessionContext(gameState, game.getPlayer1Id(), userId);
             sessionRegistry.putSession(gameId, ctx);
