@@ -6,6 +6,7 @@ import com.gwent.engine.exception.command.*;
 import com.gwent.engine.state.*;
 
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class GwentEngine {
 
@@ -32,6 +33,11 @@ public class GwentEngine {
     }
 
     // --- Engine-initiated transitions ---
+
+    public void resolveCoinFlip(GameState state) {
+        Turn firstPlayer = ThreadLocalRandom.current().nextBoolean() ? Turn.PLAYER_1 : Turn.PLAYER_2;
+        resolveCoinFlip(state, firstPlayer);
+    }
 
     public void resolveCoinFlip(GameState state, Turn firstPlayer) {
         if (factionPassiveResolver.hasScoiataelAdvantage(state)) {
