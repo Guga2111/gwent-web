@@ -1,17 +1,14 @@
 import { useState } from 'react'
-import { Flag, Check, MessageCircle } from 'lucide-react'
+import { Flag, MessageCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import SurrenderDialog from './SurrenderDialog'
 
 interface ControlBarProps {
   onSurrender: () => void
-  selectedCardId: string | null
-  onConfirmPlay: () => void
 }
 
-export default function ControlBar({ onSurrender, selectedCardId, onConfirmPlay }: ControlBarProps) {
+export default function ControlBar({ onSurrender }: ControlBarProps) {
   const [showDialog, setShowDialog] = useState(false)
-  const canPlay = selectedCardId !== null
 
   return (
     <>
