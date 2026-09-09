@@ -5,6 +5,14 @@ import { useMatchmakingSocket } from '@/hooks/useMatchmakingSocket'
 import { useAuthStore } from '@/stores/authStore'
 import { getFactionConfig } from '@/utils/factionConfig'
 import { useHubStore } from '@/stores/hubStore'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
 import type { Faction } from '@/types/game'
 
 interface MatchmakingModalProps {
@@ -59,39 +67,33 @@ export default function MatchmakingModal({ open, onCancel }: MatchmakingModalPro
     return () => clearTimeout(timer)
   }, [phase, matchedGameId, navigate])
 
-  if (!open) return null
-
   return (
-    <div
-      className="fixed inset-0 z-[70] flex items-center justify-center"
-      style={{ background: 'rgba(8,5,2,.86)', backdropFilter: 'blur(5px)' }}
-    >
-      <div
-        className="mq-panel relative w-[440px] rounded-lg px-[42px] py-12 flex flex-col items-center gap-6"
+    <Dialog open={open} onOpenChange={(v) => !v && onCancel()}>
+      <DialogContent
+        className="mq-panel border-none max-w-[440px] px-[42px] py-12 flex flex-col items-center gap-6"
+        showCloseButton={false}
       >
-        {/* Header label */}
-        <div
-          className="text-[10.5px] tracking-[4px] uppercase font-bold text-gold font-heading"
-        >
-          {phase === 'found' ? 'Partida encontrada!' : 'Matchmaking'}
-        </div>
+        <DialogHeader className="text-center">
+          <DialogTitle className="text-[10.5px] tracking-[4px] uppercase font-bold text-gold font-heading">
+            {phase === 'found' ? 'Partida encontrada!' : 'Matchmaking'}
+          </DialogTitle>
+          <DialogDescription className="sr-only">
+            Buscando um oponente para a partida
+          </DialogDescription>
+        </DialogHeader>
 
         {phase === 'searching' && (
           <>
             <div className="mq-spinner" />
-            <div
-              className="text-[20px] font-bold text-gold-light tracking-[1px] font-display"
-            >
+            <div className="text-[20px] font-bold text-gold-light tracking-[1px] font-display">
               Procurando adversário...
             </div>
-            <p
-              className="text-[13px] text-text-muted text-center font-body"
-            >
+            <p className="text-[13px] text-text-muted text-center font-body">
               Aguarde enquanto buscamos um oponente digno.
             </p>
-            <button className="mq-cancel-btn" onClick={onCancel}>
+            <Button variant="cancel" className="px-6 py-2" onClick={onCancel}>
               Cancelar
-            </button>
+            </Button>
           </>
         )}
 
@@ -100,30 +102,24 @@ export default function MatchmakingModal({ open, onCancel }: MatchmakingModalPro
             <div className="flex items-center gap-8 mt-2">
               <div className="flex flex-col items-center gap-2">
                 <FactionShield faction={activeDeck?.faction ?? null} />
-                <span
-                  className="text-[11px] tracking-[2px] uppercase font-bold text-gold font-heading"
-                >
+                <span className="text-[11px] tracking-[2px] uppercase font-bold text-gold font-heading">
                   {user?.username ?? 'Você'}
                 </span>
               </div>
               <div className="mq-vs-text">VS</div>
               <div className="flex flex-col items-center gap-2">
                 <FactionShield faction={null} />
-                <span
-                  className="text-[11px] tracking-[2px] uppercase font-bold text-text-muted font-heading"
-                >
+                <span className="text-[11px] tracking-[2px] uppercase font-bold text-text-muted font-heading">
                   Oponente
                 </span>
               </div>
             </div>
-            <p
-              className="text-[13px] text-text-secondary font-body"
-            >
+            <p className="text-[13px] text-text-secondary font-body">
               Iniciando duelo...
             </p>
           </>
         )}
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }
