@@ -15,6 +15,7 @@ export default function CountBadge({
 }: CountBadgeProps) {
   return (
     <div
+      className="font-heading"
       style={{
         width: size,
         height: size,
@@ -24,7 +25,6 @@ export default function CountBadge({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontFamily: 'var(--font-heading)',
         fontSize: fontSize ?? Math.round(size * 0.35),
         fontWeight: 700,
         color,

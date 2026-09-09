@@ -13,14 +13,12 @@ export default function ComingSoonPage({ title }: ComingSoonPageProps) {
         }}
       >
         <div
-          className="text-[26px] font-bold text-[var(--parchment-heading)] mb-2"
-          style={{ fontFamily: 'var(--font-display)' }}
+          className="text-[26px] font-bold text-parchment-heading mb-2 font-display"
         >
           {title}
         </div>
         <div
-          className="italic text-[15px] text-[var(--parchment-muted)]"
-          style={{ fontFamily: 'var(--font-body)' }}
+          className="text-[15px] text-parchment-muted font-body"
         >
           Em breve
         </div>

@@ -58,19 +58,21 @@ Nunca misturar os dois canais para a mesma operação.
 
 ---
 
-## 5. Tema medieval via CSS variables
+## 5. Tema medieval via Tailwind utilities
 
-Todas as cores, fontes e espaçamentos do tema estão definidos em `styles/index.css` como CSS custom properties.
-Componentes referenciam variáveis, nunca valores hardcoded.
+Todas as cores e fontes do tema estão definidas no bloco `@theme` de `styles/index.css` como tokens do Tailwind.
+Componentes usam classes utilitárias do Tailwind, nunca CSS variables diretas nem valores hardcoded.
 
-```css
-/* CORRETO */
-color: var(--gold-light);
-font-family: var(--font-heading);
+```tsx
+// CORRETO — Tailwind utilities
+<h1 className="text-gold-light font-heading">Gwent</h1>
+<div className="bg-bg-dark text-text-primary">...</div>
 
-/* ERRADO */
-color: #f6dd97;
-font-family: 'Cinzel', serif;
+// ERRADO — CSS variables inline
+<h1 style={{ color: 'var(--gold-light)', fontFamily: 'var(--font-heading)' }}>
+
+// ERRADO — valores hardcoded
+<h1 style={{ color: '#f6dd97', fontFamily: "'Cinzel', serif" }}>
 ```
 
 ---

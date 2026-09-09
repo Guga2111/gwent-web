@@ -15,7 +15,7 @@ export default function LeaderCard({ leader, leaderUsed, onClick, side = 'bottom
     <div className="flex justify-center py-4">
       <div
         onClick={onClick}
-        className="leader-card-base"
+        className="leader-card-base flex flex-col items-center justify-center gap-1"
         style={{
           transform: `rotate(${rotation}deg)`,
           cursor: 'pointer',

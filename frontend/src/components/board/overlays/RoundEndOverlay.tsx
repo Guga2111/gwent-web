@@ -33,24 +33,22 @@ export default function RoundEndOverlay({ round, myScore, opponentScore }: Round
   return (
     <div className="board-overlay" style={{ backgroundColor: 'rgba(13, 10, 7, 0.8)' }}>
       <div
-        className="text-[16px] text-[var(--text-secondary)]"
-        style={{ fontFamily: 'var(--font-heading)' }}
+        className="text-[16px] text-text-secondary font-heading"
       >
         Round {round}
       </div>
 
       <div
-        className="flex gap-8 items-center text-[28px]"
-        style={{ fontFamily: 'var(--font-heading)' }}
+        className="flex gap-8 items-center text-[28px] font-heading"
       >
-        <span className="text-[var(--gold-light)]">{myScore}</span>
-        <span className="text-[var(--text-muted)] text-[16px]">vs</span>
-        <span className="text-[var(--text-secondary)]">{opponentScore}</span>
+        <span className="text-gold-light">{myScore}</span>
+        <span className="text-text-muted text-[16px]">vs</span>
+        <span className="text-text-secondary">{opponentScore}</span>
       </div>
 
       <div
-        className="text-[22px]"
-        style={{ fontFamily: 'var(--font-display)', color: resultColor }}
+        className="text-[22px] font-display"
+        style={{ color: resultColor }}
       >
         {result}
       </div>

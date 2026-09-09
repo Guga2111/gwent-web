@@ -2,7 +2,8 @@ import type { CatalogCardDto } from '@/types/deck'
 import CardArtImage from '@/components/board/card/CardArtImage'
 import PowerGem from '@/components/board/card/PowerGem'
 import AbilityIcon from '@/components/board/card/AbilityIcon'
-import { factionTokens } from '@/components/board/card/CardBack'
+import { getFactionConfig } from '@/utils/factionConfig'
+import { Label } from '@/components/ui/label'
 
 interface CatalogCardItemProps {
   card: CatalogCardDto
@@ -15,7 +16,7 @@ export function CatalogCardItem({ card, onAdd, qty }: CatalogCardItemProps) {
   const atMax = qty >= maxCopies
   const isHero = card.cardType === 'HERO'
 
-  const tokens = factionTokens[card.faction as keyof typeof factionTokens]
+  const { tokens } = getFactionConfig(card.faction as any)
   const artStyle = tokens
     ? { background: `linear-gradient(160deg, ${tokens.secondary} 0%, color-mix(in srgb, ${tokens.primary} 25%, ${tokens.secondary}) 50%, ${tokens.secondary} 100%)` }
     : undefined
@@ -28,7 +29,7 @@ export function CatalogCardItem({ card, onAdd, qty }: CatalogCardItemProps) {
     .join(' ')
 
   const cardClass = [
-    'card-base card-face',
+    'card-base card-face shrink-0 flex items-center justify-center',
     isHero && 'card-face--hero',
     qty > 0 && 'deckforge-catalog-card--selected',
   ]
@@ -48,13 +49,13 @@ export function CatalogCardItem({ card, onAdd, qty }: CatalogCardItemProps) {
           <AbilityIcon ability={card.ability as any} />
         )}
       </div>
-      <p className="text-xs text-center text-[var(--text-primary)] truncate w-full mt-1">
+      <Label className="text-sm text-center text-text-primary truncate w-full mt-1">
         {card.name}
-      </p>
-      <p className="text-[11px] text-center text-[var(--text-muted)]">
-        {qty > 0 && <span className="text-[var(--gold)] font-bold">{qty}/</span>}
+      </Label>
+      <Label className="text-xs text-center text-muted-foreground">
+        {qty > 0 && <span className="text-gold font-bold">{qty}/</span>}
         {maxCopies}
-      </p>
+      </Label>
     </div>
   )
 }

@@ -44,8 +44,8 @@ export default function LeaderOverlay({ pendingType, cards, onSelectCard, abilit
   return (
     <div className="board-overlay">
       <OverlayCountdown deadlineUtc={abilityDeadlineUtc} />
-      <h2 className="overlay-title">{title}</h2>
-      <p className="overlay-body">{description}</p>
+      <h2 className="text-2xl text-gold-light font-display">{title}</h2>
+      <p className="text-sm text-text-secondary font-body">{description}</p>
 
       <div className="flex gap-3 flex-wrap justify-center max-h-[60vh] overflow-y-auto px-4">
         {selectableCards.length > 0 ? (
@@ -53,13 +53,13 @@ export default function LeaderOverlay({ pendingType, cards, onSelectCard, abilit
             <div
               key={card.id}
               onClick={() => onSelectCard(card.id)}
-              className="border-2 border-transparent rounded-md p-0.5 cursor-pointer transition-colors duration-150 hover:border-[var(--gold-light)]"
+              className="border-2 border-transparent rounded-md p-0.5 cursor-pointer transition-colors duration-150 hover:border-gold-light"
             >
               <Card card={card} interactive={false} />
             </div>
           ))
         ) : (
-          <p className="text-[var(--text-muted)] text-sm" style={{ fontFamily: 'var(--font-body)' }}>
+          <p className="text-text-muted text-sm font-body">
             Nenhuma carta disponível.
           </p>
         )}

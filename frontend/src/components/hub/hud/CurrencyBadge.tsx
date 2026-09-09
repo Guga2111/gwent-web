@@ -1,71 +1,44 @@
 import type { LucideIcon } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface CurrencyBadgeProps {
   count: string | number
   label: string
   Icon: LucideIcon
-  iconBg: string
-  iconColor: string
-  accentShadow: string
-  countColor?: string
-  labelColor?: string
+  variant?: 'gold' | 'blue'
+}
+
+const variantStyles = {
+  gold: {
+    icon: 'bg-[radial-gradient(circle_at_35%_30%,var(--color-gold-light),var(--color-gold-dark))] text-bg-darkest',
+    count: 'text-gold-light',
+    label: 'text-text-muted',
+  },
+  blue: {
+    icon: 'bg-[radial-gradient(circle_at_35%_30%,var(--color-blue-light),var(--color-blue))] text-blue-dark',
+    count: 'text-blue-light',
+    label: 'text-blue-dim',
+  },
 }
 
 export default function CurrencyBadge({
   count,
   label,
   Icon,
-  iconBg,
-  iconColor,
-  accentShadow,
-  countColor = 'var(--gold-light)',
-  labelColor = 'var(--text-muted)',
+  variant = 'gold',
 }: CurrencyBadgeProps) {
+  const styles = variantStyles[variant]
+
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 9,
-        padding: '7px 15px 7px 7px',
-        borderRadius: 24,
-        background: 'linear-gradient(180deg, var(--bg-card), var(--bg-dark))',
-        boxShadow: `inset 0 0 0 1px ${accentShadow}, 0 4px 10px rgba(0,0,0,.4)`,
-      }}
-    >
-      <div
-        style={{
-          width: 28,
-          height: 28,
-          borderRadius: '50%',
-          background: iconBg,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: iconColor,
-        }}
-      >
+    <div className="flex items-center gap-2.5 rounded-3xl bg-linear-to-b from-bg-card to-bg-dark border border-border-subtle py-[7px] pl-[7px] pr-[15px] shadow-[0_4px_10px_rgba(0,0,0,.4)]">
+      <div className={cn('size-7 rounded-full flex items-center justify-center', styles.icon)}>
         <Icon size={15} strokeWidth={2} />
       </div>
-      <div style={{ lineHeight: 1 }}>
-        <div
-          style={{
-            fontFamily: 'var(--font-heading)',
-            fontWeight: 700,
-            color: countColor,
-            fontSize: 15,
-          }}
-        >
+      <div className="leading-none">
+        <div className={cn('font-heading font-bold text-[15px]', styles.count)}>
           {count}
         </div>
-        <div
-          style={{
-            fontSize: '8.5px',
-            letterSpacing: '1.5px',
-            textTransform: 'uppercase',
-            color: labelColor,
-          }}
-        >
+        <div className={cn('text-[8.5px] tracking-[1.5px] uppercase', styles.label)}>
           {label}
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { Button } from '@/components/ui/button'
 
 interface PassButtonProps {
   onClick: () => void
@@ -19,20 +20,15 @@ export default function PassButton({ onClick, disabled }: PassButtonProps) {
 
   return (
     <div className="px-4 py-2 text-center">
-      <button
+      <Button
         onClick={onClick}
         disabled={disabled}
-        className="pass-button"
-        style={{
-          opacity: disabled ? 0.4 : 1,
-          cursor: disabled ? 'not-allowed' : 'pointer',
-        }}
+        variant="pass"
       >
         PASSAR
-      </button>
+      </Button>
       <div
-        className="text-[10px] text-[var(--text-muted)] mt-1"
-        style={{ fontFamily: 'var(--font-ui)' }}
+        className="text-[10px] text-text-muted mt-1 font-ui"
       >
         [ESPAÇO] segure
       </div>

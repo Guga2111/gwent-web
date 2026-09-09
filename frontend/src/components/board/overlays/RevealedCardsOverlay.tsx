@@ -9,8 +9,8 @@ interface RevealedCardsOverlayProps {
 export default function RevealedCardsOverlay({ cards, onDismiss }: RevealedCardsOverlayProps) {
   return (
     <div className="board-overlay">
-      <h2 className="overlay-title">Cartas Reveladas</h2>
-      <p className="overlay-body">
+      <h2 className="text-2xl text-gold-light font-display">Cartas Reveladas</h2>
+      <p className="text-sm text-text-secondary font-body">
         O Imperador de Nilfgaard revelou cartas da mão do oponente.
       </p>
 
@@ -24,11 +24,7 @@ export default function RevealedCardsOverlay({ cards, onDismiss }: RevealedCards
 
       <button
         onClick={onDismiss}
-        className="mt-6 px-8 py-2 rounded text-[var(--text-primary)] border border-[var(--gold-dark)] cursor-pointer transition-colors duration-150 hover:bg-[var(--gold-dark)]"
-        style={{
-          fontFamily: 'var(--font-ui)',
-          backgroundColor: 'var(--bg-card)',
-        }}
+        className="mt-6 px-8 py-2 rounded text-text-primary border border-gold-dark cursor-pointer transition-colors duration-150 hover:bg-gold-dark font-ui bg-bg-card"
       >
         Fechar
       </button>

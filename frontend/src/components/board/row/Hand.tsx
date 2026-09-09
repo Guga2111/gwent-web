@@ -49,8 +49,7 @@ export default function Hand({ cards: rawCards, opponentHandSize, isPlayer, onCa
   return (
     <div className="text-center py-1">
       <div
-        className="text-[10px] text-[var(--text-muted)] mb-0.5"
-        style={{ fontFamily: 'var(--font-ui)' }}
+        className="text-[10px] text-text-muted mb-0.5 font-ui"
       >
         Sua mão &middot; {count}
       </div>

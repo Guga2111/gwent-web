@@ -52,9 +52,8 @@ export default function OverlayCountdown({ deadlineUtc }: OverlayCountdownProps)
         />
       </svg>
       <span
-        className="absolute inset-0 flex items-center justify-center text-sm font-bold"
+        className="absolute inset-0 flex items-center justify-center text-sm font-bold font-heading"
         style={{
-          fontFamily: 'var(--font-heading)',
           color: isUrgent ? 'var(--red)' : 'var(--gold-light)',
         }}
       >

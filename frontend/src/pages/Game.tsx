@@ -80,19 +80,19 @@ export default function Game() {
   const { remainingPct, remainingSeconds, isUrgent } = useTurnCountdown(gameState?.turnDeadlineUtc ?? null);
 
   const isWeatherCard = selectedCard?.cardType === 'WEATHER';
+  const isMulligan = gameState?.phase === 'REDRAW' && !me?.mulliganConfirmed;
 
   if (!connected || !gameState || !me || !opponent) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen gap-4 bg-[var(--bg-darkest)]">
+      <div className="flex flex-col items-center justify-center h-screen gap-4 bg-bg-darkest">
         <p
-          className="text-[var(--text-secondary)]"
-          style={{ fontFamily: "var(--font-heading)" }}
+          className="text-text-secondary font-heading"
         >
           {!connected ? "Conectando..." : "Aguardando estado do jogo..."}
         </p>
         <button
           onClick={() => navigate("/hub")}
-          className="text-sm underline text-[var(--text-muted)] bg-transparent border-none cursor-pointer"
+          className="text-sm underline text-text-muted bg-transparent border-none cursor-pointer"
         >
           Voltar à Taverna
         </button>
@@ -103,7 +103,7 @@ export default function Game() {
   return (
     <div className="flex h-screen game-table">
       {/* Left Rail */}
-      <div className="flex flex-col bg-(--bg-dark)/90 border-r border-(--border-subtle) overflow-hidden w-84">
+      <div className={`flex flex-col bg-(--bg-dark)/90 border-r border-(--border-subtle) overflow-hidden w-84 transition-opacity duration-300 ${isMulligan ? 'opacity-15 pointer-events-none' : ''}`}>
         <LeaderCard
           leader={opponent.leader}
           leaderUsed={opponent.leaderUsed}
@@ -137,9 +137,8 @@ export default function Game() {
           {/* Error notification */}
           {error && (
             <div
-              className="absolute top-3 left-1/2 -translate-x-1/2 z-20 rounded-md px-4.5 py-2 text-[13px] text-white pointer-events-none border border-[rgba(255,100,100,0.4)]"
+              className="absolute top-3 left-1/2 -translate-x-1/2 z-20 rounded-md px-4.5 py-2 text-[13px] text-white pointer-events-none border border-[rgba(255,100,100,0.4)] font-ui"
               style={{
-                fontFamily: "var(--font-ui)",
                 backgroundColor: "rgba(204, 68, 68, 0.92)",
               }}
             >
@@ -318,7 +317,7 @@ export default function Game() {
         </div>
 
         {/* Right Rail */}
-        <div className="flex flex-col items-center bg-(--bg-dark)/90 border-l border-(--border-subtle) py-3 gap-3 w-70 overflow-hidden">
+        <div className={`flex flex-col items-center bg-(--bg-dark)/90 border-l border-(--border-subtle) py-3 gap-3 w-70 overflow-hidden transition-opacity duration-300 ${isMulligan ? 'opacity-15 pointer-events-none' : ''}`}>
           <div className="flex items-center gap-16 py-11">
             <GraveyardStack count={opponent.graveyard.length} />
             <DeckStack count={opponent.deckSize} label="Deck" faction={opponent.leader.faction} />

@@ -18,7 +18,7 @@ export default function WeatherZone({ weatherEffects, isTargeting, targetAbility
   const isClearWeather = targetAbility === 'CLEAR_WEATHER'
 
   return (
-    <div className="flex flex-col gap-2 p-3 mx-2 my-1 rounded border border-[var(--border-subtle)] bg-[rgba(13,10,7,0.5)]" style={{ minHeight: '110px' }}>
+    <div className="flex flex-col gap-2 p-3 mx-2 my-1 rounded border border-border-subtle bg-[rgba(13,10,7,0.5)]" style={{ minHeight: '110px' }}>
       {WEATHER_SLOTS.map(({ key, label, Icon }) => {
         const active = activeSet.has(key)
         const isTarget = isTargeting && (isClearWeather || targetAbility === key)
@@ -35,8 +35,7 @@ export default function WeatherZone({ weatherEffects, isTargeting, targetAbility
               style={{ color: active ? 'var(--gold)' : 'var(--text-muted)' }}
             />
             <span
-              className={active ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}
-              style={{ fontFamily: 'var(--font-ui)' }}
+              className={`${active ? 'text-text-primary' : 'text-text-muted'} font-ui`}
             >
               {label}
             </span>

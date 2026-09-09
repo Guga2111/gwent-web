@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import Card from '../card/Card'
-import PrimaryButton from '@/components/ui/PrimaryButton'
 import OverlayCountdown from './OverlayCountdown'
 import type { CardDto } from '@/types/game'
+import { Button } from '@/components/ui/button'
 
 interface MulliganOverlayProps {
   hand: CardDto[]
@@ -38,9 +38,9 @@ export default function MulliganOverlay({ hand, onConfirm, mulligansRemaining, a
   return (
     <div className="board-overlay">
       <OverlayCountdown deadlineUtc={abilityDeadlineUtc} />
-      <h2 className="overlay-title">Escolha cartas para trocar</h2>
+      <h2 className="text-2xl text-gold-light font-display">Escolha cartas para trocar</h2>
 
-      <p className="overlay-body">
+      <p className="text-sm text-text-secondary font-body">
         Você pode trocar até {mulligansRemaining} cartas
       </p>
 
@@ -59,7 +59,7 @@ export default function MulliganOverlay({ hand, onConfirm, mulligansRemaining, a
         ))}
       </div>
 
-      <PrimaryButton onClick={handleConfirm} disabled={submitted}>Confirmar</PrimaryButton>
+      <Button onClick={handleConfirm} disabled={submitted}>Confirmar</Button>
     </div>
   )
 }
