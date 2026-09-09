@@ -1,9 +1,10 @@
 import type { CardDto } from '@/types/game'
-import { factionTokens } from './CardBack'
+import { getFactionConfig } from '@/utils/factionConfig'
 import CardArtImage from './CardArtImage'
 import PowerGem from './PowerGem'
 import RowIcon from './RowIcon'
 import AbilityIcon from './AbilityIcon'
+import { HorizontalSeparator } from '@/components/ui/horizontal-separator'
 
 interface CardDetailAction {
   label: string
@@ -114,7 +115,7 @@ export default function CardDetailPanel({ card, action }: CardDetailPanelProps) 
   const isUnit = card.cardType === 'UNIT' || isHero
   const hasPower = isUnit && card.basePower != null
 
-  const tokens = factionTokens[card.faction]
+  const { tokens } = getFactionConfig(card.faction)
   const panelVars = tokens
     ? { '--cdp-primary': tokens.primary, '--cdp-secondary': tokens.secondary } as React.CSSProperties
     : undefined
@@ -179,7 +180,7 @@ export default function CardDetailPanel({ card, action }: CardDetailPanelProps) 
         <span className="font-ui text-[10px] uppercase tracking-[1px] text-text-muted">{cardTypeNames[card.cardType]}</span>
         {description && (
           <>
-            <div className="h-px w-4/5 bg-gold-dim opacity-50 self-center" />
+            <HorizontalSeparator variant="gold" className="w-4/5 self-center" />
             <p className="font-body text-[11px] text-text-secondary text-center leading-[1.4] m-0">{description}</p>
           </>
         )}

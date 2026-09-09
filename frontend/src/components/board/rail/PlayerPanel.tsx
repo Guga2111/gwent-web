@@ -1,15 +1,8 @@
-import type { PlayerStateDto, OpponentStateDto, Faction } from '@/types/game'
+import type { PlayerStateDto, OpponentStateDto } from '@/types/game'
 import CountBadge from '@/components/ui/CountBadge'
-import { factionTokens, emblems } from '@/components/board/card/CardBack'
+import { getFactionConfig } from '@/utils/factionConfig'
 import { Layers } from 'lucide-react'
 
-const FACTION_DISPLAY_NAMES: Record<Faction, string> = {
-  NORTHERN_REALMS: 'Reinos do Norte',
-  NILFGAARD: 'Nilfgaard',
-  MONSTER: 'Monstros',
-  SCOIATAEL: "Scoia'tael",
-  SKELLIGE: 'Skellige',
-}
 
 interface PlayerPanelProps {
   player: PlayerStateDto | OpponentStateDto
@@ -25,8 +18,7 @@ export default function PlayerPanel({ player, isActive, side }: PlayerPanelProps
   const maxLives = 2
   const gems = Array.from({ length: maxLives }, (_, i) => i < player.lives)
   const faction = player.leader.faction
-  const tokens = factionTokens[faction] ?? factionTokens.NORTHERN_REALMS
-  const Emblem = emblems[faction]
+  const { tokens, Emblem, label: factionName } = getFactionConfig(faction)
   const username = player.playerId.split('@')[0]
   const handCount = getHandCount(player)
 
@@ -43,7 +35,7 @@ export default function PlayerPanel({ player, isActive, side }: PlayerPanelProps
       {/* Name + Faction + Passed */}
       <div className="flex flex-col gap-0.5 min-w-0 flex-1">
         <div className="player-panel__name">{username}</div>
-        <div className="player-panel__faction-name">{FACTION_DISPLAY_NAMES[faction]}</div>
+        <div className="player-panel__faction-name">{factionName}</div>
         {player.passed && <div className="font-ui text-[10px] uppercase text-text-muted">PASSOU</div>}
       </div>
 

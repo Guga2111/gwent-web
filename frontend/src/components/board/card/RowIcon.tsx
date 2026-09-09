@@ -7,7 +7,7 @@ interface RowIconProps {
   size?: 'sm' | 'lg'
 }
 
-function SiegeIcon({ size, strokeWidth }: { size: number; strokeWidth: number }) {
+export function SiegeIcon({ size, strokeWidth }: { size: number; strokeWidth: number }) {
   return (
     <svg
       width={size}

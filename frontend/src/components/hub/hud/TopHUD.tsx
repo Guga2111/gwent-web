@@ -4,6 +4,7 @@ import PlayerShield from './PlayerShield'
 import CurrencyBadge from './CurrencyBadge'
 import { useHubStore } from '@/stores/hubStore'
 import { getFactionConfig } from '@/utils/factionConfig'
+import { Button } from '@/components/ui/button'
 
 interface TopHUDProps {
   user: AuthUser | null
@@ -27,58 +28,37 @@ export default function TopHUD({ user, onSettingsClick }: TopHUDProps) {
             &laquo; &mdash; &raquo;
           </div>
         </div>
-        <div className="flex items-center gap-2 ml-1.5 pl-4 top-hud-faction-divider">
+        <div className="flex items-center gap-2 ml-1.5 pl-4 border-l border-border-subtle">
           <div
-            className="w-[15px] h-[18px]"
-            style={{
-              background: `var(${config.secondaryVar})`,
-              clipPath: 'polygon(0 0, 100% 0, 100% 64%, 50% 100%, 0 64%)',
-            }}
+            className="w-[15px] h-[18px] [clip-path:polygon(0_0,100%_0,100%_64%,50%_100%,0_64%)]"
+            style={{ background: `var(${config.secondaryVar})` }}
           />
           <span className="font-heading font-semibold text-[13px] text-gold tracking-[.5px]">
             {activeDeck ? config.label : '—'}
-          </span>
-          <span className="font-bodytext-[13px] text-text-muted">
-            · —
           </span>
         </div>
       </div>
 
       {/* Center: Logo */}
       <div className="absolute left-1/2 top-[14px] -translate-x-1/2 text-center pointer-events-none">
-        <div className="font-display top-hud-logo font-black text-[22px] tracking-[6px] text-gold-light">
+        <div className="font-display font-black text-[22px] tracking-[6px] text-gold-light">
           GWENT
         </div>
       </div>
 
       {/* Right: Currencies + Settings */}
       <div className="flex items-center gap-[11px]">
-        <CurrencyBadge
-          count="—"
-          label="coroas"
-          Icon={Coins}
-          iconBg="radial-gradient(circle at 35% 30%, var(--gold-light), var(--gold-dark))"
-          iconColor="var(--bg-darkest)"
-          accentShadow="rgba(240,205,120,.28)"
-        />
-        <CurrencyBadge
-          count="—"
-          label="sucata"
-          Icon={Gem}
-          iconBg="radial-gradient(circle at 35% 30%, var(--blue-light), var(--blue))"
-          iconColor="var(--blue-dark)"
-          accentShadow="rgba(140,180,210,.28)"
-          countColor="var(--blue-light)"
-          labelColor="var(--blue-dim)"
-        />
+        <CurrencyBadge count="—" label="coroas" Icon={Coins} />
+        <CurrencyBadge count="—" label="sucata" Icon={Gem} variant="blue" />
 
         {/* Settings */}
-        <button
+        <Button
           onClick={onSettingsClick}
           className="bg-transparent border-none cursor-pointer text-gold p-2 rounded-full"
+          variant="ghost"
         >
-          <Settings size={18} strokeWidth={1.8} />
-        </button>
+          <Settings size={16} />
+        </Button>
       </div>
     </header>
   )

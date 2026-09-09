@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { getActiveGame } from '@/api/game'
 import TopHUD from '@/components/hub/hud/TopHUD'
 import BottomNav from '@/components/hub/BottomNav'
+import { Button } from '@/components/ui/button'
 import RulesModal from '@/components/hub/RulesModal'
 import Taverna from '@/pages/hub/Taverna'
 import DeckForge from '@/pages/hub/DeckForge'
@@ -51,21 +52,29 @@ export default function Hub() {
               Partida em andamento
             </span>
           </div>
-          <button
+          <Button
             onClick={() => navigate(`/game/${activeGameId}`)}
-            className="font-heading hub-active-banner__btn px-4 py-1 rounded text-gold-light text-[11px] font-bold tracking-[1.5px] uppercase cursor-pointer"
+            variant="ghost"
+            className="font-heading px-4 py-1 rounded text-gold-light text-[11px] font-bold tracking-[1.5px] uppercase cursor-pointer border border-[rgba(240,205,120,.45)] bg-[rgba(240,205,120,.12)]"
           >
             Retomar
-          </button>
+          </Button>
         </div>
       )}
 
       {/* Content area */}
       <div className="relative z-20 flex-1 min-h-0 overflow-hidden">
         <ActiveTab />
-        <button onClick={openTutorial} className="hub-help-btn">
-          ?
-        </button>
+        {activeTab === 'home' && (
+          <Button
+            onClick={openTutorial}
+            variant="ghost"
+            size="icon"
+            className="absolute bottom-4 right-4 w-9 h-9 rounded-full bg-bg-card border border-gold text-gold font-heading text-lg font-bold z-10"
+          >
+            ?
+          </Button>
+        )}
       </div>
 
       <RulesModal open={tutorialOpen} onClose={closeTutorial} />

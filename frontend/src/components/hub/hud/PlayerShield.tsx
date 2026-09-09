@@ -4,54 +4,28 @@ interface PlayerShieldProps {
 }
 
 const sizes = {
-  sm: { outer: [52, 64] as [number, number], inner: [42, 54] as [number, number] },
-  md: { outer: [90, 106] as [number, number], inner: [76, 92] as [number, number] },
+  sm: { outer: 'w-[52px] h-[64px]', inner: 'w-[42px] h-[54px]' },
+  md: { outer: 'w-[90px] h-[106px]', inner: 'w-[76px] h-[92px]' },
 }
+
+const shieldClip = { clipPath: 'polygon(0 0, 100% 0, 100% 64%, 50% 100%, 0 64%)' }
 
 export default function PlayerShield({ level, size = 'sm' }: PlayerShieldProps) {
   const { outer, inner } = sizes[size]
 
   return (
-    <div style={{ position: 'relative', flexShrink: 0 }}>
+    <div className="relative shrink-0">
       <div
-        style={{
-          width: outer[0],
-          height: outer[1],
-          background: 'linear-gradient(180deg, var(--gold-light), var(--gold) 60%, var(--gold-dim))',
-          clipPath: 'polygon(0 0, 100% 0, 100% 64%, 50% 100%, 0 64%)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          filter: 'drop-shadow(0 4px 8px rgba(0,0,0,.5))',
-        }}
+        className={`${outer} flex items-center justify-center bg-linear-to-b from-gold-light via-gold via-60% to-gold-dim drop-shadow-[0_4px_8px_rgba(0,0,0,.5)]`}
+        style={shieldClip}
       >
         <div
-          style={{
-            width: inner[0],
-            height: inner[1],
-            clipPath: 'polygon(0 0, 100% 0, 100% 64%, 50% 100%, 0 64%)',
-            background: 'var(--bg-dark)',
-          }}
+          className={`${inner} bg-bg-dark`}
+          style={shieldClip}
         />
       </div>
       {level !== undefined && (
-        <div
-          className="font-heading"
-          style={{
-            position: 'absolute',
-            bottom: -6,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            background: 'linear-gradient(180deg, var(--gold-light), var(--gold-dark))',
-            color: 'var(--bg-darkest)',
-            fontWeight: 700,
-            fontSize: '10.5px',
-            padding: '1px 8px',
-            borderRadius: 9,
-            boxShadow: '0 2px 4px rgba(0,0,0,.5)',
-            whiteSpace: 'nowrap',
-          }}
-        >
+        <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 bg-linear-to-b from-gold-light to-gold-dark text-bg-darkest font-heading font-bold text-[10.5px] px-2 py-px rounded-[9px] shadow-[0_2px_4px_rgba(0,0,0,.5)] whitespace-nowrap">
           {level}
         </div>
       )}

@@ -3,6 +3,8 @@ import { DeckEditorHeader } from '@/components/hub/deckforge/DeckEditorHeader'
 import { CatalogPanel } from '@/components/hub/deckforge/CatalogPanel'
 import { DeckPreviewPanel } from '@/components/hub/deckforge/DeckPreviewPanel'
 import { useDeckEditor } from '@/hooks/useDeckEditor'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
 
 export default function DeckForge() {
   const {
@@ -22,15 +24,16 @@ export default function DeckForge() {
         />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <p className="font-body text-[17px]text-text-muted mb-4">
+            <Label className="font-body text-lg text-text-muted mb-4 block">
               Selecione um baralho ou crie um novo
-            </p>
-            <button
+            </Label>
+            <Button
               onClick={openNew}
-              className="px-6 py-3 rounded-[8px] font-bold text-[13px] text-bg-darkest border-none cursor-pointer btn-gold"
+              variant="cta"
+              className="px-6 py-3 text-sm"
             >
               Criar Baralho
-            </button>
+            </Button>
           </div>
         </div>
       </div>
