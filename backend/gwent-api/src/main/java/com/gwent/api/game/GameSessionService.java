@@ -1,6 +1,7 @@
 package com.gwent.api.game;
 
 import com.gwent.api.game.dto.*;
+import com.gwent.api.game.exception.PlayerAlreadyInGameException;
 import com.gwent.api.game.service.*;
 import com.gwent.engine.command.PassCommand;
 import com.gwent.engine.command.ResolveLeaderCommand;
@@ -43,6 +44,8 @@ public class GameSessionService {
     public GameStateDto joinSession (UUID gameId, String userId, UUID deckId) {
         return sessionRegistry.executeWithInitLock(gameId, () -> {
             Game game = persistenceService.getGameValidatingWaitingStatus(gameId);
+
+            if (game.getPlayer1Id().equals(userId)) throw new PlayerAlreadyInGameException(userId);
 
             persistenceService.saveJoinedGame(gameId, userId, deckId);
 

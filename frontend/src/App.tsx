@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import { Toaster } from '@/components/ui/sonner'
 import Landing from '@/pages/Landing'
 import Login from '@/pages/Login'
 import Hub from '@/pages/Hub'
@@ -44,6 +45,7 @@ export default function App() {
           />
           <Route path="*" element={<CatchAllRedirect />} />
         </Routes>
+        <Toaster />
       </BrowserRouter>
     </TooltipProvider>
   )
