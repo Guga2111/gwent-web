@@ -356,8 +356,6 @@ export default function Game() {
             ) : (
               <ControlBar
                 onSurrender={() => gameId && surrender(gameId).catch(() => setError("Falha ao desistir. Tente novamente."))}
-                selectedCardId={selectedCardId}
-                onConfirmPlay={confirmPlay}
               />
             )}
           </div>
