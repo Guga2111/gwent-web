@@ -72,7 +72,7 @@ export default function Game() {
     useFlyingCard(me, opponent, error);
 
   const {
-    isMyTurn, canInteract, playCard, playWeatherCard, confirmPlay,
+    isMyTurn, canInteract, playCard, playWeatherCard,
     pass, useLeader, canPlayOnRow,
   } = useGameActions(sendCommand, gameState, selectedCard, selectedCardId, clearSelection, launchCard);
 
