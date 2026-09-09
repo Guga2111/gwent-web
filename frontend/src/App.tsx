@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import Landing from '@/pages/Landing'
 import Login from '@/pages/Login'
 import Hub from '@/pages/Hub'
 import Game from '@/pages/Game'
@@ -12,29 +14,37 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
   return children;
 }
 
+function CatchAllRedirect() {
+  const token = useAuthStore((s) => s.token);
+  return <Navigate to={token ? '/hub' : '/'} replace />;
+}
+
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route
-          path="/hub"
-          element={
-            <ProtectedRoute>
-              <Hub />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/game/:gameId"
-          element={
-            <ProtectedRoute>
-              <Game />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="*" element={<Navigate to="/hub" replace />} />
-      </Routes>
-    </BrowserRouter>
+    <TooltipProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
+          <Route
+            path="/hub"
+            element={
+              <ProtectedRoute>
+                <Hub />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/game/:gameId"
+            element={
+              <ProtectedRoute>
+                <Game />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<CatchAllRedirect />} />
+        </Routes>
+      </BrowserRouter>
+    </TooltipProvider>
   )
 }
