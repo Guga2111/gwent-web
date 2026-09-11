@@ -159,6 +159,8 @@ class GwentEngineComplexCardTest {
         assertTrue(state.getPlayer1().getMeleeRow().isHornActive());
         assertFalse(state.getPlayer1().getRangedRow().isHornActive());
         assertFalse(state.getPlayer1().getSiegeRow().isHornActive());
+        assertTrue(state.getPlayer1().getGraveyard().contains(horn));
+        assertTrue(state.getPlayer1().getMeleeRow().getCards().isEmpty());
     }
 
     @Test
@@ -315,6 +317,111 @@ class GwentEngineComplexCardTest {
 
         assertEquals(1, p1Of(state).getMeleeRow().getCards().size()); // only trigger
         assertTrue(p1Of(state).getHand().isEmpty());
+    }
+
+    // =========================================================
+    // DUMMY (Decoy) — E2E through engine
+    // =========================================================
+
+    @Test
+    void shouldSetDummyChoicePendingWhenBoardHasValidTargets() {
+        Card unit = makeUnit("u1", "Soldier", 5, RowType.MELEE);
+        Card dummy = makeDummy("d1");
+        PlayerState p1 = playerWithHand(dummy);
+        p1.getMeleeRow().addCard(unit);
+        GameState state = makePlayState(p1, makePlayer());
+
+        engine.execute(state, new PlayCardCommand(dummy, RowType.MELEE));
+
+        assertEquals(PendingAbility.DUMMY_CHOICE, state.getPendingAbility());
+    }
+
+    @Test
+    void shouldWasteDummyWhenBoardHasNoValidTargets() {
+        Card dummy = makeDummy("d1");
+        GameState state = makePlayState(playerWithHand(dummy), makePlayer());
+
+        engine.execute(state, new PlayCardCommand(dummy, RowType.MELEE));
+
+        assertNull(state.getPendingAbility());
+        assertEquals(Turn.PLAYER_2, state.getCurrentTurn());
+    }
+
+    @Test
+    void shouldWasteDummyWhenBoardHasOnlyHeroes() {
+        Card hero = makeHero("h1", "Geralt", 15, RowType.MELEE);
+        Card dummy = makeDummy("d1");
+        PlayerState p1 = playerWithHand(dummy);
+        p1.getMeleeRow().addCard(hero);
+        GameState state = makePlayState(p1, makePlayer());
+
+        engine.execute(state, new PlayCardCommand(dummy, RowType.MELEE));
+
+        assertNull(state.getPendingAbility());
+    }
+
+    @Test
+    void shouldReturnUnitToHandAndRemoveFromRowWhenResolveDummy() {
+        Card unit = makeUnit("u1", "Soldier", 5, RowType.MELEE);
+        Card dummy = makeDummy("d1");
+        PlayerState p1 = playerWithHand(dummy);
+        p1.getMeleeRow().addCard(unit);
+        GameState state = makePlayState(p1, makePlayer());
+
+        engine.execute(state, new PlayCardCommand(dummy, RowType.MELEE));
+        assertEquals(PendingAbility.DUMMY_CHOICE, state.getPendingAbility());
+
+        engine.execute(state, new ResolveDummyCommand(unit));
+
+        assertNull(state.getPendingAbility());
+        assertFalse(p1.getMeleeRow().getCards().contains(unit));
+        assertTrue(p1.getHand().contains(unit));
+    }
+
+    @Test
+    void shouldRejectHeroCardInResolveDummy() {
+        Card unit = makeUnit("u1", "Soldier", 5, RowType.MELEE);
+        Card hero = makeHero("h1", "Geralt", 15, RowType.MELEE);
+        Card dummy = makeDummy("d1");
+        PlayerState p1 = playerWithHand(dummy);
+        p1.getMeleeRow().addCard(unit);
+        p1.getMeleeRow().addCard(hero);
+        GameState state = makePlayState(p1, makePlayer());
+
+        engine.execute(state, new PlayCardCommand(dummy, RowType.MELEE));
+
+        assertThrows(InvalidRowException.class, () ->
+                engine.execute(state, new ResolveDummyCommand(hero)));
+    }
+
+    @Test
+    void shouldSwitchTurnAfterResolveDummy() {
+        Card unit = makeUnit("u1", "Soldier", 5, RowType.MELEE);
+        Card dummy = makeDummy("d1");
+        PlayerState p1 = playerWithHand(dummy);
+        p1.getMeleeRow().addCard(unit);
+        GameState state = makePlayState(p1, makePlayer());
+
+        engine.execute(state, new PlayCardCommand(dummy, RowType.MELEE));
+        engine.execute(state, new ResolveDummyCommand(unit));
+
+        assertEquals(Turn.PLAYER_2, state.getCurrentTurn());
+    }
+
+    @Test
+    void shouldNotSwitchTurnAfterResolveDummyWhenOpponentPassed() {
+        Card unit = makeUnit("u1", "Soldier", 5, RowType.MELEE);
+        Card dummy = makeDummy("d1");
+        PlayerState p1 = playerWithHand(dummy);
+        p1.getMeleeRow().addCard(unit);
+        PlayerState p2 = makePlayer();
+        p2.pass();
+        GameState state = makePlayState(p1, p2);
+
+        engine.execute(state, new PlayCardCommand(dummy, RowType.MELEE));
+        engine.execute(state, new ResolveDummyCommand(unit));
+
+        assertEquals(Turn.PLAYER_1, state.getCurrentTurn());
     }
 
     // =========================================================
@@ -516,8 +623,7 @@ class GwentEngineComplexCardTest {
     }
 
     private Card makeCommandersHorn(String id, String name) {
-        // Treated as a UNIT with 0 power so ScoreCalculator handles it without NPE
-        return new Card(id, name, Faction.NEUTRAL, CardType.UNIT, Ability.COMMANDERS_HORN, null, RowType.MELEE, 0);
+        return new Card(id, name, Faction.NEUTRAL, CardType.SPECIAL, Ability.COMMANDERS_HORN, null, null, null);
     }
 
     private Card makeScorch(String id, String name) {
@@ -526,6 +632,10 @@ class GwentEngineComplexCardTest {
 
     private Card makeMuster(String id, String name, int power) {
         return new Card(id, name, Faction.NEUTRAL, CardType.UNIT, Ability.MUSTER, null, RowType.MELEE, power);
+    }
+
+    private Card makeDummy(String id) {
+        return new Card(id, "Decoy", Faction.NEUTRAL, CardType.SPECIAL, Ability.DUMMY, null, null, null);
     }
 
     private Card makeFrost(String id) {

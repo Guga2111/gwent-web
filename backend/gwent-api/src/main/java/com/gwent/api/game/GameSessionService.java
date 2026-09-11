@@ -3,10 +3,7 @@ package com.gwent.api.game;
 import com.gwent.api.game.dto.*;
 import com.gwent.api.game.exception.PlayerAlreadyInGameException;
 import com.gwent.api.game.service.*;
-import com.gwent.engine.command.PassCommand;
-import com.gwent.engine.command.ResolveLeaderCommand;
-import com.gwent.engine.command.ResolveMedicCommand;
-import com.gwent.engine.command.ResolveScoiataelCommand;
+import com.gwent.engine.command.*;
 import com.gwent.engine.core.GwentEngine;
 import com.gwent.engine.domain.*;
 import com.gwent.engine.exception.command.InvalidPhaseCommandException;
@@ -157,17 +154,26 @@ public class GameSessionService {
         if (pending == PendingAbility.MEDIC_CHOICE) {
             scheduleMedicTimeout(gameId, ctx);
             timerService.cancelLeaderTimer(gameId);
+            timerService.cancelDummyTimer(gameId);
+            timerService.cancelTurnTimer(gameId);
+        } else if (pending == PendingAbility.DUMMY_CHOICE) {
+            scheduleDummyTimeout(gameId, ctx);
+            timerService.cancelMedicTimer(gameId);
+            timerService.cancelLeaderTimer(gameId);
             timerService.cancelTurnTimer(gameId);
         } else if (pending != null && pending.name().startsWith("LEADER_")) {
             scheduleLeaderTimeout(gameId, ctx);
             timerService.cancelMedicTimer(gameId);
+            timerService.cancelDummyTimer(gameId);
             timerService.cancelTurnTimer(gameId);
         } else if (pending == null && beforeTurn != afterTurn && ctx.gameState().getPhase().equals(GamePhase.PLAY)) {
             scheduleTurnTimer(gameId, ctx);
             timerService.cancelMedicTimer(gameId);
+            timerService.cancelDummyTimer(gameId);
             timerService.cancelLeaderTimer(gameId);
         } else {
             timerService.cancelMedicTimer(gameId);
+            timerService.cancelDummyTimer(gameId);
             timerService.cancelLeaderTimer(gameId);
             if (pending == null && ctx.gameState().getPhase() == GamePhase.PLAY && !ctx.gameState().isGameOver()) {
                 scheduleTurnTimer(gameId, ctx);
@@ -175,6 +181,31 @@ public class GameSessionService {
                 timerService.cancelTurnTimer(gameId);
             }
         }
+    }
+
+    private void scheduleDummyTimeout (UUID gameId, SessionContext ctx) {
+        timerService.scheduleDummyTimeout(gameId, () -> {
+            sessionRegistry.executeWithLockVoid(gameId, lockedCtx -> {
+                if (lockedCtx.gameState().getPendingAbility() == PendingAbility.DUMMY_CHOICE) {
+                    PlayerState current = lockedCtx.gameState().getCurrentPlayer();
+                    Card randomUnit = null;
+                    for (RowType rowType : RowType.values()) {
+                        randomUnit = current.getRow(rowType).getCards().stream()
+                                .filter(c -> c.cardType() == CardType.UNIT)
+                                .findAny()
+                                .orElse(null);
+                        if (randomUnit != null) break;
+                    }
+                    if (randomUnit != null) {
+                        engine.execute(lockedCtx.gameState(), new ResolveDummyCommand(randomUnit));
+                        if (lockedCtx.gameState().getPhase() == GamePhase.PLAY && !lockedCtx.gameState().isGameOver()) {
+                            scheduleTurnTimer(gameId, lockedCtx);
+                        }
+                        broadcastAndPersist(gameId, lockedCtx);
+                    }
+                }
+            });
+        });
     }
 
     private void scheduleMedicTimeout (UUID gameId, SessionContext ctx) {
