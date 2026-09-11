@@ -1,6 +1,9 @@
 spring:
   application:
     name: gwent-api
+  threads:
+    virtual:
+      enabled: true
   jpa:
     hibernate:
       ddl-auto: update
