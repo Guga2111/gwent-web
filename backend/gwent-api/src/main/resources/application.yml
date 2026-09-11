@@ -9,10 +9,15 @@ spring:
       ddl-auto: update
     show-sql: false
     open-in-view: false
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 
 jwt:
   secret: ${JWT_SECRET:gwent-jwt-default-secret-key-for-local-dev}
-  expiration-ms: ${JWT_EXPIRATION_MS:57600000}
+  access-token-expiration-ms: ${JWT_ACCESS_EXPIRATION_MS:900000}
+  refresh-token-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}
 
 cors:
   allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000}
