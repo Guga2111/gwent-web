@@ -3,7 +3,7 @@ import * as React from "react";
 export function BeerMealOutlineRoundedIcon({
   size = 24,
   color = "currentColor",
-  strokeWidth = 2,
+  strokeWidth: _strokeWidth = 2,
   className,
   ...props
 }: React.SVGProps<SVGSVGElement> & {
