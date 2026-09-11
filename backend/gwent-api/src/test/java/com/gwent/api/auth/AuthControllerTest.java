@@ -1,6 +1,7 @@
 package com.gwent.api.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gwent.api.security.RefreshTokenService;
 import com.gwent.api.shared.TestSecurityConfig;
 import com.gwent.api.shared.exception.GlobalExceptionHandler;
 import com.gwent.api.user.User;
@@ -32,6 +33,9 @@ class AuthControllerTest {
 
     @MockitoBean
     private UserService userService;
+
+    @MockitoBean
+    private RefreshTokenService refreshTokenService;
 
     @Test
     void shouldReturn201_withRegisteredUser() throws Exception {
