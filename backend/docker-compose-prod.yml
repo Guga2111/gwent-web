@@ -1,4 +1,16 @@
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: gwent-redis
+    restart: always
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   api:
     image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/gwent-api:latest
     container_name: gwent-api
@@ -11,5 +23,12 @@ services:
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS}
+      JWT_ACCESS_EXPIRATION_MS: ${JWT_ACCESS_EXPIRATION_MS}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      REDIS_HOST: redis
+    depends_on:
+      redis:
+        condition: service_healthy
+
+volumes:
+  redis_data:
