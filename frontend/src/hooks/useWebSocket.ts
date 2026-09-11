@@ -26,6 +26,12 @@ export function useWebSocket(gameId: string | null) {
         Authorization: `Bearer ${token}`,
       },
       reconnectDelay: 5000,
+      beforeConnect: () => {
+        const currentToken = useAuthStore.getState().token
+        if (currentToken) {
+          stompClient.connectHeaders = { Authorization: `Bearer ${currentToken}` }
+        }
+      },
       onConnect: () => {
         if (!active) return
         setConnected(true)

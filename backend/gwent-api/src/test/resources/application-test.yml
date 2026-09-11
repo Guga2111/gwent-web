@@ -12,7 +12,8 @@ spring:
 
 jwt:
   secret: test-secret-key-for-unit-tests-only-32chars
-  expiration-ms: 3600000
+  access-token-expiration-ms: 3600000
+  refresh-token-expiration-ms: 604800000
 
 cors:
   allowed-origins: http://localhost:3000

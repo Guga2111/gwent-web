@@ -1,5 +1,6 @@
 package com.gwent.api.security.filters;
 
+import com.gwent.api.security.TokenReusedException;
 import com.gwent.api.user.UserNotFoundException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -18,6 +19,8 @@ public class ExceptionHandlerFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } catch (UserNotFoundException e) {
             sendError(response, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
+        } catch (TokenReusedException e) {
+            sendError(response, HttpServletResponse.SC_FORBIDDEN, e.getMessage());
         } catch (com.auth0.jwt.exceptions.JWTVerificationException e) {
             sendError(response, HttpServletResponse.SC_FORBIDDEN, "Invalid token");
         } catch (RuntimeException e) {

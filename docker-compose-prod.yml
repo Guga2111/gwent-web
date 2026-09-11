@@ -1,4 +1,16 @@
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: gwent-redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   api:
     image: gwent-api:latest
     restart: unless-stopped
@@ -8,8 +20,9 @@ services:
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS}
+      JWT_ACCESS_EXPIRATION_MS: ${JWT_ACCESS_EXPIRATION_MS}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      REDIS_HOST: redis
     ports:
       - "${API_PORT:-8084}:8080"
     logging:
@@ -22,3 +35,9 @@ services:
         limits:
           cpus: "1.0"
           memory: 512M
+    depends_on:
+      redis:
+        condition: service_healthy
+
+volumes:
+  redis_data:
