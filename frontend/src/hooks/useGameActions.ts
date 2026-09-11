@@ -20,6 +20,7 @@ export function useGameActions(
 
   const canPlayOnRow = useCallback((row: RowType): boolean => {
     if (!selectedCard || !isMyTurn) return false
+    if (selectedCard.ability === 'DUMMY') return false
     if (selectedCard.cardType === 'SPECIAL') return true
     if (selectedCard.ability === 'AGILE')
       return row === 'MELEE' || row === 'RANGED'

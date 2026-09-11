@@ -88,7 +88,7 @@ export interface PresenceMessage {
 }
 
 export interface CommandRequest {
-  commandType: 'PLAY_CARD' | 'PASS' | 'MULLIGAN' | 'USE_LEADER' | 'RESOLVE_MEDIC' | 'CONFIRM_MULLIGAN' | 'RESOLVE_LEADER' | 'RESOLVE_SCOIATAEL'
+  commandType: 'PLAY_CARD' | 'PASS' | 'MULLIGAN' | 'USE_LEADER' | 'RESOLVE_MEDIC' | 'CONFIRM_MULLIGAN' | 'RESOLVE_LEADER' | 'RESOLVE_SCOIATAEL' | 'RESOLVE_DUMMY'
   playerId?: string
   cardId?: string
   targetRow?: string
