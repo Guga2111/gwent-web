@@ -20,6 +20,12 @@ export function useMatchmakingSocket(active: boolean) {
         Authorization: `Bearer ${token}`,
       },
       reconnectDelay: 2000,
+      beforeConnect: () => {
+        const currentToken = useAuthStore.getState().token
+        if (currentToken) {
+          stompClient.connectHeaders = { Authorization: `Bearer ${currentToken}` }
+        }
+      },
       onConnect: () => {
         if (!isActive) return
         stompClient.subscribe(`/topic/matchmaking/${user.email}`, (message) => {
