@@ -22,37 +22,37 @@ import {
 const factionShowcase = [
   {
     name: 'Reinos do Norte',
-    designation: 'Forca e Resiliencia',
+    designation: 'Força e Resiliência',
     quote:
-      'Fortificacoes poderosas e unidades com lacos estreitos. Combine infantaria leal com cercos devastadores para esmagar seus oponentes com forca bruta e taticas de campo.',
+      'Fortificações poderosas e unidades com laços estreitos. Combine infantaria leal com cercos devastadores para esmagar seus oponentes com força bruta e táticas de campo.',
     src: '/cards/northern/Tw3_cardart_northernrealms_foltest_gold.webp',
   },
   {
     name: 'Nilfgaard',
     designation: 'Espionagem e Controle',
     quote:
-      'O Imperio domina pelo conhecimento. Espie a mao do oponente, roube suas cartas e manipule o campo de batalha. Vencer e uma questao de informacao, nao de forca.',
+      'O Império domina pelo conhecimento. Espie a mão do oponente, roube suas cartas e manipule o campo de batalha. Vencer é uma questão de informação, não de força.',
     src: '/cards/nilfgaard/Tw3_cardart_nilfgaard_letho.webp',
   },
   {
     name: 'Monstros',
-    designation: 'Enxame e Devastacao',
+    designation: 'Enxame e Devastação',
     quote:
-      'A Cacada Selvagem traz o caos ao campo. Invoque hordas imparaveis, devore seus proprios aliados para ficar mais forte e domine pelo numero absoluto de criaturas.',
+      'A Caçada Selvagem traz o caos ao campo. Invoque hordas imparáveis, devore seus próprios aliados para ficar mais forte e domine pelo número absoluto de criaturas.',
     src: '/cards/monster/Tw3_cardart_monsters_eredin_gold.webp',
   },
   {
     name: "Scoia'tael",
     designation: 'Agilidade e Emboscada',
     quote:
-      'Guerrilheiros mestres da adaptacao. Unidades ageis que escolhem sua fileira, emboscadas que surpreendem e arqueiros elfos que eliminam ameacas antes que se tornem perigosas.',
+      'Guerrilheiros mestres da adaptação. Unidades ágeis que escolhem sua fileira, emboscadas que surpreendem e arqueiros elfos que eliminam ameaças antes que se tornem perigosas.',
     src: '/cards/scoiatael/ST_DOL_BLATHANNA.webp',
   },
   {
     name: 'Neutro',
     designation: 'Poder Independente',
     quote:
-      'Herois lendarios que nao juram lealdade a nenhuma bandeira. Geralt, Ciri e Yennefer trazem habilidades unicas que podem virar qualquer partida de cabeca para baixo.',
+      'Heróis lendários que não juram lealdade a nenhuma bandeira. Geralt, Ciri e Yennefer trazem habilidades únicas que podem virar qualquer partida de cabeça para baixo.',
     src: '/cards/neutral/Tw3_cardart_neutral_geralt.webp',
   },
 ]
@@ -60,23 +60,23 @@ const factionShowcase = [
 const features = [
   {
     icon: IconSwords,
-    title: 'Batalhas em Tres Rounds',
+    title: 'Batalhas em Três Rounds',
     description:
-      'Tabuleiro com tres fileiras por lado: corpo a corpo, distancia e cerco. Venca dois de tres rounds usando tatica, blefe e timing perfeito.',
+      'Tabuleiro com três fileiras por lado: corpo a corpo, distância e cerco. Vença dois de três rounds usando tática, blefe e timing perfeito.',
     image: '/landing/feature-battles.png',
   },
   {
     icon: IconShield,
     title: 'Forja de Baralhos',
     description:
-      'Monte baralhos com cinco facoes e escolha seu lider. Reinos do Norte, Nilfgaard, Monstros, Scoia\'tael e Skellige, cada uma com estrategias unicas.',
+      'Monte baralhos com cinco facções e escolha seu líder. Reinos do Norte, Nilfgaard, Monstros, Scoia\'tael e Skellige, cada uma com estratégias únicas.',
     image: '/landing/feature-deckbuilding.png',
   },
   {
     icon: IconUsers,
     title: 'Desafie Outros Jogadores',
     description:
-      'Entre na fila ranqueada ou convide amigos para duelos privados na taverna. Matchmaking em tempo real com reconexao automatica.',
+      'Entre na fila ranqueada ou convide amigos para duelos privados na taverna. Matchmaking em tempo real com reconexão automática.',
     image: '/landing/feature-multiplayer.png',
   },
 ]
@@ -100,7 +100,7 @@ export default function Landing() {
             GWENT ONLINE
           </h1>
           <p className="font-body italic text-text-secondary text-lg max-w-md">
-            O lendario jogo de cartas do Continente, agora nas tavernas da web.
+            O lendário jogo de cartas do Continente, agora nas tavernas da web.
           </p>
           <div className="flex gap-4 mt-4">
             <Button variant="cta" size="lg" asChild>
@@ -176,7 +176,7 @@ export default function Landing() {
       {/* Faction Showcase */}
       <section className="py-16 px-6">
         <h2 className="font-display text-3xl text-gold-light text-center mb-4">
-          Cinco Facoes, Infinitas Estrategias
+          Cinco Facções, Infinitas Estratégias
         </h2>
         <AnimatedTestimonials testimonials={factionShowcase} autoplay />
       </section>
@@ -190,22 +190,22 @@ export default function Landing() {
           <Accordion type="single" collapsible className="space-y-2">
             <AccordionItem value="what-is" className="border-border-subtle">
               <AccordionTrigger className="font-heading text-gold-light hover:text-gold hover:no-underline text-left">
-                O que e Gwent Online?
+                O que é Gwent Online?
               </AccordionTrigger>
               <AccordionContent className="font-body text-text-secondary">
-                Gwent Online e uma versao web do lendario jogo de cartas do universo de The Witcher.
-                Dois jogadores se enfrentam em duelos estrategicos usando baralhos compostos por
-                unidades, herois e cartas especiais, disputando a supremacia no campo de batalha.
+                Gwent Online é uma versão web do lendário jogo de cartas do universo de The Witcher.
+                Dois jogadores se enfrentam em duelos estratégicos usando baralhos compostos por
+                unidades, heróis e cartas especiais, disputando a supremacia no campo de batalha.
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="free" className="border-border-subtle">
               <AccordionTrigger className="font-heading text-gold-light hover:text-gold hover:no-underline text-left">
-                Gwent Online e gratuito?
+                Gwent Online é gratuito?
               </AccordionTrigger>
               <AccordionContent className="font-body text-text-secondary">
-                Sim! Gwent Online e totalmente gratuito para jogar. Basta criar uma conta e voce
-                ja pode montar seus baralhos e desafiar outros jogadores sem nenhum custo.
+                Sim! Gwent Online é totalmente gratuito para jogar. Basta criar uma conta e você
+                já pode montar seus baralhos e desafiar outros jogadores sem nenhum custo.
               </AccordionContent>
             </AccordionItem>
 
@@ -214,20 +214,20 @@ export default function Landing() {
                 Como funciona uma partida?
               </AccordionTrigger>
               <AccordionContent className="font-body text-text-secondary">
-                Cada partida e disputada em melhor de tres rounds. Em cada round, jogadores
-                alternam turnos colocando cartas em tres fileiras de combate — corpo a corpo,
-                distancia e cerco. O jogador com maior forca total ao final do round vence.
-                Saber quando passar e tao importante quanto saber jogar.
+                Cada partida é disputada em melhor de três rounds. Em cada round, jogadores
+                alternam turnos colocando cartas em três fileiras de combate — corpo a corpo,
+                distância e cerco. O jogador com maior força total ao final do round vence.
+                Saber quando passar é tão importante quanto saber jogar.
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="factions" className="border-border-subtle">
               <AccordionTrigger className="font-heading text-gold-light hover:text-gold hover:no-underline text-left">
-                Quantas facoes existem?
+                Quantas facções existem?
               </AccordionTrigger>
               <AccordionContent className="font-body text-text-secondary">
-                Existem cinco facoes jogaveis: Reinos do Norte (forca bruta), Nilfgaard
-                (espionagem e controle), Monstros (enxame e devastacao), Scoia'tael (agilidade
+                Existem cinco facções jogáveis: Reinos do Norte (força bruta), Nilfgaard
+                (espionagem e controle), Monstros (enxame e devastação), Scoia'tael (agilidade
                 e emboscada) e cartas Neutras que podem ser usadas em qualquer baralho.
               </AccordionContent>
             </AccordionItem>
@@ -237,9 +237,9 @@ export default function Landing() {
                 Posso jogar com amigos?
               </AccordionTrigger>
               <AccordionContent className="font-body text-text-secondary">
-                Claro! Alem da fila ranqueada, voce pode criar partidas privadas e convidar
+                Claro! Além da fila ranqueada, você pode criar partidas privadas e convidar
                 amigos para duelos amistosos diretamente na taverna. Basta compartilhar o
-                codigo da sala.
+                código da sala.
               </AccordionContent>
             </AccordionItem>
 
@@ -248,9 +248,9 @@ export default function Landing() {
                 Preciso conhecer The Witcher para jogar?
               </AccordionTrigger>
               <AccordionContent className="font-body text-text-secondary">
-                Nao! Embora o jogo seja inspirado no universo de The Witcher, nenhum
-                conhecimento previo e necessario. As regras sao simples de aprender e a
-                diversao e garantida para todos, fas ou nao da serie.
+                Não! Embora o jogo seja inspirado no universo de The Witcher, nenhum
+                conhecimento prévio é necessário. As regras são simples de aprender e a
+                diversão é garantida para todos, fãs ou não da série.
               </AccordionContent>
             </AccordionItem>
 
@@ -260,9 +260,9 @@ export default function Landing() {
               </AccordionTrigger>
               <AccordionContent className="font-body text-text-secondary">
                 Gwent foi criado pela CD Projekt Red como minigame em The Witcher 3: Wild Hunt.
-                Todas as artes de cartas, conceitos e propriedade intelectual pertencem a CD Projekt Red.
-                Este projeto e um tributo feito por fas, sem fins lucrativos e sem afiliacao oficial
-                com a CD Projekt Red ou suas subsidiarias.
+                Todas as artes de cartas, conceitos e propriedade intelectual pertencem à CD Projekt Red.
+                Este projeto é um tributo feito por fãs, sem fins lucrativos e sem afiliação oficial
+                com a CD Projekt Red ou suas subsidiárias.
               </AccordionContent>
             </AccordionItem>
           </Accordion>
@@ -288,7 +288,7 @@ export default function Landing() {
           </h2>
 
           <p className="font-body text-text-secondary text-lg mb-10 max-w-md">
-            As cartas estao embaralhadas, a taverna esta cheia. So falta voce.
+            As cartas estão embaralhadas, a taverna está cheia. Só falta você.
           </p>
 
           <Button
@@ -301,7 +301,7 @@ export default function Landing() {
           </Button>
 
           <p className="mt-6 text-text-muted font-body text-sm">
-            Ja tem uma conta?{' '}
+            Já tem uma conta?{' '}
             <Link to="/login" className="text-gold hover:text-gold-light underline">
               Entrar
             </Link>
@@ -321,7 +321,7 @@ export default function Landing() {
                 <span className="font-display text-gold-light text-lg">GWENT ONLINE</span>
               </div>
               <p className="font-body italic text-text-secondary text-sm leading-relaxed">
-                O lendario jogo de cartas do universo de The Witcher, agora nas tavernas da web.
+                O lendário jogo de cartas do universo de The Witcher, agora nas tavernas da web.
               </p>
             </div>
 
@@ -343,7 +343,7 @@ export default function Landing() {
                     onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
                     className="font-body text-text-secondary hover:text-gold text-sm"
                   >
-                    Fações
+                    Facções
                   </button>
                 </li>
               </ul>
@@ -377,8 +377,8 @@ export default function Landing() {
           {/* Bottom Row */}
           <div className="border-t border-border-subtle mt-10 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="text-text-muted font-body text-xs text-center md:text-left">
-              <p>&copy; 2026 Gwent Online. Projeto de fas sem fins lucrativos.</p>
-              <p>Gwent e The Witcher sao marcas registradas da CD Projekt Red.</p>
+              <p>&copy; 2026 Gwent Online. Projeto de fãs sem fins lucrativos.</p>
+              <p>Gwent e The Witcher são marcas registradas da CD Projekt Red.</p>
             </div>
             <div className="flex items-center gap-4">
               <a href="https://github.com/Guga2111/gwent-web" target="_blank" rel="noopener noreferrer" className="text-text-muted hover:text-gold">
