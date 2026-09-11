@@ -2,6 +2,8 @@ import type { CatalogCardDto } from '@/types/deck'
 import CardArtImage from '@/components/board/card/CardArtImage'
 import PowerGem from '@/components/board/card/PowerGem'
 import AbilityIcon from '@/components/board/card/AbilityIcon'
+import RowIcon from '@/components/board/card/RowIcon'
+import { Sword, BowArrow } from 'lucide-react'
 import { getFactionConfig } from '@/utils/factionConfig'
 import { Label } from '@/components/ui/label'
 
@@ -47,6 +49,15 @@ export function CatalogCardItem({ card, onAdd, qty }: CatalogCardItemProps) {
         )}
         {card.ability && card.ability !== 'NONE' && (
           <AbilityIcon ability={card.ability as any} />
+        )}
+        {card.rowType && card.rowType !== 'AGILE' && (
+          <RowIcon rowType={card.rowType as 'MELEE' | 'RANGED' | 'SIEGE'} />
+        )}
+        {card.rowType === 'AGILE' && (
+          <div className="absolute top-[26px] left-[6px] flex flex-col gap-0.5 text-text-muted">
+            <Sword size={14} strokeWidth={2} />
+            <BowArrow size={14} strokeWidth={2} />
+          </div>
         )}
       </div>
       <Label className="text-sm text-center text-text-primary truncate w-full mt-1">
