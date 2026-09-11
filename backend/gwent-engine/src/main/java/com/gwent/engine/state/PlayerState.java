@@ -165,6 +165,12 @@ public class PlayerState {
         siegeRow.clear();
     }
 
+    public void resetCommandersHorn () {
+        meleeRow.setHornActive(false);
+        rangedRow.setHornActive(false);
+        siegeRow.setHornActive(false);
+    }
+
     public void shuffleDeck() {
         List<Card> list = new ArrayList<>(deck);
         Collections.shuffle(list);
