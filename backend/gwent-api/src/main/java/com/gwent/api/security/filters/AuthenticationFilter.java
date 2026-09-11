@@ -1,8 +1,9 @@
 package com.gwent.api.security.filters;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gwent.api.security.CookieUtil;
+import com.gwent.api.security.JwtTokenUtil;
+import com.gwent.api.security.RefreshTokenService;
 import com.gwent.api.security.SecurityConstants;
 import com.gwent.api.user.User;
 import com.gwent.api.user.UserService;
@@ -16,7 +17,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -24,15 +24,20 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     private final AuthenticationManager authenticationManager;
     private final UserService userService;
+    private final RefreshTokenService refreshTokenService;
     private final String jwtSecret;
-    private final long jwtExpirationMs;
+    private final long accessTokenExpirationMs;
+    private final long refreshTokenExpirationMs;
 
     public AuthenticationFilter(AuthenticationManager authenticationManager, UserService userService,
-                                String jwtSecret, long jwtExpirationMs) {
+                                RefreshTokenService refreshTokenService, String jwtSecret,
+                                long accessTokenExpirationMs, long refreshTokenExpirationMs) {
         this.authenticationManager = authenticationManager;
         this.userService = userService;
+        this.refreshTokenService = refreshTokenService;
         this.jwtSecret = jwtSecret;
-        this.jwtExpirationMs = jwtExpirationMs;
+        this.accessTokenExpirationMs = accessTokenExpirationMs;
+        this.refreshTokenExpirationMs = refreshTokenExpirationMs;
         setFilterProcessesUrl("/authenticate");
     }
 
@@ -57,15 +62,15 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
                                             FilterChain chain, Authentication authResult) {
         String email = authResult.getName();
         User user = userService.getUser(email);
+        String userId = user.getId().toString();
 
-        String token = JWT.create()
-                .withSubject(email)
-                .withClaim("userId", user.getId().toString())
-                .withClaim("username", user.getUsername())
-                .withExpiresAt(new Date(System.currentTimeMillis() + jwtExpirationMs))
-                .sign(Algorithm.HMAC512(jwtSecret));
+        String accessToken = JwtTokenUtil.createAccessToken(
+                email, userId, user.getUsername(), jwtSecret, accessTokenExpirationMs);
 
-        response.addHeader(SecurityConstants.AUTHORIZATION, SecurityConstants.BEARER + token);
+        String refreshToken = refreshTokenService.createRefreshToken(userId, email);
+
+        response.addHeader(SecurityConstants.AUTHORIZATION, SecurityConstants.BEARER + accessToken);
+        CookieUtil.addRefreshTokenCookie(response, refreshToken, refreshTokenExpirationMs);
     }
 
     @Override
