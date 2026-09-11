@@ -379,7 +379,7 @@ export default function Game() {
                       : {
                           label: 'Usar Habilidade',
                           onClick: () => {
-                            useLeader();
+                            useLeader(); // eslint-disable-line react-hooks/rules-of-hooks -- not a hook, it's a function returned from useGameActions
                             clearInspectedLeader();
                           },
                           disabled: !isMyTurn,
