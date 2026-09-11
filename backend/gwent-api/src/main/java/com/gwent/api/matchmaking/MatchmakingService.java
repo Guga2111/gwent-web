@@ -13,10 +13,12 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 public class MatchmakingService {
 
+    private final ReentrantLock lock = new ReentrantLock();
     private final Queue<MatchmakingEntry> queue = new ConcurrentLinkedQueue<>();
     private final Map<String, MatchmakingEntry> queueIndex = new ConcurrentHashMap<>();
     private final Map<String, ScheduledFuture<?>> timeoutFutures = new ConcurrentHashMap<>();
@@ -59,44 +61,62 @@ public class MatchmakingService {
      * Queue-only operations under the lock: check duplicates, poll or enqueue.
      * Returns the matched opponent, or null if the player was placed in the queue.
      */
-    private synchronized MatchmakingEntry pollOpponent(String playerEmail, UUID deckId) {
-        if (queueIndex.containsKey(playerEmail)) throw new AlreadyInQueueException();
+    private MatchmakingEntry pollOpponent(String playerEmail, UUID deckId) {
+        lock.lock();
+        try {
+            if (queueIndex.containsKey(playerEmail)) throw new AlreadyInQueueException();
 
-        MatchmakingEntry opponent = queue.poll();
-        if (opponent != null) {
-            queueIndex.remove(opponent.playerEmail());
-            cancelTimeout(opponent.playerEmail());
-            return opponent;
+            MatchmakingEntry opponent = queue.poll();
+            if (opponent != null) {
+                queueIndex.remove(opponent.playerEmail());
+                cancelTimeout(opponent.playerEmail());
+                return opponent;
+            }
+
+            MatchmakingEntry entry = new MatchmakingEntry(playerEmail, deckId);
+            queue.offer(entry);
+            queueIndex.put(playerEmail, entry);
+            scheduleTimeout(playerEmail);
+            return null;
+        } finally {
+            lock.unlock();
         }
-
-        MatchmakingEntry entry = new MatchmakingEntry(playerEmail, deckId);
-        queue.offer(entry);
-        queueIndex.put(playerEmail, entry);
-        scheduleTimeout(playerEmail);
-        return null;
     }
 
-    private synchronized void requeueOpponent(MatchmakingEntry opponent) {
-        queue.offer(opponent);
-        queueIndex.put(opponent.playerEmail(), opponent);
-        scheduleTimeout(opponent.playerEmail());
+    private void requeueOpponent(MatchmakingEntry opponent) {
+        lock.lock();
+        try {
+            queue.offer(opponent);
+            queueIndex.put(opponent.playerEmail(), opponent);
+            scheduleTimeout(opponent.playerEmail());
+        } finally {
+            lock.unlock();
+        }
     }
 
-    public synchronized boolean leaveQueue(String playerEmail) {
-        MatchmakingEntry entry = queueIndex.remove(playerEmail);
-        if (entry == null) return false;
-        queue.remove(entry);
-        cancelTimeout(playerEmail);
-        return true;
+    public boolean leaveQueue(String playerEmail) {
+        lock.lock();
+        try {
+            MatchmakingEntry entry = queueIndex.remove(playerEmail);
+            if (entry == null) return false;
+            queue.remove(entry);
+            cancelTimeout(playerEmail);
+            return true;
+        } finally {
+            lock.unlock();
+        }
     }
 
     private void scheduleTimeout(String playerEmail) {
         ScheduledFuture<?> future = scheduler.schedule(() -> {
-            synchronized (this) {
+            lock.lock();
+            try {
                 MatchmakingEntry entry = queueIndex.remove(playerEmail);
                 if (entry != null) {
                     queue.remove(entry);
                 }
+            } finally {
+                lock.unlock();
             }
             messagingTemplate.convertAndSend("/topic/matchmaking/" + playerEmail, new MatchmakingTimeoutDto());
         }, 120, TimeUnit.SECONDS);
