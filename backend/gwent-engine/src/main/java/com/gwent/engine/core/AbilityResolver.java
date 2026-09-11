@@ -28,6 +28,7 @@ class AbilityResolver {
             case MUSTER         -> handleMuster(state, card, targetRow);
             case SCORCH         -> handleScorch(state);
             case COMMANDERS_HORN -> handleCommandersHorn(state, targetRow);
+            case DUMMY           -> handleDummy(state);
             default -> {}
         }
     }
@@ -96,6 +97,18 @@ class AbilityResolver {
                     player.addToGraveyard(c);
                 }
             }
+        }
+    }
+
+    private void handleDummy(GameState state) {
+        PlayerState current = state.getCurrentPlayer();
+        boolean hasValidTargets = false;
+        for (RowType rowType : RowType.values()) {
+            hasValidTargets = hasValidTargets || current.getRow(rowType).getCards().stream()
+                    .anyMatch(c -> c.cardType() == CardType.UNIT);
+        }
+        if (hasValidTargets) {
+            state.setPendingAbility(PendingAbility.DUMMY_CHOICE);
         }
     }
 
