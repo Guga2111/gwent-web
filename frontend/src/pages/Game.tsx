@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGameStore } from "@/stores/gameStore";
@@ -81,6 +81,39 @@ export default function Game() {
 
   const isWeatherCard = selectedCard?.cardType === 'WEATHER';
   const isMulligan = gameState?.phase === 'REDRAW' && !me?.mulliganConfirmed;
+  const isDummySelected = selectedCard?.ability === 'DUMMY' && isMyTurn;
+  const isDummyPending = gameState?.pendingAbility === "DUMMY_CHOICE" && isMyTurn;
+  const pendingDummyTargetId = useRef<string | null>(null);
+
+  const dummyTargetCardIds = (isDummySelected || isDummyPending) && me
+    ? new Set(
+        [me.meleeRow, me.rangedRow, me.siegeRow]
+          .flatMap((r) => r.cards)
+          .filter((c) => c.cardType === "UNIT")
+          .map((c) => c.id)
+      )
+    : undefined;
+
+  // Auto-resolve dummy when DUMMY_CHOICE arrives after clicking a board card
+  useEffect(() => {
+    if (isDummyPending && pendingDummyTargetId.current) {
+      sendCommand({ commandType: "RESOLVE_DUMMY", playerId, cardId: pendingDummyTargetId.current });
+      pendingDummyTargetId.current = null;
+    }
+  }, [isDummyPending, sendCommand, playerId]);
+
+  const handleDummySelect = (cardId: string) => {
+    if (isDummySelected && selectedCardId) {
+      // Step 1: Play the Dummy card (SPECIAL → any row)
+      sendCommand({ commandType: "PLAY_CARD", playerId, cardId: selectedCardId, targetRow: "MELEE" });
+      clearSelection();
+      // Step 2 will auto-fire when DUMMY_CHOICE arrives
+      pendingDummyTargetId.current = cardId;
+    } else if (isDummyPending) {
+      // Fallback: direct resolve (e.g. if timeout auto-played)
+      sendCommand({ commandType: "RESOLVE_DUMMY", playerId, cardId });
+    }
+  };
 
   if (!connected || !gameState || !me || !opponent) {
     return (
@@ -169,18 +202,24 @@ export default function Game() {
               interactive={canInteract} isPlacementTarget={canPlayOnRow("MELEE")}
               onRowClick={canPlayOnRow("MELEE") ? () => playCard("MELEE") : undefined}
               onInspectCard={inspectBoardCard} suppressEnterCardId={landedCardId}
+              dummyTargetCardIds={dummyTargetCardIds}
+              onDummySelect={handleDummySelect}
             />
             <BoardRow
               row={me.rangedRow} rowLabel="Distância" rowType="RANGED" side="player"
               interactive={canInteract} isPlacementTarget={canPlayOnRow("RANGED")}
               onRowClick={canPlayOnRow("RANGED") ? () => playCard("RANGED") : undefined}
               onInspectCard={inspectBoardCard} suppressEnterCardId={landedCardId}
+              dummyTargetCardIds={dummyTargetCardIds}
+              onDummySelect={handleDummySelect}
             />
             <BoardRow
               row={me.siegeRow} rowLabel="Cerco" rowType="SIEGE" side="player"
               interactive={canInteract} isPlacementTarget={canPlayOnRow("SIEGE")}
               onRowClick={canPlayOnRow("SIEGE") ? () => playCard("SIEGE") : undefined}
               onInspectCard={inspectBoardCard} suppressEnterCardId={landedCardId}
+              dummyTargetCardIds={dummyTargetCardIds}
+              onDummySelect={handleDummySelect}
             />
           </div>
 
