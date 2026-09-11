@@ -12,6 +12,7 @@ public class GameTimerService {
     private final Map<UUID, ScheduledFuture<?>> medicTimers = new ConcurrentHashMap<>();
     private final Map<UUID, ScheduledFuture<?>> leaderTimers = new ConcurrentHashMap<>();
     private final Map<UUID, ScheduledFuture<?>> scoiataelTimers = new ConcurrentHashMap<>();
+    private final Map<UUID, ScheduledFuture<?>> dummyTimers = new ConcurrentHashMap<>();
     private final Map<UUID, ScheduledFuture<?>> turnTimers = new ConcurrentHashMap<>();
     private final Map<String, ScheduledFuture<?>> disconnectTimers = new ConcurrentHashMap<>();
 
@@ -43,6 +44,17 @@ public class GameTimerService {
 
     public void cancelLeaderTimer(UUID gameId) {
         ScheduledFuture<?> timer = leaderTimers.remove(gameId);
+        if (timer != null) timer.cancel(false);
+    }
+
+    public void scheduleDummyTimeout(UUID gameId, Runnable action) {
+        cancelDummyTimer(gameId);
+        abilityDeadlines.put(gameId, System.currentTimeMillis() + 30_000);
+        dummyTimers.put(gameId, scheduler.schedule(action, 30, TimeUnit.SECONDS));
+    }
+
+    public void cancelDummyTimer(UUID gameId) {
+        ScheduledFuture<?> timer = dummyTimers.remove(gameId);
         if (timer != null) timer.cancel(false);
     }
 
@@ -100,6 +112,7 @@ public class GameTimerService {
 
     public void cancelAllGameTimers(UUID gameId, String player1Id, String player2Id) {
         cancelMedicTimer(gameId);
+        cancelDummyTimer(gameId);
         cancelLeaderTimer(gameId);
         cancelScoiataelTimer(gameId);
         cancelTurnTimer(gameId);

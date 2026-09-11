@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { BoardRowDto, CardDto, RowType } from '@/types/game'
 import Card from '../card/Card'
 import CountBadge from '@/components/ui/CountBadge'
+import { Megaphone } from 'lucide-react'
 
 interface BoardRowProps {
   row: BoardRowDto
@@ -14,6 +15,8 @@ interface BoardRowProps {
   isPlacementTarget?: boolean
   interactive: boolean
   suppressEnterCardId?: string | null
+  dummyTargetCardIds?: Set<string>
+  onDummySelect?: (cardId: string) => void
 }
 
 function useScoreFlash(score: number) {
@@ -32,7 +35,7 @@ function useScoreFlash(score: number) {
   return flash
 }
 
-export default function BoardRow({ row, rowType, side, onCardClick, onRowClick, onInspectCard, isPlacementTarget, suppressEnterCardId }: BoardRowProps) {
+export default function BoardRow({ row, rowType, side, onCardClick, onRowClick, onInspectCard, isPlacementTarget, suppressEnterCardId, dummyTargetCardIds, onDummySelect }: BoardRowProps) {
   const cards = row.cards ?? []
   const score = cards.reduce((sum, c) => sum + (c.currentPower ?? c.basePower ?? 0), 0)
   const scoreFlash = useScoreFlash(score)
@@ -60,25 +63,37 @@ export default function BoardRow({ row, rowType, side, onCardClick, onRowClick, 
       {/* Horn slot */}
       <div
         className={`w-[var(--card-w)] h-[var(--card-h)] ml-7 shrink-0 flex items-center justify-center board-row__horn${row.hornActive ? ' board-row__horn--active' : ''}`}
-      />
+      >
+        {row.hornActive && <Megaphone size={24} className="text-gold-light" />}
+      </div>
 
       {/* Cards area */}
       <div className="flex-1 flex justify-center gap-1.5 px-2 overflow-hidden items-center min-h-0">
-        {cards.map((card) => (
-          <div
-            key={card.id}
-            data-card-id={card.id}
-            onClick={onInspectCard ? (e) => { e.stopPropagation(); onInspectCard(card); } : undefined}
-            style={{ cursor: onInspectCard ? 'pointer' : undefined }}
-          >
-            <Card
-              card={card}
-              onClick={onCardClick ? () => onCardClick(card.id) : undefined}
-              interactive={false}
-              suppressEnterAnimation={card.id === suppressEnterCardId}
-            />
-          </div>
-        ))}
+        {cards.map((card) => {
+          const isDummyTarget = dummyTargetCardIds?.has(card.id)
+          const handleClick = isDummyTarget && onDummySelect
+            ? (e: React.MouseEvent) => { e.stopPropagation(); onDummySelect(card.id); }
+            : onInspectCard
+              ? (e: React.MouseEvent) => { e.stopPropagation(); onInspectCard(card); }
+              : undefined
+
+          return (
+            <div
+              key={card.id}
+              data-card-id={card.id}
+              onClick={handleClick}
+              className={isDummyTarget ? 'board-row__dummy-target' : ''}
+              style={{ cursor: handleClick ? 'pointer' : undefined }}
+            >
+              <Card
+                card={card}
+                onClick={onCardClick ? () => onCardClick(card.id) : undefined}
+                interactive={false}
+                suppressEnterAnimation={card.id === suppressEnterCardId}
+              />
+            </div>
+          )
+        })}
       </div>
 
       {/* Right cap — mirrors horn slot width */}

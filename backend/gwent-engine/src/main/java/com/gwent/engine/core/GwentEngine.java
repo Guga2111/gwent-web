@@ -6,6 +6,7 @@ import com.gwent.engine.exception.command.*;
 import com.gwent.engine.state.*;
 
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class GwentEngine {
 
@@ -24,6 +25,7 @@ public class GwentEngine {
             case ConfirmMulliganCommand c -> handleConfirmMulligan(state, c);
             case ResolveLeaderCommand c     -> handleResolveLeader(state, c);
             case ResolveScoiataelCommand c  -> handleResolveScoiatael(state, c);
+            case ResolveDummyCommand c     -> handleResolveDummy(state, c);
         }
     }
 
@@ -32,6 +34,11 @@ public class GwentEngine {
     }
 
     // --- Engine-initiated transitions ---
+
+    public void resolveCoinFlip(GameState state) {
+        Turn firstPlayer = ThreadLocalRandom.current().nextBoolean() ? Turn.PLAYER_1 : Turn.PLAYER_2;
+        resolveCoinFlip(state, firstPlayer);
+    }
 
     public void resolveCoinFlip(GameState state, Turn firstPlayer) {
         if (factionPassiveResolver.hasScoiataelAdvantage(state)) {
@@ -79,6 +86,8 @@ public class GwentEngine {
 
         if (card.cardType() == CardType.WEATHER) {
             placeWeatherCard(state, card, current);
+        } else if (card.cardType() == CardType.SPECIAL) {
+            current.addToGraveyard(card);
         } else if (card.ability() == Ability.SPY) {
             state.getOpponent().getRow(targetRow).addCard(card);
         } else {
@@ -195,6 +204,34 @@ public class GwentEngine {
             autoPassIfHandEmpty(state.getCurrentPlayer());
             resolveAfterAction(state);
         }
+    }
+
+    private void handleResolveDummy(GameState state, ResolveDummyCommand command) {
+        Card card = command.card();
+        PlayerState current = state.getCurrentPlayer();
+
+        if (state.getPendingAbility() != PendingAbility.DUMMY_CHOICE)
+            throw new InvalidPhaseCommandException(GamePhase.PLAY, state.getPhase());
+        if (card.cardType() != CardType.UNIT)
+            throw new InvalidRowException();
+
+        BoardRow sourceRow = null;
+        for (RowType rowType : RowType.values()) {
+            BoardRow row = current.getRow(rowType);
+            if (row.getCards().contains(card)) {
+                sourceRow = row;
+                break;
+            }
+        }
+        if (sourceRow == null)
+            throw new InvalidRowException();
+
+        sourceRow.removeCard(card);
+        current.addToHand(card);
+        state.setPendingAbility(null);
+
+        autoPassIfHandEmpty(state.getCurrentPlayer());
+        resolveAfterAction(state);
     }
 
     private void handleResolveScoiatael(GameState state, ResolveScoiataelCommand command) {
@@ -411,6 +448,8 @@ public class GwentEngine {
 
         state.getPlayer1().clearRows();
         state.getPlayer2().clearRows();
+        state.getPlayer1().resetCommandersHorn();
+        state.getPlayer2().resetCommandersHorn();
 
         if (p1Kept != null) state.getPlayer1().getRow(p1Kept.row()).addCard(p1Kept.card());
         if (p2Kept != null) state.getPlayer2().getRow(p2Kept.row()).addCard(p2Kept.card());

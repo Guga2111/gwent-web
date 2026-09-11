@@ -394,6 +394,17 @@
   box-shadow: inset 0 0 8px rgba(var(--gold-rgb), 0.15);
 }
 
+.board-row__dummy-target .card-base {
+  border-color: var(--gold-light);
+  box-shadow: 0 0 8px rgba(var(--gold-rgb), 0.4);
+  animation: dummy-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes dummy-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(var(--gold-rgb), 0.4); }
+  50% { box-shadow: 0 0 14px rgba(var(--gold-rgb), 0.7); }
+}
+
 .central-divider {
   position: relative;
   height: 16px;

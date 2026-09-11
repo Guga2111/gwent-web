@@ -271,7 +271,7 @@ class AbilityResolverTest {
 
     @Test
     void shouldActivateHornOnTargetRow() {
-        resolver.resolve(state, makeUnit("horn", "Horn Card", 0, RowType.MELEE, Ability.COMMANDERS_HORN), RowType.MELEE);
+        resolver.resolve(state, new Card("horn", "Horn Card", Faction.NEUTRAL, CardType.SPECIAL, Ability.COMMANDERS_HORN, null, null, null), RowType.MELEE);
 
         assertTrue(player1.getMeleeRow().isHornActive());
         assertFalse(player1.getRangedRow().isHornActive());
@@ -280,7 +280,7 @@ class AbilityResolverTest {
 
     @Test
     void shouldActivateHornOnlyOnChosenRow() {
-        resolver.resolve(state, makeUnit("horn", "Horn Card", 0, RowType.RANGED, Ability.COMMANDERS_HORN), RowType.RANGED);
+        resolver.resolve(state, new Card("horn", "Horn Card", Faction.NEUTRAL, CardType.SPECIAL, Ability.COMMANDERS_HORN, null, null, null), RowType.RANGED);
 
         assertFalse(player1.getMeleeRow().isHornActive());
         assertTrue(player1.getRangedRow().isHornActive());

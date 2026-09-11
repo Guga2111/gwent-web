@@ -30,6 +30,8 @@ export function useFlyingCard(
   }, [])
 
   // Check if the flying card has arrived in row data (WS update)
+  // For SPECIAL cards (Commander's Horn, Dummy), the card goes to graveyard
+  // instead of a row, so we also check if the card left the hand.
   useEffect(() => {
     if (!flyingCard || !me || !opponent) return
     const isSpy = flyingCard.card.ability === 'SPY'
@@ -42,13 +44,14 @@ export function useFlyingCard(
     const inRow = rowMap[flyingCard.targetRow].some(
       (c) => c.id === flyingCard.card.id
     )
-    if (inRow) {
+    const leftHand = !me.hand.some((c) => c.id === flyingCard.card.id)
+    if (inRow || (leftHand && flyingCard.card.cardType === 'SPECIAL')) {
       flyingCardInRow.current = true
       if (flyingAnimDone.current) {
         clearFlyingCard()
       }
     }
-  }, [me?.meleeRow, me?.rangedRow, me?.siegeRow, opponent?.meleeRow, opponent?.rangedRow, opponent?.siegeRow, flyingCard, clearFlyingCard])
+  }, [me?.meleeRow, me?.rangedRow, me?.siegeRow, me?.hand, opponent?.meleeRow, opponent?.rangedRow, opponent?.siegeRow, flyingCard, clearFlyingCard])
 
   // Clear on error (backend rejected command) — card stays in hand
   useEffect(() => {
@@ -65,7 +68,9 @@ export function useFlyingCard(
     )
     if (cardEl && rowEl) {
       const fromRect = cardEl.getBoundingClientRect()
-      const toRect = rowEl.getBoundingClientRect()
+      const isHornCard = card.cardType === 'SPECIAL' && card.ability === 'COMMANDERS_HORN'
+      const hornSlot = isHornCard ? rowEl.querySelector('.board-row__horn') : null
+      const toRect = (hornSlot ?? rowEl).getBoundingClientRect()
       flyingAnimDone.current = false
       flyingCardInRow.current = false
       setFlyingCard({ card, fromRect, toRect, targetRow })

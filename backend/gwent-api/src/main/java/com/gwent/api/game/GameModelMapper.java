@@ -150,6 +150,8 @@ public class GameModelMapper {
                 };
                 yield new ResolveLeaderCommand(card);
             }
+            case RESOLVE_DUMMY -> new ResolveDummyCommand(
+                    findCardOnBoard(request.cardId(), state.getPlayer(player)));
             case RESOLVE_SCOIATAEL -> {
                 Turn chosen;
                 if (request.chosenPlayerId().equals(ctx.player1Id())) {
@@ -169,6 +171,16 @@ public class GameModelMapper {
                 .filter(c -> c.id().equals(cardId))
                 .findFirst()
                 .orElseThrow(() -> new CardNotFoundException(cardId));
+    }
+
+    private Card findCardOnBoard(String cardId, PlayerState player) {
+        for (RowType rowType : RowType.values()) {
+            BoardRow row = player.getRow(rowType);
+            for (Card c : row.getCards()) {
+                if (c.id().equals(cardId)) return c;
+            }
+        }
+        throw new CardNotFoundException(cardId);
     }
 
     private Card findCardInDeck(String cardId, PlayerState player) {
