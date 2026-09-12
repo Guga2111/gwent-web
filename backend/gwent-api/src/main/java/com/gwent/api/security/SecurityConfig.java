@@ -4,6 +4,7 @@ import com.gwent.api.security.filters.AuthenticationFilter;
 import com.gwent.api.security.filters.ExceptionHandlerFilter;
 import com.gwent.api.security.filters.JWTAuthorizationFilter;
 import com.gwent.api.security.manager.CustomAuthManager;
+import com.gwent.api.security.ratelimit.RateLimitFilter;
 import com.gwent.api.user.UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -34,7 +35,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomAuthManager customAuthManager,
                                                    UserService userService,
-                                                   RefreshTokenService refreshTokenService) throws Exception {
+                                                   RefreshTokenService refreshTokenService,
+                                                   RateLimitFilter rateLimitFilter) throws Exception {
         AuthenticationFilter authenticationFilter =
                 new AuthenticationFilter(customAuthManager, userService, refreshTokenService,
                         jwtSecret, accessTokenExpirationMs, refreshTokenExpirationMs);
@@ -55,6 +57,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new ExceptionHandlerFilter(), AuthenticationFilter.class)
+                .addFilterBefore(rateLimitFilter, ExceptionHandlerFilter.class)
                 .addFilter(authenticationFilter)
                 .addFilterAfter(new JWTAuthorizationFilter(jwtSecret), AuthenticationFilter.class);
 

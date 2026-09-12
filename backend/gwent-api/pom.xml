@@ -123,6 +123,13 @@
             <version>4.4.0</version>
         </dependency>
 
+        <!-- Rate Limiting (Bucket4j + Lettuce) -->
+        <dependency>
+            <groupId>com.bucket4j</groupId>
+            <artifactId>bucket4j_jdk17-lettuce</artifactId>
+            <version>8.19.0</version>
+        </dependency>
+
         <!-- Security test -->
         <dependency>
             <groupId>org.springframework.security</groupId>

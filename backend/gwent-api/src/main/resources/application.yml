@@ -19,5 +19,20 @@ jwt:
   access-token-expiration-ms: ${JWT_ACCESS_EXPIRATION_MS:900000}
   refresh-token-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}
 
+rate-limit:
+  enabled: ${RATE_LIMIT_ENABLED:true}
+  auth:
+    capacity: ${RATE_LIMIT_AUTH_CAPACITY:10}
+    refill-rate: ${RATE_LIMIT_AUTH_REFILL_RATE:1}
+    refill-interval-ms: ${RATE_LIMIT_AUTH_REFILL_INTERVAL_MS:1000}
+  public-tier:
+    capacity: ${RATE_LIMIT_PUBLIC_CAPACITY:30}
+    refill-rate: ${RATE_LIMIT_PUBLIC_REFILL_RATE:5}
+    refill-interval-ms: ${RATE_LIMIT_PUBLIC_REFILL_INTERVAL_MS:1000}
+  authenticated:
+    capacity: ${RATE_LIMIT_AUTHENTICATED_CAPACITY:60}
+    refill-rate: ${RATE_LIMIT_AUTHENTICATED_REFILL_RATE:10}
+    refill-interval-ms: ${RATE_LIMIT_AUTHENTICATED_REFILL_INTERVAL_MS:1000}
+
 cors:
   allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000}
