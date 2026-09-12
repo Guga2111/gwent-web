@@ -33,8 +33,7 @@ public class RateLimitService {
         this.proxyManager = Bucket4jLettuce.casBasedBuilder(redisClient)
                 .expirationAfterWrite(ExpirationAfterWriteStrategy.basedOnTimeForRefillingBucketUpToMax(
                         Duration.ofMinutes(1)))
-                .build()
-                .asProxyManager();
+                .build();
     }
 
     public RateLimitResult tryConsume(RateLimitTier tier, String identifier) {
