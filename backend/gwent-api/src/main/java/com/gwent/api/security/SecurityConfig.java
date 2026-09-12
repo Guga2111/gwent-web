@@ -56,8 +56,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/", "/index.html").permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(rateLimitFilter, ExceptionHandlerFilter.class)
                 .addFilterBefore(new ExceptionHandlerFilter(), AuthenticationFilter.class)
+                .addFilterBefore(rateLimitFilter, ExceptionHandlerFilter.class)
                 .addFilter(authenticationFilter)
                 .addFilterAfter(new JWTAuthorizationFilter(jwtSecret), AuthenticationFilter.class);
 
