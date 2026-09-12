@@ -1,11 +1,11 @@
 package com.gwent.api.security.ratelimit;
 
-import io.bucket4j.Bandwidth;
-import io.bucket4j.BucketConfiguration;
-import io.bucket4j.ConsumptionProbe;
-import io.bucket4j.distributed.ExpirationAfterWriteStrategy;
-import io.bucket4j.distributed.proxy.ProxyManager;
-import io.bucket4j.redis.lettuce.Bucket4jLettuce;
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.BucketConfiguration;
+import io.github.bucket4j.ConsumptionProbe;
+import io.github.bucket4j.distributed.ExpirationAfterWriteStrategy;
+import io.github.bucket4j.distributed.proxy.ProxyManager;
+import io.github.bucket4j.redis.lettuce.Bucket4jLettuce;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisException;
 import org.slf4j.Logger;
@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.function.Supplier;
 
@@ -22,7 +23,7 @@ public class RateLimitService {
     private static final Logger log = LoggerFactory.getLogger(RateLimitService.class);
     private static final String KEY_PREFIX = "rate_limit:";
 
-    private final ProxyManager<String> proxyManager;
+    private final ProxyManager<byte[]> proxyManager;
     private final RateLimitProperties properties;
 
     public RateLimitService(LettuceConnectionFactory connectionFactory, RateLimitProperties properties) {
@@ -37,7 +38,7 @@ public class RateLimitService {
     }
 
     public RateLimitResult tryConsume(RateLimitTier tier, String identifier) {
-        String key = KEY_PREFIX + tier.name().toLowerCase() + ":" + identifier;
+        byte[] key = (KEY_PREFIX + tier.name().toLowerCase() + ":" + identifier).getBytes(StandardCharsets.UTF_8);
         Supplier<BucketConfiguration> configSupplier = () -> buildConfig(tier);
 
         try {

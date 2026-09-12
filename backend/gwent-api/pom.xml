@@ -126,8 +126,8 @@
         <!-- Rate Limiting (Bucket4j + Lettuce) -->
         <dependency>
             <groupId>com.bucket4j</groupId>
-            <artifactId>bucket4j-redis</artifactId>
-            <version>8.14.0</version>
+            <artifactId>bucket4j-lettuce</artifactId>
+            <version>8.19.0</version>
         </dependency>
 
         <!-- Security test -->
