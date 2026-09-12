@@ -126,7 +126,7 @@
         <!-- Rate Limiting (Bucket4j + Lettuce) -->
         <dependency>
             <groupId>com.bucket4j</groupId>
-            <artifactId>bucket4j-lettuce</artifactId>
+            <artifactId>bucket4j_jdk17-lettuce</artifactId>
             <version>8.19.0</version>
         </dependency>
 
