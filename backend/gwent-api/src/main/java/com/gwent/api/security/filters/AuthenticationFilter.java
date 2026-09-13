@@ -22,6 +22,8 @@ import java.util.Map;
 
 public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
     private final AuthenticationManager authenticationManager;
     private final UserService userService;
     private final RefreshTokenService refreshTokenService;
@@ -78,6 +80,6 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
                                               AuthenticationException failed) throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
-        response.getWriter().write("{\"error\":\"" + failed.getMessage() + "\"}");
+        response.getWriter().write(objectMapper.writeValueAsString(Map.of("error", failed.getMessage())));
     }
 }
