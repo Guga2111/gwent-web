@@ -10,6 +10,6 @@ public class RateLimitConfig {
 
     @Bean
     public RateLimitFilter rateLimitFilter(RateLimitService rateLimitService, RateLimitProperties properties) {
-        return new RateLimitFilter(rateLimitService, properties.enabled());
+        return new RateLimitFilter(rateLimitService, properties.enabled(), properties.trustProxy());
     }
 }

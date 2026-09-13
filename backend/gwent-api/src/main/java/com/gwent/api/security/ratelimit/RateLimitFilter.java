@@ -1,7 +1,5 @@
 package com.gwent.api.security.ratelimit;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.interfaces.DecodedJWT;
 import com.gwent.api.security.SecurityConstants;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -28,10 +26,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private final RateLimitService rateLimitService;
     private final boolean enabled;
+    private final boolean trustProxy;
 
-    public RateLimitFilter(RateLimitService rateLimitService, boolean enabled) {
+    public RateLimitFilter(RateLimitService rateLimitService, boolean enabled, boolean trustProxy) {
         this.rateLimitService = rateLimitService;
         this.enabled = enabled;
+        this.trustProxy = trustProxy;
     }
 
     @Override
@@ -49,7 +49,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         }
 
         RateLimitTier tier = resolveTier(request);
-        String identifier = resolveIdentifier(request);
+        String identifier = resolveClientIp(request);
 
         RateLimitResult result;
         try {
@@ -95,24 +95,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
         return RateLimitTier.PUBLIC;
     }
 
-    private String resolveIdentifier(HttpServletRequest request) {
-        String authHeader = request.getHeader(SecurityConstants.AUTHORIZATION);
-        if (authHeader != null && authHeader.startsWith(SecurityConstants.BEARER)) {
-            try {
-                String token = authHeader.substring(SecurityConstants.BEARER.length());
-                DecodedJWT decoded = JWT.decode(token);
-                String subject = decoded.getSubject();
-                if (subject != null && !subject.isBlank()) {
-                    return subject;
-                }
-            } catch (Exception e) {
-                log.debug("Failed to decode JWT for rate limiting, falling back to IP: {}", e.getMessage());
+    private String resolveClientIp(HttpServletRequest request) {
+        if (trustProxy) {
+            String forwarded = request.getHeader("X-Forwarded-For");
+            if (forwarded != null && !forwarded.isBlank()) {
+                return forwarded.split(",")[0].trim();
             }
-        }
-
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) {
-            return forwarded.split(",")[0].trim();
         }
         return request.getRemoteAddr();
     }

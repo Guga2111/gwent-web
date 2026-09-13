@@ -9,6 +9,7 @@ import com.gwent.api.user.User;
 import com.gwent.api.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,7 +40,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<RegisterResponse> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
         User user = userService.registerUser(request.email(), request.username(), request.password());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new RegisterResponse(user.getId(), user.getEmail(), user.getUsername()));
