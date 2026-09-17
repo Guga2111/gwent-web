@@ -262,4 +262,39 @@ class PlayerStateTest {
 
         assertTrue(player.getGraveyard().isEmpty());
     }
+
+    // --- Graveyard transformer ---
+
+    @Test
+    void shouldApplyGraveyardTransformerWhenAddingToGraveyard() {
+        Card replacement = new Card("replaced", "Replaced", Faction.NEUTRAL, CardType.UNIT,
+                null, null, RowType.MELEE, 1);
+        player.setGraveyardTransformer(card -> replacement);
+
+        player.addToGraveyard(meleeUnit);
+
+        assertEquals(1, player.getGraveyard().size());
+        assertEquals(replacement, player.getGraveyard().get(0));
+    }
+
+    @Test
+    void shouldApplyGraveyardTransformerWhenClearingRows() {
+        Card replacement = new Card("replaced", "Replaced", Faction.NEUTRAL, CardType.UNIT,
+                null, null, RowType.MELEE, 1);
+        player.setGraveyardTransformer(card -> replacement);
+        player.getMeleeRow().addCard(meleeUnit);
+
+        player.clearRows();
+
+        assertEquals(1, player.getGraveyard().size());
+        assertEquals(replacement, player.getGraveyard().get(0));
+    }
+
+    @Test
+    void shouldUseIdentityTransformerByDefault() {
+        player.addToGraveyard(meleeUnit);
+
+        assertEquals(1, player.getGraveyard().size());
+        assertEquals(meleeUnit, player.getGraveyard().get(0));
+    }
 }

@@ -10,11 +10,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
+import java.util.function.UnaryOperator;
 
 public class PlayerState {
     private List<Card> hand = new ArrayList<>();
     private Deque<Card> deck;
     private List<Card> graveyard = new ArrayList<>();
+    private UnaryOperator<Card> graveyardTransformer = UnaryOperator.identity();
     private BoardRow meleeRow = new BoardRow(RowType.MELEE);
     private BoardRow rangedRow = new BoardRow(RowType.RANGED);
     private BoardRow siegeRow = new BoardRow(RowType.SIEGE);
@@ -61,7 +63,11 @@ public class PlayerState {
     }
 
     public void addToGraveyard (Card card) {
-        graveyard.add(card);
+        graveyard.add(graveyardTransformer.apply(card));
+    }
+
+    public void setGraveyardTransformer (UnaryOperator<Card> transformer) {
+        this.graveyardTransformer = transformer;
     }
 
     public void removeFromGraveyard (Card card) {
@@ -157,9 +163,9 @@ public class PlayerState {
     }
 
     public void clearRows () {
-        graveyard.addAll(meleeRow.getCards());
-        graveyard.addAll(rangedRow.getCards());
-        graveyard.addAll(siegeRow.getCards());
+        meleeRow.getCards().forEach(this::addToGraveyard);
+        rangedRow.getCards().forEach(this::addToGraveyard);
+        siegeRow.getCards().forEach(this::addToGraveyard);
         meleeRow.clear();
         rangedRow.clear();
         siegeRow.clear();
