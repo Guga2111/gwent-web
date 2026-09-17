@@ -659,33 +659,45 @@ class LeaderAbilityResolverTest {
     }
 
     // =========================================================
-    // KING_BRAN (Skellige) — graveyard to deck
+    // KING_BRAN (Skellige) — units lose half strength in weather
     // =========================================================
 
     @Test
-    void shouldMoveAllGraveyardCardsBackToDeckWhenKingBranUsed() {
-        Card g1 = makeUnit("g1", "Ghost1", 3, RowType.MELEE);
-        Card g2 = makeUnit("g2", "Ghost2", 4, RowType.RANGED);
+    void shouldActivateKingBranPassiveWhenUsed() {
         PlayerState p1 = playerWithLeader(LeaderAbility.KING_BRAN);
-        p1.addToGraveyard(g1);
-        p1.addToGraveyard(g2);
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.KING_BRAN));
+
+        assertFalse(p1.isKingBranActive());
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertTrue(p1.isKingBranActive());
+    }
+
+    @Test
+    void shouldHalveWeatherPenaltyWhenKingBranActive() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.KING_BRAN);
+        Card unit = makeUnit("u1", "Warrior", 8, RowType.MELEE);
+        p1.getMeleeRow().addCard(unit);
+        p1.getMeleeRow().setWeatherActive(true);
         GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.KING_BRAN));
 
         engine.execute(state, new UseLeaderCommand());
 
-        assertTrue(p1.getGraveyard().isEmpty());
-        assertTrue(p1.getDeck().contains(g1));
-        assertTrue(p1.getDeck().contains(g2));
+        // 8 / 2 = 4 (halved, not reduced to 1)
+        assertEquals(4, engine.calculateScore(p1));
     }
 
     @Test
-    void shouldDoNothingWhenGraveyardIsEmptyForKingBran() {
+    void shouldNotAffectNonWeatherRowsWhenKingBranActive() {
         PlayerState p1 = playerWithLeader(LeaderAbility.KING_BRAN);
+        Card unit = makeUnit("u1", "Warrior", 8, RowType.MELEE);
+        p1.getMeleeRow().addCard(unit);
         GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.KING_BRAN));
 
-        assertDoesNotThrow(() -> engine.execute(state, new UseLeaderCommand()));
-        assertTrue(p1.getGraveyard().isEmpty());
-        assertTrue(p1.getDeck().isEmpty());
+        engine.execute(state, new UseLeaderCommand());
+
+        assertEquals(8, engine.calculateScore(p1));
     }
 
     // =========================================================

@@ -7,8 +7,13 @@ import com.gwent.engine.state.PlayerState;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 class AbilityResolver {
+
+    private static final Map<String, String> MUSTER_TARGET_OVERRIDE = Map.of(
+            "Cerys an Craite", "Shield Maiden"
+    );
     
     private final ScoreCalculator scoreCalculator;
     
@@ -53,9 +58,10 @@ class AbilityResolver {
     private void handleMuster(GameState state, Card card, RowType targetRow) {
         PlayerState current = state.getCurrentPlayer();
         BoardRow row = current.getRow(targetRow);
+        String targetName = MUSTER_TARGET_OVERRIDE.getOrDefault(card.name(), card.name());
 
         List<Card> fromHand = new ArrayList<>(current.getHand()).stream()
-                .filter(c -> c.name().equals(card.name()))
+                .filter(c -> c.name().equals(targetName))
                 .toList();
         for (Card c : fromHand) {
             current.removeFromHand(c);
@@ -63,7 +69,7 @@ class AbilityResolver {
         }
 
         List<Card> fromDeck = current.getDeck().stream()
-                .filter(c -> c.name().equals(card.name()))
+                .filter(c -> c.name().equals(targetName))
                 .toList();
         for (Card c : fromDeck) {
             current.removeFromDeck(c);
@@ -77,11 +83,12 @@ class AbilityResolver {
 
         int maxPower = 0;
         for (PlayerState player : players) {
+            boolean kingBran = player.isKingBranActive();
             for (RowType rowType : rowTypes) {
                 BoardRow row = player.getRow(rowType);
                 for (Card c : row.getCards()) {
                     if (c.cardType() == CardType.HERO) continue;
-                    int power = scoreCalculator.calculateCardPower(c, row);
+                    int power = scoreCalculator.calculateCardPower(c, row, kingBran);
                     if (power > maxPower) maxPower = power;
                 }
             }
@@ -89,18 +96,28 @@ class AbilityResolver {
 
         final int finalMaxPower = maxPower;
         for (PlayerState player : players) {
+            boolean kingBran = player.isKingBranActive();
             for (RowType rowType : rowTypes) {
                 BoardRow row = player.getRow(rowType);
                 List<Card> toScorch = row.getCards().stream()
                         .filter(c -> c.cardType() != CardType.HERO)
-                        .filter(c -> scoreCalculator.calculateCardPower(c, row) == finalMaxPower)
+                        .filter(c -> scoreCalculator.calculateCardPower(c, row, kingBran) == finalMaxPower)
                         .toList();
                 for (Card c : toScorch) {
                     row.removeCard(c);
                     player.addToGraveyard(c);
+                    if (c.hasAbility(Ability.KAMBI)) {
+                        summonHemdall(player);
+                    }
                 }
             }
         }
+    }
+
+    private void summonHemdall(PlayerState player) {
+        Card hemdall = new Card("SK_HERO_HEMDALL", "Hemdall",
+                Faction.SKELLIGE, CardType.HERO, null, null, RowType.MELEE, 11);
+        player.getMeleeRow().addCard(hemdall);
     }
 
     private void handleDummy(GameState state) {
