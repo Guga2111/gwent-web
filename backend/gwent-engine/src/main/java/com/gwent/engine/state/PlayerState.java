@@ -26,6 +26,7 @@ public class PlayerState {
     private boolean passed;
     private int mulligansRemaining;
     private boolean mulliganConfirmed;
+    private boolean kingBranActive;
 
     public PlayerState (Card leader, List<Card> deck) {
         this.leader = leader;
@@ -175,6 +176,14 @@ public class PlayerState {
         meleeRow.setHornActive(false);
         rangedRow.setHornActive(false);
         siegeRow.setHornActive(false);
+    }
+
+    public boolean isKingBranActive() {
+        return kingBranActive;
+    }
+
+    public void setKingBranActive(boolean kingBranActive) {
+        this.kingBranActive = kingBranActive;
     }
 
     public void shuffleDeck() {

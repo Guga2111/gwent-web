@@ -31,6 +31,6 @@ public enum LeaderAbility {
     HOPE_OF_THE_AEN_SEIDHE, // Francesca - move agile units to whichever valid row maximizes their strength (don't move units already in optimal row).
 
     // Skellige
-    KING_BRAN,             // Crach - shuffle graveyard back into deck
+    KING_BRAN,             // Crach - units only lose half strength in bad weather
     CLAN_AN_CRAITE          // Crach - shuffle graveyard back into deck
 }

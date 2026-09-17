@@ -280,6 +280,60 @@ class ScoreCalculatorTest {
         assertEquals(32, scoreRow(meleeRow));
     }
 
+    // --- KING_BRAN (halved weather) ---
+
+    @Test
+    void shouldHalveUnitPowerInWeatherWhenKingBranActive() {
+        Card leader = new Card("bran", "King Bran", Faction.SKELLIGE, CardType.LEADER,
+                null, LeaderAbility.KING_BRAN, null, null);
+        PlayerState player = new PlayerState(leader, List.of());
+        player.setKingBranActive(true);
+        player.getMeleeRow().addCard(unit5); // basePower=5, halved=3 (ceil(5/2)=3)
+        player.getMeleeRow().setWeatherActive(true);
+
+        assertEquals(3, calculator.calculate(player));
+    }
+
+    @Test
+    void shouldHalveEvenPowerInWeatherWhenKingBranActive() {
+        Card leader = new Card("bran", "King Bran", Faction.SKELLIGE, CardType.LEADER,
+                null, LeaderAbility.KING_BRAN, null, null);
+        PlayerState player = new PlayerState(leader, List.of());
+        player.setKingBranActive(true);
+        Card unit8 = new Card("unit8", "Warrior", Faction.NEUTRAL, CardType.UNIT,
+                null, null, RowType.MELEE, 8);
+        player.getMeleeRow().addCard(unit8); // basePower=8, halved=4
+        player.getMeleeRow().setWeatherActive(true);
+
+        assertEquals(4, calculator.calculate(player));
+    }
+
+    @Test
+    void shouldReturnAtLeast1WhenKingBranActiveInWeather() {
+        Card leader = new Card("bran", "King Bran", Faction.SKELLIGE, CardType.LEADER,
+                null, LeaderAbility.KING_BRAN, null, null);
+        PlayerState player = new PlayerState(leader, List.of());
+        player.setKingBranActive(true);
+        Card unit1 = new Card("unit1", "Weakling", Faction.NEUTRAL, CardType.UNIT,
+                null, null, RowType.MELEE, 1);
+        player.getMeleeRow().addCard(unit1); // basePower=1, ceil(1/2)=1
+        player.getMeleeRow().setWeatherActive(true);
+
+        assertEquals(1, calculator.calculate(player));
+    }
+
+    @Test
+    void shouldNotAffectHeroWhenKingBranActiveInWeather() {
+        Card leader = new Card("bran", "King Bran", Faction.SKELLIGE, CardType.LEADER,
+                null, LeaderAbility.KING_BRAN, null, null);
+        PlayerState player = new PlayerState(leader, List.of());
+        player.setKingBranActive(true);
+        player.getMeleeRow().addCard(hero15);
+        player.getMeleeRow().setWeatherActive(true);
+
+        assertEquals(15, calculator.calculate(player));
+    }
+
     // --- Helper ---
 
     private int scoreRow(BoardRow row) {

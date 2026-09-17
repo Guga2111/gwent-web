@@ -515,6 +515,13 @@ public class GwentEngine {
                 state.getPlayer1().getSiegeRow().setWeatherActive(true);
                 state.getPlayer2().getSiegeRow().setWeatherActive(true);
             }
+            case SKELLIGE_STORM -> {
+                state.getBoard().addWeatherCard(card);
+                state.getPlayer1().getRangedRow().setWeatherActive(true);
+                state.getPlayer2().getRangedRow().setWeatherActive(true);
+                state.getPlayer1().getSiegeRow().setWeatherActive(true);
+                state.getPlayer2().getSiegeRow().setWeatherActive(true);
+            }
             case CLEAR_WEATHER -> {
                 clearAllWeatherActive(state);
                 state.getBoard().getActiveWeatherCards().forEach(current::addToGraveyard);

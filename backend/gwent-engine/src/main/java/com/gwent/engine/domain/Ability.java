@@ -15,9 +15,11 @@ public enum Ability {
     FOG,
     RAIN,
     MARDROEME,
-    CLEAR_WEATHER;
+    CLEAR_WEATHER,
+    SKELLIGE_STORM,
+    KAMBI;
 
     public boolean isWeather() {
-        return this == FROST || this == FOG || this == RAIN || this == CLEAR_WEATHER;
+        return this == FROST || this == FOG || this == RAIN || this == CLEAR_WEATHER || this == SKELLIGE_STORM;
     }
 }

@@ -162,6 +162,35 @@ class BerserkerHelperTest {
     }
 
     @Test
+    void shouldTransformYoungBerserkerOnRow() {
+        BoardRow row = new BoardRow(RowType.RANGED);
+        row.addCard(new Card("young_1", "Young Berserker", Faction.SKELLIGE, CardType.UNIT,
+                Ability.BERSERKER, null, RowType.RANGED, 2));
+
+        BerserkerHelper.transformBerserkers(row);
+
+        List<Card> cards = row.getCards();
+        assertEquals(1, cards.size());
+        Card transformed = cards.get(0);
+        assertEquals("Transformed Young Vildkaarl", transformed.name());
+        assertEquals(Ability.TIGHT_BOND, transformed.ability());
+        assertEquals(8, transformed.basePower());
+    }
+
+    @Test
+    void shouldRevertTransformedYoungVildkaarlToOriginal() {
+        Card transformed = new Card("YOUNG_1_TRANSFORMED", "Transformed Young Vildkaarl",
+                Faction.SKELLIGE, CardType.UNIT, Ability.TIGHT_BOND, null, RowType.RANGED, 8);
+
+        Card reverted = BerserkerHelper.revertIfTransformed(transformed);
+
+        assertEquals("YOUNG_1", reverted.id());
+        assertEquals("Young Berserker", reverted.name());
+        assertEquals(Ability.BERSERKER, reverted.ability());
+        assertEquals(2, reverted.basePower());
+    }
+
+    @Test
     void shouldRevertMultipleBearsIndependently() {
         Card bear1 = new Card("VILDKAARL_1_TRANSFORMED", "Transformed Vildkaarl",
                 Faction.SKELLIGE, CardType.UNIT, Ability.MORALE_BOOST, null, RowType.MELEE, 14);

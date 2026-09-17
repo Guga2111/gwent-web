@@ -18,7 +18,8 @@ class BerserkerHelper {
 
     private static final List<TransformEntry> ENTRIES = List.of(
             new TransformEntry("Vildkaarl", 8, "Transformed Vildkaarl", Ability.MORALE_BOOST, 14),
-            new TransformEntry("Berserker Marauder", 4, "Transformed Marauder", null, 8)
+            new TransformEntry("Berserker Marauder", 4, "Transformed Marauder", null, 8),
+            new TransformEntry("Young Berserker", 2, "Transformed Young Vildkaarl", Ability.TIGHT_BOND, 8)
     );
 
     private static final Map<String, TransformEntry> BY_ORIGINAL_NAME =
