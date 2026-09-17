@@ -27,6 +27,7 @@ export interface CatalogCardDto {
   faction: Faction
   cardType: 'UNIT' | 'HERO' | 'SPECIAL' | 'WEATHER' | 'LEADER'
   ability: string | null
+  secondAbility: string | null
   leaderAbility: string | null
   rowType: 'MELEE' | 'RANGED' | 'SIEGE' | 'AGILE' | null
   basePower: number | null

@@ -89,7 +89,7 @@ public class GwentEngine {
             placeWeatherCard(state, card, current);
         } else if (card.cardType() == CardType.SPECIAL) {
             current.addToGraveyard(card);
-        } else if (card.ability() == Ability.SPY) {
+        } else if (card.hasAbility(Ability.SPY)) {
             state.getOpponent().getRow(targetRow).addCard(card);
         } else {
             current.getRow(targetRow).addCard(card);
@@ -193,7 +193,7 @@ public class GwentEngine {
             throw new InvalidRowException();
 
         current.removeFromGraveyard(card);
-        if (card.ability() == Ability.SPY) {
+        if (card.hasAbility(Ability.SPY)) {
             state.getOpponent().getRow(card.rowType()).addCard(card);
         } else {
             current.getRow(card.rowType()).addCard(card);
@@ -268,7 +268,7 @@ public class GwentEngine {
             throw new InvalidRowException();
 
         current.removeFromGraveyard(card);
-        if (card.ability() == Ability.SPY) {
+        if (card.hasAbility(Ability.SPY)) {
             state.getOpponent().getRow(card.rowType()).addCard(card);
         } else {
             current.getRow(card.rowType()).addCard(card);
@@ -304,7 +304,7 @@ public class GwentEngine {
             throw new InvalidRowException();
 
         opponent.removeFromGraveyard(card);
-        if (card.ability() == Ability.SPY) {
+        if (card.hasAbility(Ability.SPY)) {
             state.getOpponent().getRow(card.rowType()).addCard(card);
         } else {
             current.getRow(card.rowType()).addCard(card);
@@ -381,7 +381,7 @@ public class GwentEngine {
 
         if (card.cardType() == CardType.WEATHER) {
             placeWeatherCard(state, card, current);
-        } else if (card.ability() == Ability.SPY) {
+        } else if (card.hasAbility(Ability.SPY)) {
             state.getOpponent().getRow(card.rowType()).addCard(card);
         } else {
             current.getRow(card.rowType()).addCard(card);
@@ -491,7 +491,7 @@ public class GwentEngine {
 
     private void validateRowCompatibility(Card card, RowType targetRow) {
         if (card.cardType() == CardType.WEATHER || card.cardType() == CardType.SPECIAL) return;
-        if (card.ability() == Ability.AGILE) {
+        if (card.hasAbility(Ability.AGILE)) {
             if (targetRow != RowType.MELEE && targetRow != RowType.RANGED) throw new InvalidRowException();
             return;
         }

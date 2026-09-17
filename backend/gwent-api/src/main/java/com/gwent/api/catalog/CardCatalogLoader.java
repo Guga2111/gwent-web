@@ -146,6 +146,7 @@ public class CardCatalogLoader implements ApplicationRunner {
             card("SK_ARMORSMITH",   "Clan Tordarroch Armorsmith",Faction.SKELLIGE,CardType.UNIT, Ability.MEDIC,      null, RowType.RANGED, 5, 1),
             card("SK_BROKVAR",      "Clan Brokvar Hunter",      Faction.SKELLIGE, CardType.UNIT, Ability.TIGHT_BOND, null, RowType.RANGED, 5, 2),
             card("SK_SHIELD_MAIDEN","Shield Maiden",            Faction.SKELLIGE, CardType.UNIT, Ability.TIGHT_BOND, null, RowType.MELEE,  4, 3),
+            card("SK_HERO_OLAF",   "Olaf",                     Faction.SKELLIGE, CardType.HERO, Ability.AGILE, Ability.MORALE_BOOST, null, RowType.MELEE, 12, 1),
 
             // ── NEUTRAL ──────────────────────────────────────────────────────
 
@@ -177,12 +178,19 @@ public class CardCatalogLoader implements ApplicationRunner {
     private CardEntity card(String id, String name, Faction faction, CardType cardType,
                             Ability ability, LeaderAbility leaderAbility,
                             RowType rowType, Integer basePower, int deckCopies) {
+        return card(id, name, faction, cardType, ability, null, leaderAbility, rowType, basePower, deckCopies);
+    }
+
+    private CardEntity card(String id, String name, Faction faction, CardType cardType,
+                            Ability ability, Ability secondAbility, LeaderAbility leaderAbility,
+                            RowType rowType, Integer basePower, int deckCopies) {
         CardEntity e = new CardEntity();
         e.setId(id);
         e.setName(name);
         e.setFaction(faction);
         e.setCardType(cardType);
         e.setAbility(ability);
+        e.setSecondAbility(secondAbility);
         e.setLeaderAbility(leaderAbility);
         e.setRowType(rowType);
         e.setBasePower(basePower);

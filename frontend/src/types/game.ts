@@ -20,6 +20,7 @@ export interface CardDto {
   cardType: CardType
   rowType: RowType | null
   ability: Ability | null
+  secondAbility: Ability | null
   faction: Faction
   leaderAbility: LeaderAbility | null
 }

@@ -31,7 +31,7 @@ class BerserkerHelper {
 
     static void transformBerserkers(BoardRow row) {
         List<Card> berserkers = row.getCards().stream()
-                .filter(c -> c.ability() == Ability.BERSERKER)
+                .filter(c -> c.hasAbility(Ability.BERSERKER))
                 .toList();
 
         for (Card berserker : berserkers) {

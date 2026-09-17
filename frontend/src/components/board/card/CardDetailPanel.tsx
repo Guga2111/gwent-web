@@ -131,9 +131,11 @@ export default function CardDetailPanel({ card, action }: CardDetailPanelProps) 
 
   const isLeader = !!card.leaderAbility
   const ability = card.ability && card.ability !== 'NONE' ? card.ability : null
+  const secondAbility = card.secondAbility && card.secondAbility !== 'NONE' ? card.secondAbility : null
   const description = isLeader
     ? leaderAbilityDescriptions[card.leaderAbility!]
     : ability ? abilityDescriptions[ability] : null
+  const secondDescription = secondAbility ? abilityDescriptions[secondAbility] : null
 
   return (
     <div className={panelClass} style={panelVars}>
@@ -151,7 +153,7 @@ export default function CardDetailPanel({ card, action }: CardDetailPanelProps) 
         {isUnit && card.rowType && (
           <div className="card-detail-row-container">
             <RowIcon rowType={card.rowType} size="lg" />
-            {card.ability === 'AGILE' && card.rowType === 'MELEE' && (
+            {(card.ability === 'AGILE' || card.secondAbility === 'AGILE') && card.rowType === 'MELEE' && (
               <div className="card-detail-row-secondary">
                 <RowIcon rowType="RANGED" size="lg" />
               </div>
@@ -165,6 +167,14 @@ export default function CardDetailPanel({ card, action }: CardDetailPanelProps) 
             <span className="card-detail-ability-label">
               {abilityNames[ability]}
             </span>
+            {secondAbility && (
+              <>
+                <AbilityIcon ability={secondAbility} size="lg" />
+                <span className="card-detail-ability-label">
+                  {abilityNames[secondAbility]}
+                </span>
+              </>
+            )}
           </div>
         )}
 
@@ -185,6 +195,9 @@ export default function CardDetailPanel({ card, action }: CardDetailPanelProps) 
             <HorizontalSeparator variant="gold" className="w-4/5 self-center" />
             <p className="font-body text-[11px] text-text-secondary text-center leading-[1.4] m-0">{description}</p>
           </>
+        )}
+        {secondDescription && (
+          <p className="font-body text-[11px] text-text-secondary text-center leading-[1.4] m-0">{secondDescription}</p>
         )}
         {action && (
           <button

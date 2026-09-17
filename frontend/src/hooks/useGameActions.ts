@@ -22,7 +22,7 @@ export function useGameActions(
     if (!selectedCard || !isMyTurn) return false
     if (selectedCard.ability === 'DUMMY') return false
     if (selectedCard.cardType === 'SPECIAL') return true
-    if (selectedCard.ability === 'AGILE')
+    if (selectedCard.ability === 'AGILE' || selectedCard.secondAbility === 'AGILE')
       return row === 'MELEE' || row === 'RANGED'
     return selectedCard.rowType === row
   }, [selectedCard, isMyTurn])
@@ -42,7 +42,7 @@ export function useGameActions(
     if (!selectedCardId || !isMyTurn) return
     const card = gameState?.me?.hand.find((c) => c.id === selectedCardId)
     if (card) {
-      launchCard(card, targetRow, card.ability === 'SPY')
+      launchCard(card, targetRow, card.ability === 'SPY' || card.secondAbility === 'SPY')
     }
     sendCommand({
       commandType: 'PLAY_CARD',
@@ -60,7 +60,7 @@ export function useGameActions(
       return
     }
     if (selectedCard.cardType === 'SPECIAL') return
-    if (selectedCard.ability === 'AGILE') return
+    if (selectedCard.ability === 'AGILE' || selectedCard.secondAbility === 'AGILE') return
     if (selectedCard.rowType) playCard(selectedCard.rowType)
   }, [selectedCard, isMyTurn, playWeatherCard, playCard])
 

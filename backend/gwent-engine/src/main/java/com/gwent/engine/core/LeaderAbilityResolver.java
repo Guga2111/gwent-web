@@ -235,11 +235,11 @@ class LeaderAbilityResolver {
         PlayerState current = state.getCurrentPlayer();
         // 1. Coletar as cartas que nao sao agile
         List<Card> meleeNotAgileCards = current.getMeleeRow().getCards().stream()
-                .filter(c -> c.ability() != Ability.AGILE)
+                .filter(c -> !c.hasAbility(Ability.AGILE))
                 .toList();
 
         List<Card> rangedNotAgileCards = current.getRangedRow().getCards().stream()
-                .filter(c -> c.ability() != Ability.AGILE)
+                .filter(c -> !c.hasAbility(Ability.AGILE))
                 .toList();
 
         // 2. Somar os pontos de melee e ranged sem considerar as cartas com tipo agile
@@ -254,7 +254,7 @@ class LeaderAbilityResolver {
         // 3. Mover as cartas do tipo AGILE para a qual tiver a maior pontuacao
         if (meleeNotAgilePoints > rangedNotAgilePoints) {
             List<Card> agileCardsToAdd = current.getRangedRow().getCards().stream()
-                    .filter(c -> c.ability() == Ability.AGILE)
+                    .filter(c -> c.hasAbility(Ability.AGILE))
                     .toList();
 
             for (Card card : agileCardsToAdd) {
@@ -263,7 +263,7 @@ class LeaderAbilityResolver {
             }
         } else if (rangedNotAgilePoints > meleeNotAgilePoints) {
             List<Card> agileCardsToAdd = current.getMeleeRow().getCards().stream()
-                    .filter(c -> c.ability() == Ability.AGILE)
+                    .filter(c -> c.hasAbility(Ability.AGILE))
                     .toList();
 
             for (Card card : agileCardsToAdd) {

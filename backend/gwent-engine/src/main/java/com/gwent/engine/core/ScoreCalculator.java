@@ -27,18 +27,18 @@ public class ScoreCalculator {
                 .collect(Collectors.groupingBy(Card::name, Collectors.counting()));
 
         long countMoraleBoost = row.getCards().stream()
-                .filter(c -> Ability.MORALE_BOOST.equals(c.ability()))
+                .filter(c -> c.hasAbility(Ability.MORALE_BOOST))
                 .count();
 
         for (Card card : row.getCards()) {
 
             int currentCardPower = 0;
-            long moraleBonus = Ability.MORALE_BOOST.equals(card.ability())
+            long moraleBonus = card.hasAbility(Ability.MORALE_BOOST)
                     ? countMoraleBoost - 1
                     : countMoraleBoost;
 
             currentCardPower += card.basePower();
-            if (Ability.TIGHT_BOND.equals(card.ability())) currentCardPower *= countByName.get(card.name());
+            if (card.hasAbility(Ability.TIGHT_BOND)) currentCardPower *= countByName.get(card.name());
 
             if (card.cardType() == CardType.UNIT) {
                 if (row.isWeatherActive()) currentCardPower = 1;
@@ -57,15 +57,15 @@ public class ScoreCalculator {
                 .collect(Collectors.groupingBy(Card::name, Collectors.counting()));
 
         long countMoraleBoost = row.getCards().stream()
-                .filter(c -> Ability.MORALE_BOOST.equals(c.ability()))
+                .filter(c -> c.hasAbility(Ability.MORALE_BOOST))
                 .count();
 
-        long moraleBonus = Ability.MORALE_BOOST.equals(card.ability())
+        long moraleBonus = card.hasAbility(Ability.MORALE_BOOST)
                 ? countMoraleBoost - 1
                 : countMoraleBoost;
 
         int power = card.basePower();
-        if (Ability.TIGHT_BOND.equals(card.ability())) power *= countByName.get(card.name());
+        if (card.hasAbility(Ability.TIGHT_BOND)) power *= countByName.get(card.name());
 
         if (card.cardType() == CardType.UNIT) {
             if (row.isWeatherActive()) power = 1;

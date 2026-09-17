@@ -17,9 +17,14 @@ class AbilityResolver {
     }
 
     void resolve (GameState state, Card card, RowType targetRow) {
-        if (card.ability() == null) return;
+        resolveAbility(state, card, card.ability(), targetRow);
+        resolveAbility(state, card, card.secondAbility(), targetRow);
+    }
 
-        switch (card.ability()) {
+    private void resolveAbility(GameState state, Card card, Ability ability, RowType targetRow) {
+        if (ability == null) return;
+
+        switch (ability) {
             case SPY -> handleResolveSpy(state);
             case MEDIC          -> handleMedic(state);
             case MUSTER         -> handleMuster(state, card, targetRow);
