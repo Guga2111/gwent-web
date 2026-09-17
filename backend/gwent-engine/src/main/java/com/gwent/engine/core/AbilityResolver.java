@@ -1,9 +1,6 @@
 package com.gwent.engine.core;
 
-import com.gwent.engine.domain.Card;
-import com.gwent.engine.domain.CardType;
-import com.gwent.engine.domain.PendingAbility;
-import com.gwent.engine.domain.RowType;
+import com.gwent.engine.domain.*;
 import com.gwent.engine.state.BoardRow;
 import com.gwent.engine.state.GameState;
 import com.gwent.engine.state.PlayerState;
@@ -29,6 +26,7 @@ class AbilityResolver {
             case SCORCH         -> handleScorch(state);
             case COMMANDERS_HORN -> handleCommandersHorn(state, targetRow);
             case DUMMY           -> handleDummy(state);
+            case MARDROEME      -> handleMardroeme(state, targetRow);
             default -> {}
         }
     }
@@ -116,5 +114,10 @@ class AbilityResolver {
         PlayerState current = state.getCurrentPlayer();
         BoardRow row = current.getRow(targetRow);
         row.setHornActive(true);
+    }
+
+    private void handleMardroeme(GameState state, RowType targetRow) {
+        PlayerState current = state.getCurrentPlayer();
+        BerserkerHelper.transformBerserkers(current.getRow(targetRow));
     }
 }

@@ -287,6 +287,134 @@ class AbilityResolverTest {
         assertFalse(player1.getSiegeRow().isHornActive());
     }
 
+    // --- MARDROEME ---
+
+    @Test
+    void shouldTransformBerserkersOnRowWhenMardroemeIsPlayed() {
+        Card berserker = new Card("vildkaarl_1", "Vildkaarl", Faction.SKELLIGE, CardType.UNIT,
+                Ability.BERSERKER, null, RowType.MELEE, 8);
+        player1.getMeleeRow().addCard(berserker);
+
+        Card mardroeme = new Card("mardroeme", "Mardroeme", Faction.SKELLIGE, CardType.SPECIAL,
+                Ability.MARDROEME, null, null, null);
+        resolver.resolve(state, mardroeme, RowType.MELEE);
+
+        List<Card> meleeCards = player1.getMeleeRow().getCards();
+        assertEquals(1, meleeCards.size());
+        Card bear = meleeCards.get(0);
+        assertEquals("Transformed Vildkaarl", bear.name());
+        assertEquals(Ability.MORALE_BOOST, bear.ability());
+        assertEquals(14, bear.basePower());
+        assertEquals(RowType.MELEE, bear.rowType());
+    }
+
+    @Test
+    void shouldTransformMultipleBerserkersOnSameRow() {
+        Card b1 = new Card("vildkaarl_1", "Vildkaarl", Faction.SKELLIGE, CardType.UNIT,
+                Ability.BERSERKER, null, RowType.MELEE, 8);
+        Card b2 = new Card("vildkaarl_2", "Vildkaarl", Faction.SKELLIGE, CardType.UNIT,
+                Ability.BERSERKER, null, RowType.MELEE, 8);
+        player1.getMeleeRow().addCard(b1);
+        player1.getMeleeRow().addCard(b2);
+
+        Card mardroeme = new Card("mardroeme", "Mardroeme", Faction.SKELLIGE, CardType.SPECIAL,
+                Ability.MARDROEME, null, null, null);
+        resolver.resolve(state, mardroeme, RowType.MELEE);
+
+        List<Card> meleeCards = player1.getMeleeRow().getCards();
+        assertEquals(2, meleeCards.size());
+        assertTrue(meleeCards.stream().allMatch(c -> c.name().equals("Transformed Vildkaarl")));
+        assertTrue(meleeCards.stream().allMatch(c -> c.ability() == Ability.MORALE_BOOST));
+    }
+
+    @Test
+    void shouldNotTransformNonBerserkersWhenMardroemeIsPlayed() {
+        Card regular = makeUnit("soldier", "Soldier", 5, RowType.MELEE);
+        player1.getMeleeRow().addCard(regular);
+
+        Card mardroeme = new Card("mardroeme", "Mardroeme", Faction.SKELLIGE, CardType.SPECIAL,
+                Ability.MARDROEME, null, null, null);
+        resolver.resolve(state, mardroeme, RowType.MELEE);
+
+        List<Card> meleeCards = player1.getMeleeRow().getCards();
+        assertEquals(1, meleeCards.size());
+        assertEquals(regular, meleeCards.get(0));
+    }
+
+    @Test
+    void shouldDoNothingWhenMardroemeTargetsRowWithNoBerserkers() {
+        Card mardroeme = new Card("mardroeme", "Mardroeme", Faction.SKELLIGE, CardType.SPECIAL,
+                Ability.MARDROEME, null, null, null);
+
+        assertDoesNotThrow(() -> resolver.resolve(state, mardroeme, RowType.MELEE));
+        assertTrue(player1.getMeleeRow().getCards().isEmpty());
+    }
+
+    @Test
+    void shouldOnlyTransformBerserkersOnTargetRow() {
+        Card berserkerMelee = new Card("vildkaarl_1", "Vildkaarl", Faction.SKELLIGE, CardType.UNIT,
+                Ability.BERSERKER, null, RowType.MELEE, 8);
+        Card berserkerRanged = new Card("vildkaarl_2", "Vildkaarl", Faction.SKELLIGE, CardType.UNIT,
+                Ability.BERSERKER, null, RowType.RANGED, 8);
+        player1.getMeleeRow().addCard(berserkerMelee);
+        player1.getRangedRow().addCard(berserkerRanged);
+
+        Card mardroeme = new Card("mardroeme", "Mardroeme", Faction.SKELLIGE, CardType.SPECIAL,
+                Ability.MARDROEME, null, null, null);
+        resolver.resolve(state, mardroeme, RowType.MELEE);
+
+        assertEquals("Transformed Vildkaarl", player1.getMeleeRow().getCards().get(0).name());
+        assertEquals(Ability.BERSERKER, player1.getRangedRow().getCards().get(0).ability());
+    }
+
+    @Test
+    void shouldTransformBerserkerMarauderWhenMardroemeIsPlayed() {
+        Card marauder = new Card("marauder_1", "Berserker Marauder", Faction.SKELLIGE, CardType.UNIT,
+                Ability.BERSERKER, null, RowType.MELEE, 4);
+        player1.getMeleeRow().addCard(marauder);
+
+        Card mardroeme = new Card("mardroeme", "Mardroeme", Faction.SKELLIGE, CardType.SPECIAL,
+                Ability.MARDROEME, null, null, null);
+        resolver.resolve(state, mardroeme, RowType.MELEE);
+
+        List<Card> meleeCards = player1.getMeleeRow().getCards();
+        assertEquals(1, meleeCards.size());
+        Card transformed = meleeCards.get(0);
+        assertEquals("Transformed Marauder", transformed.name());
+        assertNull(transformed.ability());
+        assertEquals(8, transformed.basePower());
+    }
+
+    @Test
+    void shouldTransformMixedBerserkerTypesOnSameRow() {
+        player1.getMeleeRow().addCard(new Card("vildkaarl_1", "Vildkaarl", Faction.SKELLIGE, CardType.UNIT,
+                Ability.BERSERKER, null, RowType.MELEE, 8));
+        player1.getMeleeRow().addCard(new Card("marauder_1", "Berserker Marauder", Faction.SKELLIGE, CardType.UNIT,
+                Ability.BERSERKER, null, RowType.MELEE, 4));
+
+        Card mardroeme = new Card("mardroeme", "Mardroeme", Faction.SKELLIGE, CardType.SPECIAL,
+                Ability.MARDROEME, null, null, null);
+        resolver.resolve(state, mardroeme, RowType.MELEE);
+
+        List<Card> meleeCards = player1.getMeleeRow().getCards();
+        assertEquals(2, meleeCards.size());
+        assertTrue(meleeCards.stream().anyMatch(c -> c.name().equals("Transformed Vildkaarl")));
+        assertTrue(meleeCards.stream().anyMatch(c -> c.name().equals("Transformed Marauder")));
+    }
+
+    @Test
+    void shouldPreserveTransformedBearIdFromOriginalBerserker() {
+        Card berserker = new Card("vildkaarl_1", "Vildkaarl", Faction.SKELLIGE, CardType.UNIT,
+                Ability.BERSERKER, null, RowType.MELEE, 8);
+        player1.getMeleeRow().addCard(berserker);
+
+        Card mardroeme = new Card("mardroeme", "Mardroeme", Faction.SKELLIGE, CardType.SPECIAL,
+                Ability.MARDROEME, null, null, null);
+        resolver.resolve(state, mardroeme, RowType.MELEE);
+
+        assertEquals("VILDKAARL_1_TRANSFORMED", player1.getMeleeRow().getCards().get(0).id());
+    }
+
     // --- No-op abilities ---
 
     @Test

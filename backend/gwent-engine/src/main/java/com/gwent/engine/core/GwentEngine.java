@@ -16,6 +16,7 @@ public class GwentEngine {
     private final FactionPassiveResolver factionPassiveResolver = new FactionPassiveResolver();
 
     public void execute(GameState state, GameCommand command) {
+        configureGraveyardTransformers(state);
         switch (command) {
             case PlayCardCommand c     -> handlePlayCard(state, c);
             case PassCommand c         -> handlePass(state, c);
@@ -539,5 +540,10 @@ public class GwentEngine {
 
     private void applyLeaderAbility(GameState state, LeaderAbility ability) {
         leaderAbilityResolver.resolve(state, ability);
+    }
+
+    private void configureGraveyardTransformers(GameState state) {
+        state.getPlayer1().setGraveyardTransformer(BerserkerHelper::revertIfTransformed);
+        state.getPlayer2().setGraveyardTransformer(BerserkerHelper::revertIfTransformed);
     }
 }
