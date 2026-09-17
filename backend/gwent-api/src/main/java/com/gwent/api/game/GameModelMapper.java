@@ -50,6 +50,7 @@ public class GameModelMapper {
     }
 
     public PlayerStateDto toPlayerDto(String playerId, PlayerState player, int score) {
+        boolean kingBran = player.isKingBranActive();
         return new PlayerStateDto(
                 playerId,
                 player.getLives(),
@@ -61,14 +62,15 @@ public class GameModelMapper {
                 player.isMulliganConfirmed(),
                 player.getHand().stream().map(this::toCardDto).toList(),
                 player.getDeck().size(),
-                toBoardRowDto(player.getMeleeRow()),
-                toBoardRowDto(player.getRangedRow()),
-                toBoardRowDto(player.getSiegeRow()),
+                toBoardRowDto(player.getMeleeRow(), kingBran),
+                toBoardRowDto(player.getRangedRow(), kingBran),
+                toBoardRowDto(player.getSiegeRow(), kingBran),
                 player.getGraveyard().stream().map(this::toCardDto).toList()
         );
     }
 
     public OpponentStateDto toOpponentDto(String playerId, PlayerState player, int score) {
+        boolean kingBran = player.isKingBranActive();
         return new OpponentStateDto(
                 playerId,
                 player.getLives(),
@@ -78,9 +80,9 @@ public class GameModelMapper {
                 toCardDto(player.getLeader()),
                 player.getHand().size(),
                 player.getDeck().size(),
-                toBoardRowDto(player.getMeleeRow()),
-                toBoardRowDto(player.getRangedRow()),
-                toBoardRowDto(player.getSiegeRow()),
+                toBoardRowDto(player.getMeleeRow(), kingBran),
+                toBoardRowDto(player.getRangedRow(), kingBran),
+                toBoardRowDto(player.getSiegeRow(), kingBran),
                 player.getGraveyard().stream().map(this::toCardDto).toList()
         );
     }
@@ -100,12 +102,12 @@ public class GameModelMapper {
         );
     }
 
-    private CardDto toCardDtoOnBoard(Card card, BoardRow row) {
+    private CardDto toCardDtoOnBoard(Card card, BoardRow row, boolean kingBranActive) {
         return new CardDto(
                 card.id(),
                 card.name(),
                 card.basePower(),
-                scoreCalculator.calculateCardPower(card, row),
+                scoreCalculator.calculateCardPower(card, row, kingBranActive),
                 card.cardType().name(),
                 card.rowType() != null ? card.rowType().name() : null,
                 card.ability() != null ? card.ability().name() : null,
@@ -116,8 +118,12 @@ public class GameModelMapper {
     }
 
     public BoardRowDto toBoardRowDto(BoardRow row) {
+        return toBoardRowDto(row, false);
+    }
+
+    public BoardRowDto toBoardRowDto(BoardRow row, boolean kingBranActive) {
         return new BoardRowDto(
-                row.getCards().stream().map(c -> toCardDtoOnBoard(c, row)).toList(),
+                row.getCards().stream().map(c -> toCardDtoOnBoard(c, row, kingBranActive)).toList(),
                 row.isHornActive(),
                 row.isWeatherActive()
         );

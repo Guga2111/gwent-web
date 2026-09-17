@@ -18,9 +18,13 @@ public class CardCatalogLoader implements ApplicationRunner {
         this.repository = repository;
     }
 
+    private static final int CATALOG_VERSION = 2;
+
     @Override
     public void run(ApplicationArguments args) {
-        if (repository.count() > 0) return;
+        long currentCount = repository.count();
+        if (currentCount > 0 && currentCount == allCards().size()) return;
+        repository.deleteAll();
         repository.saveAll(allCards());
     }
 
@@ -126,27 +130,51 @@ public class CardCatalogLoader implements ApplicationRunner {
 
             // ── SKELLIGE ─────────────────────────────────────────────────────
 
-            // Leader
+            // Leaders
             card("SK_LEADER_BRAN", "King Bran",
                     Faction.SKELLIGE, CardType.LEADER,
                     null, LeaderAbility.KING_BRAN, null, null, 0),
+            card("SK_LEADER_CRACH", "Crach an Craite",
+                    Faction.SKELLIGE, CardType.LEADER,
+                    null, LeaderAbility.CLAN_AN_CRAITE, null, null, 0),
 
             // Heroes
-            card("SK_HERO_CRACH",   "Crach an Craite",  Faction.SKELLIGE, CardType.HERO, null,        null, RowType.MELEE,  10, 1),
-            card("SK_HERO_CERYS",   "Cerys an Craite",  Faction.SKELLIGE, CardType.HERO, null,        null, RowType.MELEE,  10, 1),
-            card("SK_HERO_HJALMAR", "Hjalmar an Craite",Faction.SKELLIGE, CardType.HERO, null,        null, RowType.MELEE,  12, 1),
-            card("SK_HERO_BIRNA",   "Birna Bran",       Faction.SKELLIGE, CardType.HERO, Ability.SPY, null, RowType.RANGED,  8, 1),
+            card("SK_HERO_CERYS",   "Cerys an Craite",  Faction.SKELLIGE, CardType.HERO, Ability.MUSTER, null, RowType.MELEE,  10, 1),
+            card("SK_HERO_HJALMAR", "Hjalmar an Craite",Faction.SKELLIGE, CardType.HERO, null,           null, RowType.RANGED, 10, 1),
+            card("SK_HERO_ERMION",  "Ermion",           Faction.SKELLIGE, CardType.HERO, Ability.MARDROEME, null, RowType.RANGED, 8, 1),
+            card("SK_HERO_HEMDALL", "Hemdall",          Faction.SKELLIGE, CardType.HERO, null,           null, RowType.MELEE,  11, 0),
+            card("SK_HERO_OLAF",    "Olaf",             Faction.SKELLIGE, CardType.UNIT, Ability.AGILE, Ability.MORALE_BOOST, null, RowType.MELEE, 12, 1),
 
-            // Units
-            card("SK_VILDKAARL",    "Vildkaarl",                Faction.SKELLIGE, CardType.UNIT, Ability.BERSERKER,  null, RowType.MELEE,  8, 1),
-            card("SK_BERSERKER",    "Berserker Marauder",       Faction.SKELLIGE, CardType.UNIT, Ability.BERSERKER,  null, RowType.MELEE,  4, 3),
-            card("SK_CLAN_AN_CRAITE","Clan an Craite Warrior",  Faction.SKELLIGE, CardType.UNIT, Ability.TIGHT_BOND, null, RowType.MELEE,  5, 4),
-            card("SK_ASSAULT_TEAM", "Skellige Assault Team",    Faction.SKELLIGE, CardType.UNIT, Ability.TIGHT_BOND, null, RowType.RANGED, 3, 3),
-            card("SK_PIRATE",       "Clan Dimun Pirate",        Faction.SKELLIGE, CardType.UNIT, null,               null, RowType.RANGED, 5, 2),
-            card("SK_ARMORSMITH",   "Clan Tordarroch Armorsmith",Faction.SKELLIGE,CardType.UNIT, Ability.MEDIC,      null, RowType.RANGED, 5, 1),
-            card("SK_BROKVAR",      "Clan Brokvar Hunter",      Faction.SKELLIGE, CardType.UNIT, Ability.TIGHT_BOND, null, RowType.RANGED, 5, 2),
-            card("SK_SHIELD_MAIDEN","Shield Maiden",            Faction.SKELLIGE, CardType.UNIT, Ability.TIGHT_BOND, null, RowType.MELEE,  4, 3),
-            card("SK_HERO_OLAF",   "Olaf",                     Faction.SKELLIGE, CardType.HERO, Ability.AGILE, Ability.MORALE_BOOST, null, RowType.MELEE, 12, 1),
+            // Units — existing (fixed)
+            card("SK_HERO_BIRNA",   "Birna Bran",                Faction.SKELLIGE, CardType.UNIT, Ability.MEDIC,       null, RowType.MELEE,   2, 1),
+            card("SK_VILDKAARL",    "Vildkaarl",                 Faction.SKELLIGE, CardType.UNIT, Ability.BERSERKER,   null, RowType.MELEE,   8, 1),
+            card("SK_BERSERKER",    "Berserker Marauder",        Faction.SKELLIGE, CardType.UNIT, Ability.BERSERKER,   null, RowType.MELEE,   4, 3),
+            card("SK_CLAN_AN_CRAITE","Clan an Craite Warrior",   Faction.SKELLIGE, CardType.UNIT, Ability.TIGHT_BOND,  null, RowType.MELEE,   6, 4),
+            card("SK_PIRATE",       "Clan Dimun Pirate",         Faction.SKELLIGE, CardType.UNIT, Ability.SCORCH,      null, RowType.RANGED,  6, 2),
+            card("SK_ARMORSMITH",   "Clan Tordarroch Armorsmith",Faction.SKELLIGE, CardType.UNIT, null,                null, RowType.MELEE,   4, 1),
+            card("SK_BROKVAR",      "Clan Brokvar Archer",       Faction.SKELLIGE, CardType.UNIT, null,                null, RowType.RANGED,  6, 3),
+            card("SK_SHIELD_MAIDEN","Shield Maiden",             Faction.SKELLIGE, CardType.UNIT, Ability.TIGHT_BOND,  null, RowType.MELEE,   4, 3),
+
+            // Units — new (no new abilities)
+            card("SK_BLUEBOY",     "Blueboy Lugos",          Faction.SKELLIGE, CardType.UNIT, null,                null, RowType.MELEE, 6, 1),
+            card("SK_MADMAN",      "Madman Lugos",           Faction.SKELLIGE, CardType.UNIT, null,                null, RowType.MELEE, 6, 1),
+            card("SK_SVANRIGE",    "Svanrige",               Faction.SKELLIGE, CardType.UNIT, null,                null, RowType.MELEE, 4, 1),
+            card("SK_UDALRYK",     "Udalryk",                Faction.SKELLIGE, CardType.UNIT, null,                null, RowType.MELEE, 4, 1),
+            card("SK_DONAR",       "Donar an Hindar",        Faction.SKELLIGE, CardType.UNIT, null,                null, RowType.MELEE, 4, 1),
+            card("SK_SKALD",       "Clan Heymaey Skald",     Faction.SKELLIGE, CardType.UNIT, null,                null, RowType.MELEE, 4, 1),
+            card("SK_HOLGER",      "Holger Blackhand",        Faction.SKELLIGE, CardType.UNIT, null,                null, RowType.SIEGE, 4, 1),
+            card("SK_DRAIG",       "Draig Bon-Dhu",          Faction.SKELLIGE, CardType.UNIT, Ability.COMMANDERS_HORN, null, RowType.SIEGE, 2, 1),
+
+            // Units — new (existing abilities)
+            card("SK_WAR_LONGSHIP",   "War Longship",     Faction.SKELLIGE, CardType.UNIT, Ability.TIGHT_BOND, null, RowType.SIEGE,  6, 3),
+            card("SK_LIGHT_LONGSHIP", "Light Longship",   Faction.SKELLIGE, CardType.UNIT, Ability.MUSTER,     null, RowType.RANGED, 4, 3),
+            card("SK_YOUNG_BERSERKER","Young Berserker",  Faction.SKELLIGE, CardType.UNIT, Ability.BERSERKER,  null, RowType.RANGED, 2, 3),
+
+            // Units — new (new abilities)
+            card("SK_KAMBI",          "Kambi",            Faction.SKELLIGE, CardType.UNIT, Ability.KAMBI,       null, RowType.MELEE,  0, 1),
+
+            // Weather
+            card("SK_SKELLIGE_STORM", "Skellige Storm",   Faction.SKELLIGE, CardType.WEATHER, Ability.SKELLIGE_STORM, null, null, null, 3),
 
             // ── NEUTRAL ──────────────────────────────────────────────────────
 
