@@ -187,7 +187,7 @@ public class CardCatalogLoader implements ApplicationRunner {
             // Special
             card("NEUTRAL_DUMMY",            "Decoy",             Faction.NEUTRAL, CardType.SPECIAL, Ability.DUMMY,            null, null, null, 3),
             card("NEUTRAL_COMMANDERS_HORN",  "Commander's Horn",  Faction.NEUTRAL, CardType.SPECIAL, Ability.COMMANDERS_HORN,  null, null, null, 3),
-            card("NEUTRAL_MARDROEME",        "Mardroeme",         Faction.NEUTRAL, CardType.SPECIAL, Ability.MARDROEME,        null, null, null, 3),
+            card("NEUTRAL_MARDROEME",        "Mardroeme",         Faction.SKELLIGE, CardType.SPECIAL, Ability.MARDROEME,        null, null, null, 3),
 
             // Neutral heroes
             card("NEUTRAL_HERO_GERALT",       "Geralt of Rivia",        Faction.NEUTRAL, CardType.HERO, null,                 null, RowType.MELEE,  15, 1),
