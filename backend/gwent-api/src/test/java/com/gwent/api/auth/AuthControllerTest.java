@@ -64,10 +64,10 @@ class AuthControllerTest {
     @Test
     void shouldBeAccessibleWithoutAuthentication() throws Exception {
         User user = makeUser("anon@test.com", "anon");
-        when(userService.registerUser("anon@test.com", "anon", "pass"))
+        when(userService.registerUser("anon@test.com", "anon", "password123"))
                 .thenReturn(user);
 
-        RegisterRequest request = new RegisterRequest("anon@test.com", "anon", "pass");
+        RegisterRequest request = new RegisterRequest("anon@test.com", "anon", "password123");
 
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)

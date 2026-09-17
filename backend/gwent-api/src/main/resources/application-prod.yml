@@ -8,3 +8,6 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: false
+
+rate-limit:
+  trust-proxy: true

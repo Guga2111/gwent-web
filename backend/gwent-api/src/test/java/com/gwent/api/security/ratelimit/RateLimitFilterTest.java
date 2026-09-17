@@ -1,7 +1,5 @@
 package com.gwent.api.security.ratelimit;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
 import com.gwent.api.security.SecurityConstants;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -35,14 +33,14 @@ class RateLimitFilterTest {
 
     @BeforeEach
     void setUp() {
-        filter = new RateLimitFilter(rateLimitService, true);
+        filter = new RateLimitFilter(rateLimitService, true, false);
         request = new MockHttpServletRequest();
         response = new MockHttpServletResponse();
     }
 
     @Test
     void shouldPassThrough_whenDisabled() throws ServletException, IOException {
-        RateLimitFilter disabledFilter = new RateLimitFilter(rateLimitService, false);
+        RateLimitFilter disabledFilter = new RateLimitFilter(rateLimitService, false, false);
         request.setRequestURI("/api/test");
 
         disabledFilter.doFilterInternal(request, response, filterChain);
@@ -136,22 +134,22 @@ class RateLimitFilterTest {
 
     @Test
     void shouldUseAuthenticatedTier_whenBearerTokenPresent() throws ServletException, IOException {
-        String token = JWT.create().withSubject("user-123").sign(Algorithm.HMAC256("secret"));
         request.setRequestURI("/api/test");
-        request.addHeader(SecurityConstants.AUTHORIZATION, SecurityConstants.BEARER + token);
+        request.addHeader(SecurityConstants.AUTHORIZATION, SecurityConstants.BEARER + "some-token");
+        request.setRemoteAddr("10.0.0.1");
 
-        when(rateLimitService.tryConsume(RateLimitTier.AUTHENTICATED, "user-123"))
+        when(rateLimitService.tryConsume(RateLimitTier.AUTHENTICATED, "10.0.0.1"))
                 .thenReturn(new RateLimitResult(true, 59, 0));
         when(rateLimitService.getCapacity(RateLimitTier.AUTHENTICATED)).thenReturn(60L);
 
         filter.doFilterInternal(request, response, filterChain);
 
-        verify(rateLimitService).tryConsume(RateLimitTier.AUTHENTICATED, "user-123");
+        verify(rateLimitService).tryConsume(RateLimitTier.AUTHENTICATED, "10.0.0.1");
         verify(filterChain).doFilter(request, response);
     }
 
     @Test
-    void shouldFallBackToIp_whenTokenDecodeFails() throws ServletException, IOException {
+    void shouldUseIp_whenBearerTokenPresentButNoJwtDecode() throws ServletException, IOException {
         request.setRequestURI("/api/test");
         request.addHeader(SecurityConstants.AUTHORIZATION, SecurityConstants.BEARER + "invalid-token");
         request.setRemoteAddr("10.0.0.5");
@@ -166,7 +164,23 @@ class RateLimitFilterTest {
     }
 
     @Test
-    void shouldUseXForwardedFor_whenPresent() throws ServletException, IOException {
+    void shouldIgnoreXForwardedFor_whenTrustProxyDisabled() throws ServletException, IOException {
+        request.setRequestURI("/api/test");
+        request.addHeader("X-Forwarded-For", "203.0.113.50, 70.41.3.18");
+        request.setRemoteAddr("127.0.0.1");
+
+        when(rateLimitService.tryConsume(RateLimitTier.PUBLIC, "127.0.0.1"))
+                .thenReturn(new RateLimitResult(true, 29, 0));
+        when(rateLimitService.getCapacity(RateLimitTier.PUBLIC)).thenReturn(30L);
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        verify(rateLimitService).tryConsume(RateLimitTier.PUBLIC, "127.0.0.1");
+    }
+
+    @Test
+    void shouldUseXForwardedFor_whenTrustProxyEnabled() throws ServletException, IOException {
+        RateLimitFilter proxyFilter = new RateLimitFilter(rateLimitService, true, true);
         request.setRequestURI("/api/test");
         request.addHeader("X-Forwarded-For", "203.0.113.50, 70.41.3.18");
         request.setRemoteAddr("127.0.0.1");
@@ -175,7 +189,7 @@ class RateLimitFilterTest {
                 .thenReturn(new RateLimitResult(true, 29, 0));
         when(rateLimitService.getCapacity(RateLimitTier.PUBLIC)).thenReturn(30L);
 
-        filter.doFilterInternal(request, response, filterChain);
+        proxyFilter.doFilterInternal(request, response, filterChain);
 
         verify(rateLimitService).tryConsume(RateLimitTier.PUBLIC, "203.0.113.50");
     }

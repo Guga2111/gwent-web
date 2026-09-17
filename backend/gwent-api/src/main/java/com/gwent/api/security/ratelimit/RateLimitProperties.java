@@ -5,6 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "rate-limit")
 public record RateLimitProperties(
         boolean enabled,
+        boolean trustProxy,
         TierProperties auth,
         TierProperties publicTier,
         TierProperties authenticated

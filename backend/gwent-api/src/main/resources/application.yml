@@ -21,6 +21,7 @@ jwt:
 
 rate-limit:
   enabled: ${RATE_LIMIT_ENABLED:true}
+  trust-proxy: false
   auth:
     capacity: ${RATE_LIMIT_AUTH_CAPACITY:10}
     refill-rate: ${RATE_LIMIT_AUTH_REFILL_RATE:1}
