@@ -14,6 +14,7 @@ public enum Ability {
     FROST,
     FOG,
     RAIN,
+    MARDROEME,
     CLEAR_WEATHER;
 
     public boolean isWeather() {
