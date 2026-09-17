@@ -138,7 +138,8 @@ public class CardCatalogLoader implements ApplicationRunner {
             card("SK_HERO_BIRNA",   "Birna Bran",       Faction.SKELLIGE, CardType.HERO, Ability.SPY, null, RowType.RANGED,  8, 1),
 
             // Units
-            card("SK_BERSERKER",    "Berserker",                Faction.SKELLIGE, CardType.UNIT, Ability.BERSERKER,  null, RowType.MELEE,  4, 3),
+            card("SK_VILDKAARL",    "Vildkaarl",                Faction.SKELLIGE, CardType.UNIT, Ability.BERSERKER,  null, RowType.MELEE,  8, 1),
+            card("SK_BERSERKER",    "Berserker Marauder",       Faction.SKELLIGE, CardType.UNIT, Ability.BERSERKER,  null, RowType.MELEE,  4, 3),
             card("SK_CLAN_AN_CRAITE","Clan an Craite Warrior",  Faction.SKELLIGE, CardType.UNIT, Ability.TIGHT_BOND, null, RowType.MELEE,  5, 4),
             card("SK_ASSAULT_TEAM", "Skellige Assault Team",    Faction.SKELLIGE, CardType.UNIT, Ability.TIGHT_BOND, null, RowType.RANGED, 3, 3),
             card("SK_PIRATE",       "Clan Dimun Pirate",        Faction.SKELLIGE, CardType.UNIT, null,               null, RowType.RANGED, 5, 2),
@@ -157,6 +158,7 @@ public class CardCatalogLoader implements ApplicationRunner {
             // Special
             card("NEUTRAL_DUMMY",            "Decoy",             Faction.NEUTRAL, CardType.SPECIAL, Ability.DUMMY,            null, null, null, 3),
             card("NEUTRAL_COMMANDERS_HORN",  "Commander's Horn",  Faction.NEUTRAL, CardType.SPECIAL, Ability.COMMANDERS_HORN,  null, null, null, 3),
+            card("NEUTRAL_MARDROEME",        "Mardroeme",         Faction.NEUTRAL, CardType.SPECIAL, Ability.MARDROEME,        null, null, null, 3),
 
             // Neutral heroes
             card("NEUTRAL_HERO_GERALT",       "Geralt of Rivia",        Faction.NEUTRAL, CardType.HERO, null,                 null, RowType.MELEE,  15, 1),
