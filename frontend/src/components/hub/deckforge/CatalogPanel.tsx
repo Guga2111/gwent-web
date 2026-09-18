@@ -29,6 +29,7 @@ export function CatalogPanel({ catalog, editorCards, onAdd }: CatalogPanelProps)
   const [rowFilter, setRowFilter] = useState<RowFilter>('ALL')
 
   const filtered = catalog.filter((card) => {
+    if (card.deckCopies === 0) return false
     if (rowFilter === 'ALL') return true
     if (rowFilter === 'SPECIAL') return card.cardType === 'SPECIAL' || card.cardType === 'WEATHER'
     return card.rowType === rowFilter

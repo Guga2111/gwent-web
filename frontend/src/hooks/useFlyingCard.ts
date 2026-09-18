@@ -34,7 +34,7 @@ export function useFlyingCard(
   // instead of a row, so we also check if the card left the hand.
   useEffect(() => {
     if (!flyingCard || !me || !opponent) return
-    const isSpy = flyingCard.card.ability === 'SPY'
+    const isSpy = flyingCard.card.ability === 'SPY' || flyingCard.card.secondAbility === 'SPY'
     const source = isSpy ? opponent : me
     const rowMap: Record<RowType, CardDto[]> = {
       MELEE: source.meleeRow.cards ?? [],

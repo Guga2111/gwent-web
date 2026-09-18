@@ -16,6 +16,7 @@ public class GwentEngine {
     private final FactionPassiveResolver factionPassiveResolver = new FactionPassiveResolver();
 
     public void execute(GameState state, GameCommand command) {
+        configureGraveyardTransformers(state);
         switch (command) {
             case PlayCardCommand c     -> handlePlayCard(state, c);
             case PassCommand c         -> handlePass(state, c);
@@ -88,7 +89,7 @@ public class GwentEngine {
             placeWeatherCard(state, card, current);
         } else if (card.cardType() == CardType.SPECIAL) {
             current.addToGraveyard(card);
-        } else if (card.ability() == Ability.SPY) {
+        } else if (card.hasAbility(Ability.SPY)) {
             state.getOpponent().getRow(targetRow).addCard(card);
         } else {
             current.getRow(targetRow).addCard(card);
@@ -192,7 +193,7 @@ public class GwentEngine {
             throw new InvalidRowException();
 
         current.removeFromGraveyard(card);
-        if (card.ability() == Ability.SPY) {
+        if (card.hasAbility(Ability.SPY)) {
             state.getOpponent().getRow(card.rowType()).addCard(card);
         } else {
             current.getRow(card.rowType()).addCard(card);
@@ -267,7 +268,7 @@ public class GwentEngine {
             throw new InvalidRowException();
 
         current.removeFromGraveyard(card);
-        if (card.ability() == Ability.SPY) {
+        if (card.hasAbility(Ability.SPY)) {
             state.getOpponent().getRow(card.rowType()).addCard(card);
         } else {
             current.getRow(card.rowType()).addCard(card);
@@ -303,7 +304,7 @@ public class GwentEngine {
             throw new InvalidRowException();
 
         opponent.removeFromGraveyard(card);
-        if (card.ability() == Ability.SPY) {
+        if (card.hasAbility(Ability.SPY)) {
             state.getOpponent().getRow(card.rowType()).addCard(card);
         } else {
             current.getRow(card.rowType()).addCard(card);
@@ -380,7 +381,7 @@ public class GwentEngine {
 
         if (card.cardType() == CardType.WEATHER) {
             placeWeatherCard(state, card, current);
-        } else if (card.ability() == Ability.SPY) {
+        } else if (card.hasAbility(Ability.SPY)) {
             state.getOpponent().getRow(card.rowType()).addCard(card);
         } else {
             current.getRow(card.rowType()).addCard(card);
@@ -446,8 +447,14 @@ public class GwentEngine {
         FactionPassiveResolver.KeptCard p1Kept = factionPassiveResolver.resolveMonsterKeepCard(state.getPlayer1());
         FactionPassiveResolver.KeptCard p2Kept = factionPassiveResolver.resolveMonsterKeepCard(state.getPlayer2());
 
+        boolean p1HadKambi = hasKambiOnBoard(state.getPlayer1());
+        boolean p2HadKambi = hasKambiOnBoard(state.getPlayer2());
+
         state.getPlayer1().clearRows();
         state.getPlayer2().clearRows();
+
+        if (p1HadKambi) summonHemdall(state.getPlayer1());
+        if (p2HadKambi) summonHemdall(state.getPlayer2());
         state.getPlayer1().resetCommandersHorn();
         state.getPlayer2().resetCommandersHorn();
 
@@ -490,7 +497,7 @@ public class GwentEngine {
 
     private void validateRowCompatibility(Card card, RowType targetRow) {
         if (card.cardType() == CardType.WEATHER || card.cardType() == CardType.SPECIAL) return;
-        if (card.ability() == Ability.AGILE) {
+        if (card.hasAbility(Ability.AGILE)) {
             if (targetRow != RowType.MELEE && targetRow != RowType.RANGED) throw new InvalidRowException();
             return;
         }
@@ -514,6 +521,13 @@ public class GwentEngine {
                 state.getPlayer1().getSiegeRow().setWeatherActive(true);
                 state.getPlayer2().getSiegeRow().setWeatherActive(true);
             }
+            case SKELLIGE_STORM -> {
+                state.getBoard().addWeatherCard(card);
+                state.getPlayer1().getRangedRow().setWeatherActive(true);
+                state.getPlayer2().getRangedRow().setWeatherActive(true);
+                state.getPlayer1().getSiegeRow().setWeatherActive(true);
+                state.getPlayer2().getSiegeRow().setWeatherActive(true);
+            }
             case CLEAR_WEATHER -> {
                 clearAllWeatherActive(state);
                 state.getBoard().getActiveWeatherCards().forEach(current::addToGraveyard);
@@ -531,6 +545,21 @@ public class GwentEngine {
         }
     }
 
+    private boolean hasKambiOnBoard(PlayerState player) {
+        for (RowType rowType : RowType.values()) {
+            if (player.getRow(rowType).getCards().stream().anyMatch(c -> c.hasAbility(Ability.KAMBI))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void summonHemdall(PlayerState player) {
+        Card hemdall = new Card("SK_HERO_HEMDALL", "Hemdall",
+                Faction.SKELLIGE, CardType.HERO, null, null, RowType.MELEE, 11);
+        player.getMeleeRow().addCard(hemdall);
+    }
+
     private void drawCards(PlayerState player, int count) {
         for (int i = 0; i < count; i++) {
             if (!player.isDeckEmpty()) player.drawCard();
@@ -539,5 +568,10 @@ public class GwentEngine {
 
     private void applyLeaderAbility(GameState state, LeaderAbility ability) {
         leaderAbilityResolver.resolve(state, ability);
+    }
+
+    private void configureGraveyardTransformers(GameState state) {
+        state.getPlayer1().setGraveyardTransformer(BerserkerHelper::revertIfTransformed);
+        state.getPlayer2().setGraveyardTransformer(BerserkerHelper::revertIfTransformed);
     }
 }

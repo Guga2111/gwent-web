@@ -8,11 +8,14 @@ import {
   Target,
   Megaphone,
   Axe,
+  FlaskConical,
   RefreshCcw,
   Snowflake,
   CloudFog,
   CloudRain,
   Sun,
+  CloudLightning,
+  Bird,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { Ability } from '@/types/game'
@@ -32,11 +35,14 @@ const ABILITY_ICONS: Record<string, LucideIcon> = {
   DUMMY: Target,
   COMMANDERS_HORN: Megaphone,
   BERSERKER: Axe,
+  MARDROEME: FlaskConical,
   AGILE: RefreshCcw,
   FROST: Snowflake,
   FOG: CloudFog,
   RAIN: CloudRain,
   CLEAR_WEATHER: Sun,
+  SKELLIGE_STORM: CloudLightning,
+  KAMBI: Bird,
 }
 
 export default function AbilityIcon({ ability, size = 'sm' }: AbilityIconProps) {

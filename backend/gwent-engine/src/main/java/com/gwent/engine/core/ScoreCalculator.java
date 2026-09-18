@@ -14,12 +14,17 @@ public class ScoreCalculator {
     public ScoreCalculator () {}
 
     public int calculate (PlayerState player) {
-        return calculate(player.getMeleeRow())
-                + calculate(player.getRangedRow())
-                + calculate(player.getSiegeRow());
+        boolean kingBran = player.isKingBranActive();
+        return calculate(player.getMeleeRow(), kingBran)
+                + calculate(player.getRangedRow(), kingBran)
+                + calculate(player.getSiegeRow(), kingBran);
     }
 
     int calculate (BoardRow row) {
+        return calculate(row, false);
+    }
+
+    int calculate (BoardRow row, boolean kingBranActive) {
 
         int total = 0;
 
@@ -27,21 +32,25 @@ public class ScoreCalculator {
                 .collect(Collectors.groupingBy(Card::name, Collectors.counting()));
 
         long countMoraleBoost = row.getCards().stream()
-                .filter(c -> Ability.MORALE_BOOST.equals(c.ability()))
+                .filter(c -> c.hasAbility(Ability.MORALE_BOOST))
                 .count();
 
         for (Card card : row.getCards()) {
 
             int currentCardPower = 0;
-            long moraleBonus = Ability.MORALE_BOOST.equals(card.ability())
+            long moraleBonus = card.hasAbility(Ability.MORALE_BOOST)
                     ? countMoraleBoost - 1
                     : countMoraleBoost;
 
             currentCardPower += card.basePower();
-            if (Ability.TIGHT_BOND.equals(card.ability())) currentCardPower *= countByName.get(card.name());
+            if (card.hasAbility(Ability.TIGHT_BOND)) currentCardPower *= countByName.get(card.name());
 
             if (card.cardType() == CardType.UNIT) {
-                if (row.isWeatherActive()) currentCardPower = 1;
+                if (row.isWeatherActive()) {
+                    currentCardPower = kingBranActive
+                            ? Math.max(1, (int) Math.ceil(card.basePower() / 2.0))
+                            : 1;
+                }
                 currentCardPower += (int) moraleBonus;
                 if (row.isHornActive()) currentCardPower *= 2;
             }
@@ -53,22 +62,30 @@ public class ScoreCalculator {
     }
 
     public int calculateCardPower (Card card, BoardRow row) {
+        return calculateCardPower(card, row, false);
+    }
+
+    public int calculateCardPower (Card card, BoardRow row, boolean kingBranActive) {
         Map<String, Long> countByName = row.getCards().stream()
                 .collect(Collectors.groupingBy(Card::name, Collectors.counting()));
 
         long countMoraleBoost = row.getCards().stream()
-                .filter(c -> Ability.MORALE_BOOST.equals(c.ability()))
+                .filter(c -> c.hasAbility(Ability.MORALE_BOOST))
                 .count();
 
-        long moraleBonus = Ability.MORALE_BOOST.equals(card.ability())
+        long moraleBonus = card.hasAbility(Ability.MORALE_BOOST)
                 ? countMoraleBoost - 1
                 : countMoraleBoost;
 
         int power = card.basePower();
-        if (Ability.TIGHT_BOND.equals(card.ability())) power *= countByName.get(card.name());
+        if (card.hasAbility(Ability.TIGHT_BOND)) power *= countByName.get(card.name());
 
         if (card.cardType() == CardType.UNIT) {
-            if (row.isWeatherActive()) power = 1;
+            if (row.isWeatherActive()) {
+                power = kingBranActive
+                        ? Math.max(1, (int) Math.ceil(card.basePower() / 2.0))
+                        : 1;
+            }
             power += (int) moraleBonus;
             if (row.isHornActive()) power *= 2;
         }

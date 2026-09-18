@@ -51,7 +51,6 @@ class LeaderAbilityResolver {
             case THE_BEATIFUL               -> handleTheBeatiful(state);
 
             // --- Skellige ---
-            // KING_BRAN - TODO: `UNIT Cards only lost half of their strength in bad weather conditions` (HIGH COMPLEXITY)
             case KING_BRAN                   -> handleKingBran(state);
             case CLAN_AN_CRAITE              -> handleClanAnCraite(state);
         }
@@ -186,8 +185,9 @@ class LeaderAbilityResolver {
     private void handleDestroyStrongestInRow(GameState state, RowType rowType) {
         PlayerState opponent = state.getOpponent();
         BoardRow row = opponent.getRow(rowType);
+        boolean kingBran = opponent.isKingBranActive();
 
-        int rowScore = scoreCalculator.calculate(row);
+        int rowScore = scoreCalculator.calculate(row, kingBran);
         if (rowScore < 10) return;
 
         Card strongest = null;
@@ -195,7 +195,7 @@ class LeaderAbilityResolver {
         for (Card card : row.getCards()) {
             if (card.cardType() == CardType.HERO) continue;
             if (card.cardType() != CardType.UNIT) continue;
-            int power = scoreCalculator.calculateCardPower(card, row);
+            int power = scoreCalculator.calculateCardPower(card, row, kingBran);
             if (power > maxPower) {
                 maxPower = power;
                 strongest = card;
@@ -205,6 +205,11 @@ class LeaderAbilityResolver {
         if (strongest != null) {
             row.removeCard(strongest);
             opponent.addToGraveyard(strongest);
+            if (strongest.hasAbility(Ability.KAMBI)) {
+                Card hemdall = new Card("SK_HERO_HEMDALL", "Hemdall",
+                        Faction.SKELLIGE, CardType.HERO, null, null, RowType.MELEE, 11);
+                opponent.getMeleeRow().addCard(hemdall);
+            }
         }
     }
 
@@ -230,31 +235,30 @@ class LeaderAbilityResolver {
                 });
     }
 
-    // Scoia'tael: move agile units to the most maximezed points row - TODO: Review this
+    // Scoia'tael: move agile units to the most maximezed points row
     private void handleHopeOfTheAenSeidhe(GameState state) {
         PlayerState current = state.getCurrentPlayer();
-        // 1. Coletar as cartas que nao sao agile
+        boolean kingBran = current.isKingBranActive();
         List<Card> meleeNotAgileCards = current.getMeleeRow().getCards().stream()
-                .filter(c -> c.ability() != Ability.AGILE)
+                .filter(c -> !c.hasAbility(Ability.AGILE))
                 .toList();
 
         List<Card> rangedNotAgileCards = current.getRangedRow().getCards().stream()
-                .filter(c -> c.ability() != Ability.AGILE)
+                .filter(c -> !c.hasAbility(Ability.AGILE))
                 .toList();
 
-        // 2. Somar os pontos de melee e ranged sem considerar as cartas com tipo agile
         int meleeNotAgilePoints = meleeNotAgileCards.stream()
-                .mapToInt(c -> scoreCalculator.calculateCardPower(c, current.getMeleeRow()))
+                .mapToInt(c -> scoreCalculator.calculateCardPower(c, current.getMeleeRow(), kingBran))
                 .sum();
 
         int rangedNotAgilePoints = rangedNotAgileCards.stream()
-                .mapToInt(c -> scoreCalculator.calculateCardPower(c, current.getRangedRow()))
+                .mapToInt(c -> scoreCalculator.calculateCardPower(c, current.getRangedRow(), kingBran))
                 .sum();
 
         // 3. Mover as cartas do tipo AGILE para a qual tiver a maior pontuacao
         if (meleeNotAgilePoints > rangedNotAgilePoints) {
             List<Card> agileCardsToAdd = current.getRangedRow().getCards().stream()
-                    .filter(c -> c.ability() == Ability.AGILE)
+                    .filter(c -> c.hasAbility(Ability.AGILE))
                     .toList();
 
             for (Card card : agileCardsToAdd) {
@@ -263,7 +267,7 @@ class LeaderAbilityResolver {
             }
         } else if (rangedNotAgilePoints > meleeNotAgilePoints) {
             List<Card> agileCardsToAdd = current.getMeleeRow().getCards().stream()
-                    .filter(c -> c.ability() == Ability.AGILE)
+                    .filter(c -> c.hasAbility(Ability.AGILE))
                     .toList();
 
             for (Card card : agileCardsToAdd) {
@@ -279,13 +283,10 @@ class LeaderAbilityResolver {
         current.getRangedRow().setHornActive(true);
     }
 
-    // Skellige: move all graveyard cards back to deck
+    // Skellige: Units only lose half their Strength in bad weather conditions
     private void handleKingBran(GameState state) {
         PlayerState current = state.getCurrentPlayer();
-        new ArrayList<>(current.getGraveyard()).forEach(c -> {
-            current.removeFromGraveyard(c);
-            current.returnToDeck(c);
-        });
+        current.setKingBranActive(true);
     }
 
     // Skellige: Move all players graveyard cards back to deck shuffled - TODO: REVIEW THIS

@@ -47,7 +47,7 @@ public class BoardRow {
 
     public void addCard (Card card) {
 
-        if (card.ability() == Ability.AGILE) {
+        if (card.hasAbility(Ability.AGILE)) {
             if (rowType != RowType.MELEE && rowType != RowType.RANGED)
                 throw new InvalidRowException();
         } else if (card.rowType() != rowType) {

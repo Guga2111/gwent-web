@@ -287,6 +287,211 @@ class AbilityResolverTest {
         assertFalse(player1.getSiegeRow().isHornActive());
     }
 
+    // --- MARDROEME ---
+
+    @Test
+    void shouldTransformBerserkersOnRowWhenMardroemeIsPlayed() {
+        Card berserker = new Card("vildkaarl_1", "Vildkaarl", Faction.SKELLIGE, CardType.UNIT,
+                Ability.BERSERKER, null, RowType.MELEE, 8);
+        player1.getMeleeRow().addCard(berserker);
+
+        Card mardroeme = new Card("mardroeme", "Mardroeme", Faction.SKELLIGE, CardType.SPECIAL,
+                Ability.MARDROEME, null, null, null);
+        resolver.resolve(state, mardroeme, RowType.MELEE);
+
+        List<Card> meleeCards = player1.getMeleeRow().getCards();
+        assertEquals(1, meleeCards.size());
+        Card bear = meleeCards.get(0);
+        assertEquals("Transformed Vildkaarl", bear.name());
+        assertEquals(Ability.MORALE_BOOST, bear.ability());
+        assertEquals(14, bear.basePower());
+        assertEquals(RowType.MELEE, bear.rowType());
+    }
+
+    @Test
+    void shouldTransformMultipleBerserkersOnSameRow() {
+        Card b1 = new Card("vildkaarl_1", "Vildkaarl", Faction.SKELLIGE, CardType.UNIT,
+                Ability.BERSERKER, null, RowType.MELEE, 8);
+        Card b2 = new Card("vildkaarl_2", "Vildkaarl", Faction.SKELLIGE, CardType.UNIT,
+                Ability.BERSERKER, null, RowType.MELEE, 8);
+        player1.getMeleeRow().addCard(b1);
+        player1.getMeleeRow().addCard(b2);
+
+        Card mardroeme = new Card("mardroeme", "Mardroeme", Faction.SKELLIGE, CardType.SPECIAL,
+                Ability.MARDROEME, null, null, null);
+        resolver.resolve(state, mardroeme, RowType.MELEE);
+
+        List<Card> meleeCards = player1.getMeleeRow().getCards();
+        assertEquals(2, meleeCards.size());
+        assertTrue(meleeCards.stream().allMatch(c -> c.name().equals("Transformed Vildkaarl")));
+        assertTrue(meleeCards.stream().allMatch(c -> c.ability() == Ability.MORALE_BOOST));
+    }
+
+    @Test
+    void shouldNotTransformNonBerserkersWhenMardroemeIsPlayed() {
+        Card regular = makeUnit("soldier", "Soldier", 5, RowType.MELEE);
+        player1.getMeleeRow().addCard(regular);
+
+        Card mardroeme = new Card("mardroeme", "Mardroeme", Faction.SKELLIGE, CardType.SPECIAL,
+                Ability.MARDROEME, null, null, null);
+        resolver.resolve(state, mardroeme, RowType.MELEE);
+
+        List<Card> meleeCards = player1.getMeleeRow().getCards();
+        assertEquals(1, meleeCards.size());
+        assertEquals(regular, meleeCards.get(0));
+    }
+
+    @Test
+    void shouldDoNothingWhenMardroemeTargetsRowWithNoBerserkers() {
+        Card mardroeme = new Card("mardroeme", "Mardroeme", Faction.SKELLIGE, CardType.SPECIAL,
+                Ability.MARDROEME, null, null, null);
+
+        assertDoesNotThrow(() -> resolver.resolve(state, mardroeme, RowType.MELEE));
+        assertTrue(player1.getMeleeRow().getCards().isEmpty());
+    }
+
+    @Test
+    void shouldOnlyTransformBerserkersOnTargetRow() {
+        Card berserkerMelee = new Card("vildkaarl_1", "Vildkaarl", Faction.SKELLIGE, CardType.UNIT,
+                Ability.BERSERKER, null, RowType.MELEE, 8);
+        Card berserkerRanged = new Card("vildkaarl_2", "Vildkaarl", Faction.SKELLIGE, CardType.UNIT,
+                Ability.BERSERKER, null, RowType.RANGED, 8);
+        player1.getMeleeRow().addCard(berserkerMelee);
+        player1.getRangedRow().addCard(berserkerRanged);
+
+        Card mardroeme = new Card("mardroeme", "Mardroeme", Faction.SKELLIGE, CardType.SPECIAL,
+                Ability.MARDROEME, null, null, null);
+        resolver.resolve(state, mardroeme, RowType.MELEE);
+
+        assertEquals("Transformed Vildkaarl", player1.getMeleeRow().getCards().get(0).name());
+        assertEquals(Ability.BERSERKER, player1.getRangedRow().getCards().get(0).ability());
+    }
+
+    @Test
+    void shouldTransformBerserkerMarauderWhenMardroemeIsPlayed() {
+        Card marauder = new Card("marauder_1", "Berserker Marauder", Faction.SKELLIGE, CardType.UNIT,
+                Ability.BERSERKER, null, RowType.MELEE, 4);
+        player1.getMeleeRow().addCard(marauder);
+
+        Card mardroeme = new Card("mardroeme", "Mardroeme", Faction.SKELLIGE, CardType.SPECIAL,
+                Ability.MARDROEME, null, null, null);
+        resolver.resolve(state, mardroeme, RowType.MELEE);
+
+        List<Card> meleeCards = player1.getMeleeRow().getCards();
+        assertEquals(1, meleeCards.size());
+        Card transformed = meleeCards.get(0);
+        assertEquals("Transformed Marauder", transformed.name());
+        assertNull(transformed.ability());
+        assertEquals(8, transformed.basePower());
+    }
+
+    @Test
+    void shouldTransformMixedBerserkerTypesOnSameRow() {
+        player1.getMeleeRow().addCard(new Card("vildkaarl_1", "Vildkaarl", Faction.SKELLIGE, CardType.UNIT,
+                Ability.BERSERKER, null, RowType.MELEE, 8));
+        player1.getMeleeRow().addCard(new Card("marauder_1", "Berserker Marauder", Faction.SKELLIGE, CardType.UNIT,
+                Ability.BERSERKER, null, RowType.MELEE, 4));
+
+        Card mardroeme = new Card("mardroeme", "Mardroeme", Faction.SKELLIGE, CardType.SPECIAL,
+                Ability.MARDROEME, null, null, null);
+        resolver.resolve(state, mardroeme, RowType.MELEE);
+
+        List<Card> meleeCards = player1.getMeleeRow().getCards();
+        assertEquals(2, meleeCards.size());
+        assertTrue(meleeCards.stream().anyMatch(c -> c.name().equals("Transformed Vildkaarl")));
+        assertTrue(meleeCards.stream().anyMatch(c -> c.name().equals("Transformed Marauder")));
+    }
+
+    @Test
+    void shouldPreserveTransformedBearIdFromOriginalBerserker() {
+        Card berserker = new Card("vildkaarl_1", "Vildkaarl", Faction.SKELLIGE, CardType.UNIT,
+                Ability.BERSERKER, null, RowType.MELEE, 8);
+        player1.getMeleeRow().addCard(berserker);
+
+        Card mardroeme = new Card("mardroeme", "Mardroeme", Faction.SKELLIGE, CardType.SPECIAL,
+                Ability.MARDROEME, null, null, null);
+        resolver.resolve(state, mardroeme, RowType.MELEE);
+
+        assertEquals("VILDKAARL_1_TRANSFORMED", player1.getMeleeRow().getCards().get(0).id());
+    }
+
+    // --- MUSTER (Cerys override) ---
+
+    @Test
+    void shouldMusterShieldMaidensWhenCerysIsPlayed() {
+        Card maiden1 = makeUnit("sm_b", "Shield Maiden", 4, RowType.MELEE, Ability.TIGHT_BOND);
+        Card maiden2 = makeUnit("sm_c", "Shield Maiden", 4, RowType.MELEE, Ability.TIGHT_BOND);
+        PlayerState p1 = new PlayerState(makeLeader(), List.of(maiden2));
+        p1.addToHand(maiden1);
+        GameState gs = makeState(p1, new PlayerState(makeLeader(), List.of()));
+
+        Card cerys = new Card("cerys", "Cerys an Craite", Faction.SKELLIGE, CardType.HERO,
+                Ability.MUSTER, null, RowType.MELEE, 10);
+        resolver.resolve(gs, cerys, RowType.MELEE);
+
+        assertTrue(p1.getHand().isEmpty());
+        assertTrue(p1.getDeck().isEmpty());
+        assertEquals(2, p1.getMeleeRow().getCards().size());
+    }
+
+    @Test
+    void shouldNotMusterCerysNamedCardsWhenCerysIsPlayed() {
+        Card anotherCerys = new Card("cerys2", "Cerys an Craite", Faction.SKELLIGE, CardType.HERO,
+                Ability.MUSTER, null, RowType.MELEE, 10);
+        PlayerState p1 = new PlayerState(makeLeader(), List.of());
+        p1.addToHand(anotherCerys);
+        GameState gs = makeState(p1, new PlayerState(makeLeader(), List.of()));
+
+        Card cerys = new Card("cerys", "Cerys an Craite", Faction.SKELLIGE, CardType.HERO,
+                Ability.MUSTER, null, RowType.MELEE, 10);
+        resolver.resolve(gs, cerys, RowType.MELEE);
+
+        // "Cerys an Craite" should not muster other "Cerys an Craite" cards — only "Shield Maiden"
+        assertEquals(1, p1.getHand().size());
+        assertTrue(p1.getMeleeRow().getCards().isEmpty());
+    }
+
+    // --- KAMBI (Hemdall on scorch) ---
+
+    @Test
+    void shouldSummonHemdallWhenKambiIsScorechedFromBoard() {
+        Card kambi = new Card("kambi", "Kambi", Faction.SKELLIGE, CardType.UNIT,
+                Ability.KAMBI, null, RowType.MELEE, 0);
+        Card strongUnit = makeUnit("strong", "Strong", 10, RowType.MELEE);
+        PlayerState p1 = new PlayerState(makeLeader(), List.of());
+        p1.getMeleeRow().addCard(strongUnit);
+        PlayerState p2 = new PlayerState(makeLeader(), List.of());
+        p2.getMeleeRow().addCard(kambi);
+        GameState gs = makeState(p1, p2);
+
+        resolver.resolve(gs, makeUnit("scorch_card", "Scorch", 2, RowType.MELEE, Ability.SCORCH), RowType.MELEE);
+
+        // strongUnit (10) is highest, gets scorched. Kambi (0) stays.
+        assertFalse(p1.getMeleeRow().getCards().contains(strongUnit));
+        assertTrue(p2.getMeleeRow().getCards().contains(kambi));
+    }
+
+    @Test
+    void shouldSummonHemdallWhenKambiIsTheHighestAndScorched() {
+        Card kambi = new Card("kambi", "Kambi", Faction.SKELLIGE, CardType.UNIT,
+                Ability.KAMBI, null, RowType.MELEE, 0);
+        PlayerState p1 = new PlayerState(makeLeader(), List.of());
+        PlayerState p2 = new PlayerState(makeLeader(), List.of());
+        p2.getMeleeRow().addCard(kambi);
+        GameState gs = makeState(p1, p2);
+
+        // Kambi has 0 power, which is the highest (only card). Gets scorched.
+        resolver.resolve(gs, makeUnit("scorch_card", "Scorch", 2, RowType.MELEE, Ability.SCORCH), RowType.MELEE);
+
+        // Kambi was scorched, Hemdall should appear on p2's melee row
+        assertTrue(p2.getGraveyard().stream().anyMatch(c -> c.name().equals("Kambi")));
+        assertTrue(p2.getMeleeRow().getCards().stream().anyMatch(c -> c.name().equals("Hemdall")));
+        Card hemdall = p2.getMeleeRow().getCards().stream()
+                .filter(c -> c.name().equals("Hemdall")).findFirst().orElseThrow();
+        assertEquals(CardType.HERO, hemdall.cardType());
+        assertEquals(11, hemdall.basePower());
+    }
+
     // --- No-op abilities ---
 
     @Test
