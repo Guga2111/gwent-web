@@ -43,8 +43,13 @@ export default function Login() {
       let message = 'Falha na autenticação'
       if (axios.isAxiosError(err)) {
         const data = err.response?.data
-        message = typeof data === 'string' ? data
-          : data?.message ?? data?.error ?? message
+        if (typeof data === 'string') {
+          message = data
+        } else if (data?.fields && typeof data.fields === 'object') {
+          message = Object.values(data.fields).join('. ')
+        } else {
+          message = data?.message ?? message
+        }
       } else if (err instanceof Error) {
         message = err.message
       }
