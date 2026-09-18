@@ -447,8 +447,14 @@ public class GwentEngine {
         FactionPassiveResolver.KeptCard p1Kept = factionPassiveResolver.resolveMonsterKeepCard(state.getPlayer1());
         FactionPassiveResolver.KeptCard p2Kept = factionPassiveResolver.resolveMonsterKeepCard(state.getPlayer2());
 
+        boolean p1HadKambi = hasKambiOnBoard(state.getPlayer1());
+        boolean p2HadKambi = hasKambiOnBoard(state.getPlayer2());
+
         state.getPlayer1().clearRows();
         state.getPlayer2().clearRows();
+
+        if (p1HadKambi) summonHemdall(state.getPlayer1());
+        if (p2HadKambi) summonHemdall(state.getPlayer2());
         state.getPlayer1().resetCommandersHorn();
         state.getPlayer2().resetCommandersHorn();
 
@@ -537,6 +543,21 @@ public class GwentEngine {
             player.getRangedRow().setWeatherActive(false);
             player.getSiegeRow().setWeatherActive(false);
         }
+    }
+
+    private boolean hasKambiOnBoard(PlayerState player) {
+        for (RowType rowType : RowType.values()) {
+            if (player.getRow(rowType).getCards().stream().anyMatch(c -> c.hasAbility(Ability.KAMBI))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void summonHemdall(PlayerState player) {
+        Card hemdall = new Card("SK_HERO_HEMDALL", "Hemdall",
+                Faction.SKELLIGE, CardType.HERO, null, null, RowType.MELEE, 11);
+        player.getMeleeRow().addCard(hemdall);
     }
 
     private void drawCards(PlayerState player, int count) {
