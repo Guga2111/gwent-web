@@ -5,21 +5,31 @@ import { useAuthStore } from '@/stores/authStore'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Eye, EyeOff } from 'lucide-react'
+import { toast } from 'sonner'
+import axios from 'axios'
 
 export default function Login() {
   const [isRegister, setIsRegister] = useState(false)
   const [email, setEmail] = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
 
   const setToken = useAuthStore((s) => s.setToken)
   const navigate = useNavigate()
 
+  const passwordRules = [
+    { label: 'Mínimo 8 caracteres', test: (p: string) => p.length >= 8 },
+    { label: 'Uma letra maiúscula', test: (p: string) => /[A-Z]/.test(p) },
+    { label: 'Uma letra minúscula', test: (p: string) => /[a-z]/.test(p) },
+    { label: 'Um número', test: (p: string) => /\d/.test(p) },
+    { label: 'Um caractere especial', test: (p: string) => /[^A-Za-z0-9]/.test(p) },
+  ]
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    setError('')
     setLoading(true)
 
     try {
@@ -30,9 +40,15 @@ export default function Login() {
       setToken(token)
       navigate('/hub')
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : 'Authentication failed'
-      setError(message)
+      let message = 'Falha na autenticação'
+      if (axios.isAxiosError(err)) {
+        const data = err.response?.data
+        message = typeof data === 'string' ? data
+          : data?.message ?? data?.error ?? message
+      } else if (err instanceof Error) {
+        message = err.message
+      }
+      toast.error(message)
     } finally {
       setLoading(false)
     }
@@ -85,18 +101,39 @@ export default function Login() {
 
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="password" className="font-heading text-[11px] font-semibold uppercase tracking-[1.5px] text-text-secondary">Senha</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="form-input"
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="form-input pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary transition-colors"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </div>
+              {isRegister && password.length > 0 && (
+                <ul className="flex flex-col gap-0.5 mt-1">
+                  {passwordRules.map((rule) => (
+                    <li
+                      key={rule.label}
+                      className={`font-ui text-[11px] flex items-center gap-1.5 ${rule.test(password) ? 'text-green' : 'text-text-muted'}`}
+                    >
+                      <span>{rule.test(password) ? '✓' : '○'}</span>
+                      {rule.label}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-
-            {error && <p className="font-ui text-[13px] text-red">{error}</p>}
 
             <Button type="submit" disabled={loading} variant="cta" className="w-full py-3 rounded-lg text-sm tracking-widest uppercase disabled:opacity-50 disabled:cursor-not-allowed">
               {loading ? '...' : isRegister ? 'Registrar' : 'Entrar'}
@@ -111,7 +148,7 @@ export default function Login() {
             <Button
               type="button"
               variant="ghost"
-              onClick={() => { setIsRegister(!isRegister); setError('') }}
+              onClick={() => setIsRegister(!isRegister)}
               className="bg-none border-none font-body text-sm text-text-secondary cursor-pointer hover:bg-transparent hover:text-gold-light"
             >
               {isRegister
