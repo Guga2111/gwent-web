@@ -7,9 +7,11 @@ const factionFolder: Record<string, string> = {
   NEUTRAL: 'neutral',
 }
 
-/** Strip instance suffix (_1, _2, etc.) and _TRANSFORMED from runtime card IDs */
+/** Strip instance suffix (_1, _2, etc.) but keep _TRANSFORMED for bear art */
 function catalogId(instanceId: string): string {
-  return instanceId.replace(/_TRANSFORMED$/, '').replace(/_\d+$/, '')
+  const isTransformed = instanceId.endsWith('_TRANSFORMED')
+  const base = instanceId.replace(/_TRANSFORMED$/, '').replace(/_\d+$/, '')
+  return isTransformed ? `${base}_TRANSFORMED` : base
 }
 
 export function getCardArtUrl(id: string, faction: string): string {
