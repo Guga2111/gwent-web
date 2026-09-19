@@ -22,10 +22,10 @@ public class UserService {
 
     public User registerUser(String email, String username, String password) {
         if (userRepository.existsByEmail(email)) {
-            throw new DuplicateUserException("Email already in use");
+            throw new DuplicateUserException("Este email já está em uso");
         }
         if (userRepository.existsByUsername(username)) {
-            throw new DuplicateUserException("Username already in use");
+            throw new DuplicateUserException("Este nome de usuário já está em uso");
         }
         User user = new User();
         user.setEmail(email);

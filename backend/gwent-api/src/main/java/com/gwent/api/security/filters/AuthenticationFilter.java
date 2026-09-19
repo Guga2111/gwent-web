@@ -80,6 +80,6 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
                                               AuthenticationException failed) throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
-        response.getWriter().write(objectMapper.writeValueAsString(Map.of("error", failed.getMessage())));
+        response.getWriter().write(objectMapper.writeValueAsString(Map.of("error", "Email ou senha incorretos")));
     }
 }
