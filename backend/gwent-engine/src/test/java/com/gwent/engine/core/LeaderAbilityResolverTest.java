@@ -557,7 +557,7 @@ class LeaderAbilityResolverTest {
         engine.execute(state, new UseLeaderCommand());
         engine.execute(state, new ResolveLeaderCommand(rain));
 
-        assertTrue(state.getBoard().getWeatherCards().contains(rain));
+        assertTrue(state.getBoard().getActiveWeatherCards().contains(rain));
         assertFalse(p1.getDeck().contains(rain));
         assertTrue(p1.getDeck().contains(frost));
         assertNull(state.getPendingAbility());
@@ -588,7 +588,7 @@ class LeaderAbilityResolverTest {
 
         engine.execute(state, new UseLeaderCommand());
 
-        assertTrue(state.getBoard().getWeatherCards().contains(fog));
+        assertTrue(state.getBoard().getActiveWeatherCards().contains(fog));
         assertFalse(p1.getDeck().contains(fog));
         assertFalse(p1.getHand().contains(fog));
     }
