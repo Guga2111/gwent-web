@@ -49,6 +49,21 @@ class LeaderAbilityResolverTest {
         assertFalse(p1.getRangedRow().isHornActive());
     }
 
+    @Test
+    void shouldNotDoubleHeroCardStrengthWhenSiegeMasterUsed() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.SIEGE_MASTER);
+        Card hero = makeHero("h1", "Hero", 10, RowType.SIEGE);
+        Card unit = makeUnit("u1", "Unit", 4, RowType.SIEGE);
+        p1.getSiegeRow().addCard(hero);
+        p1.getSiegeRow().addCard(unit);
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.SIEGE_MASTER));
+
+        engine.execute(state, new UseLeaderCommand());
+
+        // hero 10 (not doubled) + unit 4*2 = 18
+        assertEquals(18, engine.calculateScore(p1));
+    }
+
     // =========================================================
     // WHITE_FLAME (Nilfgaard) — cancel opponent's leader
     // =========================================================
@@ -532,6 +547,23 @@ class LeaderAbilityResolverTest {
     }
 
     @Test
+    void shouldPlayWeatherOnBoardWhenKingOfTheWildHuntResolved() {
+        Card frost = makeWeatherCard("frost", Ability.FROST);
+        Card rain = makeWeatherCard("rain", Ability.RAIN);
+        Card unit = makeUnit("u1", "Unit", 5, RowType.MELEE);
+        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.KING_OF_THE_WILD_HUNT), List.of(unit, frost, rain));
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.KING_OF_THE_WILD_HUNT));
+
+        engine.execute(state, new UseLeaderCommand());
+        engine.execute(state, new ResolveLeaderCommand(rain));
+
+        assertTrue(state.getBoard().getWeatherCards().contains(rain));
+        assertFalse(p1.getDeck().contains(rain));
+        assertTrue(p1.getDeck().contains(frost));
+        assertNull(state.getPendingAbility());
+    }
+
+    @Test
     void shouldDoNothingWhenNoWeatherInDeckForKingOfTheWildHunt() {
         Card unit = makeUnit("u1", "Unit", 5, RowType.MELEE);
         PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.KING_OF_THE_WILD_HUNT), List.of(unit));
@@ -599,6 +631,71 @@ class LeaderAbilityResolverTest {
     }
 
     // =========================================================
+    // TREACHEROUS (Monsters) — doubles spy card strength
+    // =========================================================
+
+    @Test
+    void shouldSetTreacherousActiveFlagWhenUsed() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.TREACHEROUS);
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.TREACHEROUS));
+
+        assertFalse(state.isTreacherousActive());
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertTrue(state.isTreacherousActive());
+    }
+
+    @Test
+    void shouldDoubleSpyCardStrengthWhenTreacherousActive() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.TREACHEROUS);
+        PlayerState p2 = playerWithLeader(LeaderAbility.TREACHEROUS);
+        Card spy = new Card("spy1", "Spy", Faction.NEUTRAL, CardType.UNIT, Ability.SPY, null, RowType.MELEE, 4);
+        p2.getMeleeRow().addCard(spy);
+        GameState state = makePlayState(p1, p2);
+
+        // before treacherous: spy has power 4
+        assertEquals(4, engine.calculateScore(p2, false));
+
+        engine.execute(state, new UseLeaderCommand());
+
+        // after treacherous: spy has power 4 * 2 = 8
+        assertEquals(8, engine.calculateScore(p2, true));
+    }
+
+    @Test
+    void shouldDoubleSpyStrengthForBothPlayersWhenTreacherousActive() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.TREACHEROUS);
+        PlayerState p2 = playerWithLeader(LeaderAbility.TREACHEROUS);
+        Card spy1 = new Card("spy1", "Spy1", Faction.NEUTRAL, CardType.UNIT, Ability.SPY, null, RowType.MELEE, 4);
+        Card spy2 = new Card("spy2", "Spy2", Faction.NEUTRAL, CardType.UNIT, Ability.SPY, null, RowType.RANGED, 5);
+        p1.getMeleeRow().addCard(spy1);
+        p2.getRangedRow().addCard(spy2);
+        GameState state = makePlayState(p1, p2);
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertEquals(8, engine.calculateScore(p1, true));
+        assertEquals(10, engine.calculateScore(p2, true));
+    }
+
+    @Test
+    void shouldNotAffectNonSpyCardsWhenTreacherousActive() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.TREACHEROUS);
+        PlayerState p2 = playerWithLeader(LeaderAbility.TREACHEROUS);
+        Card unit = makeUnit("u1", "Unit", 6, RowType.MELEE);
+        Card spy = new Card("spy1", "Spy", Faction.NEUTRAL, CardType.UNIT, Ability.SPY, null, RowType.MELEE, 4);
+        p2.getMeleeRow().addCard(unit);
+        p2.getMeleeRow().addCard(spy);
+        GameState state = makePlayState(p1, p2);
+
+        engine.execute(state, new UseLeaderCommand());
+
+        // unit stays 6, spy doubles to 8 = 14
+        assertEquals(14, engine.calculateScore(p2, true));
+    }
+
+    // =========================================================
     // CLAN_AN_CRAITE (Skellige) — all graveyard to deck for both + shuffle
     // =========================================================
 
@@ -621,6 +718,23 @@ class LeaderAbilityResolverTest {
         assertTrue(p1.getDeck().contains(g1));
         assertTrue(p1.getDeck().contains(g2));
         assertTrue(p2.getDeck().contains(g3));
+    }
+
+    @Test
+    void shouldWorkWhenOnlyOnePlayerHasGraveyardCardsForClanAnCraite() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.CLAN_AN_CRAITE);
+        PlayerState p2 = playerWithLeader(LeaderAbility.CLAN_AN_CRAITE);
+        Card g1 = makeUnit("g1", "Ghost1", 5, RowType.MELEE);
+        p1.addToGraveyard(g1);
+        // p2 graveyard is empty
+        GameState state = makePlayState(p1, p2);
+
+        assertDoesNotThrow(() -> engine.execute(state, new UseLeaderCommand()));
+
+        assertTrue(p1.getGraveyard().isEmpty());
+        assertTrue(p2.getGraveyard().isEmpty());
+        assertTrue(p1.getDeck().contains(g1));
+        assertTrue(p2.getDeck().isEmpty());
     }
 
     @Test
@@ -911,6 +1025,22 @@ class LeaderAbilityResolverTest {
 
         assertTrue(p1.getMeleeRow().getCards().contains(agileInMelee));
         assertFalse(p1.getRangedRow().getCards().contains(agileInMelee));
+    }
+
+    @Test
+    void shouldMoveAgileToNonEmptyRowWhenOneRowIsEmpty() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE);
+        Card meleeUnit = makeUnit("m1", "MeleeUnit", 6, RowType.MELEE);
+        Card agile = makeAgileUnit("a1", "Agile", 5);
+        p1.getMeleeRow().addCard(meleeUnit);
+        p1.getRangedRow().addCard(agile);
+        // ranged has 0 non-agile score, melee has 6
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE));
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertTrue(p1.getMeleeRow().getCards().contains(agile));
+        assertFalse(p1.getRangedRow().getCards().contains(agile));
     }
 
     // =========================================================
