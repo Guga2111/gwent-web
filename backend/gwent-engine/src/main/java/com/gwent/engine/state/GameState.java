@@ -20,6 +20,7 @@ public class GameState {
     private List<Card> revealedCards;
     private Turn winner;
     private EndReason endReason;
+    private boolean treacherousActive;
 
     public GameState (PlayerState player1, PlayerState player2) {
         this.player1 = player1;
@@ -144,5 +145,13 @@ public class GameState {
 
     public boolean isGameOver() {
         return phase == GamePhase.GAME_OVER;
+    }
+
+    public boolean isTreacherousActive() {
+        return treacherousActive;
+    }
+
+    public void setTreacherousActive(boolean treacherousActive) {
+        this.treacherousActive = treacherousActive;
     }
 }
