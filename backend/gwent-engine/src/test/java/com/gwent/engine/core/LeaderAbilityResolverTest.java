@@ -210,11 +210,15 @@ class LeaderAbilityResolverTest {
         assertEquals(PendingAbility.LEADER_HAND_DISCARD, state.getPendingAbility());
         assertEquals(1, state.getPendingAbilityCount());
 
-        // second discard — draws 1 from deck after
+        // second discard — transitions to LEADER_DECK_PICK so player picks from deck
         engine.execute(state, new ResolveLeaderCommand(c2));
         assertTrue(p1.getGraveyard().contains(c2));
-        assertNull(state.getPendingAbility());
+        assertEquals(PendingAbility.LEADER_DECK_PICK, state.getPendingAbility());
         assertTrue(p1.getHand().contains(keep));
+
+        // pick card from deck
+        engine.execute(state, new ResolveLeaderCommand(deckCard));
+        assertNull(state.getPendingAbility());
         assertTrue(p1.getHand().contains(deckCard));
     }
 
@@ -520,8 +524,10 @@ class LeaderAbilityResolverTest {
 
         engine.execute(state, new UseLeaderCommand());
 
-        assertTrue(p1.getHand().contains(weather));
-        assertFalse(p1.getDeck().contains(weather));
+        assertEquals(PendingAbility.LEADER_DECK_PICK, state.getPendingAbility());
+        assertEquals(LeaderAbility.KING_OF_THE_WILD_HUNT, state.getPendingLeaderAbility());
+        assertFalse(p1.getHand().contains(weather));
+        assertTrue(p1.getDeck().contains(weather));
         assertTrue(p1.getDeck().contains(unit));
     }
 
@@ -550,9 +556,9 @@ class LeaderAbilityResolverTest {
 
         engine.execute(state, new UseLeaderCommand());
 
-        assertTrue(p1.getHand().contains(fog));
-        assertFalse(p1.getHand().contains(frost));
+        assertTrue(state.getBoard().getWeatherCards().contains(fog));
         assertFalse(p1.getDeck().contains(fog));
+        assertFalse(p1.getHand().contains(fog));
     }
 
     @Test
