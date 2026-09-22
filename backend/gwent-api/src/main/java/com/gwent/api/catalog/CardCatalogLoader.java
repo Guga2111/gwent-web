@@ -240,7 +240,7 @@ public class CardCatalogLoader implements ApplicationRunner {
             card("SK_PIRATE",       "Clan Dimun Pirate",         Faction.SKELLIGE, CardType.UNIT, Ability.SCORCH,      null, RowType.RANGED,  6, 2),
             card("SK_ARMORSMITH",   "Clan Tordarroch Armorsmith",Faction.SKELLIGE, CardType.UNIT, null,                null, RowType.MELEE,   4, 1),
             card("SK_BROKVAR",      "Clan Brokvar Archer",       Faction.SKELLIGE, CardType.UNIT, null,                null, RowType.RANGED,  6, 3),
-            card("SK_SHIELD_MAIDEN","Shield Maiden",             Faction.SKELLIGE, CardType.UNIT, Ability.TIGHT_BOND,  null, RowType.MELEE,   4, 3),
+            card("SK_SHIELD_MAIDEN","Shield Maiden",             Faction.SKELLIGE, CardType.UNIT, Ability.TIGHT_BOND, Ability.MUSTER, null, RowType.MELEE,   4, 3),
 
             // Units — new (no new abilities)
             card("SK_BLUEBOY",     "Blueboy Lugos",          Faction.SKELLIGE, CardType.UNIT, null,                null, RowType.MELEE, 6, 1),
