@@ -51,7 +51,7 @@ public class CardCatalogLoader implements ApplicationRunner {
             card("NR_BLUE_STRIPES",   "Blue Stripes Commando",          Faction.NORTHERN_REALMS, CardType.UNIT, Ability.TIGHT_BOND,   null, RowType.MELEE,  4, 3),
             card("NR_POOR_INFANTRY",  "Poor Fucking Infantry",          Faction.NORTHERN_REALMS, CardType.UNIT, Ability.TIGHT_BOND,   null, RowType.MELEE,  1, 3),
             card("NR_CRINFRID",       "Crinfrid Reavers Dragon Hunter", Faction.NORTHERN_REALMS, CardType.UNIT, Ability.TIGHT_BOND,   null, RowType.RANGED, 5, 3),
-            card("NR_KAEDWENI_SIEGE", "Kaedweni Siege Expert",          Faction.NORTHERN_REALMS, CardType.UNIT, Ability.MORALE_BOOST, null, RowType.SIEGE,  1, 2),
+            card("NR_KAEDWENI_SIEGE", "Kaedweni Siege Expert",          Faction.NORTHERN_REALMS, CardType.UNIT, Ability.MORALE_BOOST, null, RowType.SIEGE,  1, 3),
             card("NR_DUN_BANNER",     "Dun Banner Medic",               Faction.NORTHERN_REALMS, CardType.UNIT, Ability.MEDIC,        null, RowType.SIEGE,  5, 1),
             card("NR_DETHMOLD",       "Dethmold",                       Faction.NORTHERN_REALMS, CardType.UNIT, null,                 null, RowType.RANGED, 6, 1),
             card("NR_KEIRA_METZ",     "Keira Metz",                     Faction.NORTHERN_REALMS, CardType.UNIT, null,                 null, RowType.RANGED, 5, 1),
@@ -61,10 +61,10 @@ public class CardCatalogLoader implements ApplicationRunner {
             card("NR_VES",            "Ves",                            Faction.NORTHERN_REALMS, CardType.UNIT, null,                 null, RowType.MELEE,  5, 1),
             card("NR_SIEGFRIED",      "Siegfried of Denesle",            Faction.NORTHERN_REALMS, CardType.UNIT, null,                 null, RowType.MELEE,  5, 1),
             card("NR_YARPEN",         "Yarpen Zigrin",                  Faction.NORTHERN_REALMS, CardType.UNIT, null,                 null, RowType.MELEE,  2, 1),
-            card("NR_REDANIAN",       "Redanian Foot Soldier",          Faction.NORTHERN_REALMS, CardType.UNIT, null,                 null, RowType.MELEE,  1, 1),
+            card("NR_REDANIAN",       "Redanian Foot Soldier",          Faction.NORTHERN_REALMS, CardType.UNIT, null,                 null, RowType.MELEE,  1, 2),
             card("NR_BALLISTA",       "Ballista",                       Faction.NORTHERN_REALMS, CardType.UNIT, null,                 null, RowType.SIEGE,  6, 1),
             card("NR_CATAPULT",       "Catapult",                       Faction.NORTHERN_REALMS, CardType.UNIT, Ability.TIGHT_BOND,   null, RowType.SIEGE,  8, 2),
-            card("NR_TREBUCHET",      "Trebuchet",                      Faction.NORTHERN_REALMS, CardType.UNIT, null,                 null, RowType.SIEGE,  6, 1),
+            card("NR_TREBUCHET",      "Trebuchet",                      Faction.NORTHERN_REALMS, CardType.UNIT, null,                 null, RowType.SIEGE,  6, 2),
             card("NR_SIEGE_TOWER",    "Siege Tower",                    Faction.NORTHERN_REALMS, CardType.UNIT, null,                 null, RowType.SIEGE,  6, 1),
 
             // ── NILFGAARD ────────────────────────────────────────────────────
@@ -101,7 +101,7 @@ public class CardCatalogLoader implements ApplicationRunner {
             card("NG_ASSIRE",          "Assire var Anahid",               Faction.NILFGAARD, CardType.UNIT, null,  null, RowType.RANGED,  6, 1),
             card("NG_CYNTHIA",         "Cynthia",                         Faction.NILFGAARD, CardType.UNIT, null,  null, RowType.RANGED,  4, 1),
             card("NG_RENUALD",         "Renuald aep Matsen",              Faction.NILFGAARD, CardType.UNIT, null,  null, RowType.RANGED,  5, 1),
-            card("NG_BLACK_ARCHER",    "Black Infantry Archer",           Faction.NILFGAARD, CardType.UNIT, null,  null, RowType.RANGED, 10, 1),
+            card("NG_BLACK_ARCHER",    "Black Infantry Archer",           Faction.NILFGAARD, CardType.UNIT, null,  null, RowType.RANGED, 10, 2),
             card("NG_VANHEMAR",        "Vanhemar",                        Faction.NILFGAARD, CardType.UNIT, null,  null, RowType.RANGED,  4, 1),
             card("NG_PUTTKAMMER",      "Puttkammer",                      Faction.NILFGAARD, CardType.UNIT, null,  null, RowType.RANGED,  3, 1),
             card("NG_SWEERS",          "Sweers",                          Faction.NILFGAARD, CardType.UNIT, null,  null, RowType.RANGED,  2, 1),
@@ -186,7 +186,7 @@ public class CardCatalogLoader implements ApplicationRunner {
 
             // Units — Agile
             card("ST_YAEVINN",        "Yaevinn",                   Faction.SCOIATAEL, CardType.UNIT, Ability.AGILE,  null, RowType.RANGED, 6, 1),
-            card("ST_VRIHEDD",        "Vrihedd Brigade Veteran",   Faction.SCOIATAEL, CardType.UNIT, Ability.AGILE,  null, RowType.RANGED, 5, 3),
+            card("ST_VRIHEDD",        "Vrihedd Brigade Veteran",   Faction.SCOIATAEL, CardType.UNIT, Ability.AGILE,  null, RowType.RANGED, 5, 2),
             card("ST_DOL_SCOUT",      "Dol Blathanna Scout",       Faction.SCOIATAEL, CardType.UNIT, Ability.AGILE,  null, RowType.RANGED, 6, 3),
             card("ST_BARCLAY",        "Barclay Els",               Faction.SCOIATAEL, CardType.UNIT, Ability.AGILE,  null, RowType.RANGED, 6, 1),
             card("ST_CIARAN",         "Ciaran aep Easnillien",     Faction.SCOIATAEL, CardType.UNIT, Ability.AGILE,  null, RowType.RANGED, 3, 1),
@@ -236,8 +236,8 @@ public class CardCatalogLoader implements ApplicationRunner {
             card("SK_HERO_BIRNA",   "Birna Bran",                Faction.SKELLIGE, CardType.UNIT, Ability.MEDIC,       null, RowType.MELEE,   2, 1),
             card("SK_VILDKAARL",    "Vildkaarl",                 Faction.SKELLIGE, CardType.UNIT, Ability.BERSERKER,   null, RowType.MELEE,   8, 1),
             card("SK_BERSERKER",    "Berserker Marauder",        Faction.SKELLIGE, CardType.UNIT, Ability.BERSERKER,   null, RowType.MELEE,   4, 3),
-            card("SK_CLAN_AN_CRAITE","Clan an Craite Warrior",   Faction.SKELLIGE, CardType.UNIT, Ability.TIGHT_BOND,  null, RowType.MELEE,   6, 4),
-            card("SK_PIRATE",       "Clan Dimun Pirate",         Faction.SKELLIGE, CardType.UNIT, Ability.SCORCH,      null, RowType.RANGED,  6, 2),
+            card("SK_CLAN_AN_CRAITE","Clan an Craite Warrior",   Faction.SKELLIGE, CardType.UNIT, Ability.TIGHT_BOND,  null, RowType.MELEE,   6, 3),
+            card("SK_PIRATE",       "Clan Dimun Pirate",         Faction.SKELLIGE, CardType.UNIT, Ability.SCORCH,      null, RowType.RANGED,  6, 1),
             card("SK_ARMORSMITH",   "Clan Tordarroch Armorsmith",Faction.SKELLIGE, CardType.UNIT, null,                null, RowType.MELEE,   4, 1),
             card("SK_BROKVAR",      "Clan Brokvar Archer",       Faction.SKELLIGE, CardType.UNIT, null,                null, RowType.RANGED,  6, 3),
             card("SK_SHIELD_MAIDEN","Shield Maiden",             Faction.SKELLIGE, CardType.UNIT, Ability.TIGHT_BOND, Ability.MUSTER, null, RowType.MELEE,   4, 3),
@@ -268,8 +268,8 @@ public class CardCatalogLoader implements ApplicationRunner {
             // Weather
             card("NEUTRAL_FROST",         "Biting Frost",       Faction.NEUTRAL, CardType.WEATHER, Ability.FROST,         null, null, null, 3),
             card("NEUTRAL_FOG",           "Impenetrable Fog",   Faction.NEUTRAL, CardType.WEATHER, Ability.FOG,           null, null, null, 3),
-            card("NEUTRAL_RAIN",          "Torrential Rain",    Faction.NEUTRAL, CardType.WEATHER, Ability.RAIN,          null, null, null, 3),
-            card("NEUTRAL_CLEAR_WEATHER", "Clear Weather",      Faction.NEUTRAL, CardType.WEATHER, Ability.CLEAR_WEATHER, null, null, null, 3),
+            card("NEUTRAL_RAIN",          "Torrential Rain",    Faction.NEUTRAL, CardType.WEATHER, Ability.RAIN,          null, null, null, 2),
+            card("NEUTRAL_CLEAR_WEATHER", "Clear Weather",      Faction.NEUTRAL, CardType.WEATHER, Ability.CLEAR_WEATHER, null, null, null, 2),
 
             // Special
             card("NEUTRAL_DUMMY",            "Decoy",             Faction.NEUTRAL, CardType.SPECIAL, Ability.DUMMY,            null, null, null, 3),
@@ -291,8 +291,8 @@ public class CardCatalogLoader implements ApplicationRunner {
             card("NEUTRAL_EMIEL_REGIS",       "Emiel Regis",            Faction.NEUTRAL, CardType.UNIT, null,                    null, RowType.MELEE,  5, 1),
             card("NEUTRAL_DANDELION",         "Dandelion",              Faction.NEUTRAL, CardType.UNIT, Ability.COMMANDERS_HORN, null, RowType.MELEE,  2, 1),
             card("NEUTRAL_OLGIERD",           "Olgierd von Everec",     Faction.NEUTRAL, CardType.UNIT, Ability.AGILE, Ability.MORALE_BOOST, null, RowType.MELEE, 6, 1),
-            card("NEUTRAL_GAUNTER",           "Gaunter O'Dimm",         Faction.NEUTRAL, CardType.UNIT, Ability.MUSTER,          null, RowType.MELEE,  2, 1),
-            card("NEUTRAL_GAUNTER_DARKNESS",  "Gaunter O'Dimm: Darkness", Faction.NEUTRAL, CardType.UNIT, Ability.MUSTER,        null, RowType.MELEE,  4, 1)
+            card("NEUTRAL_GAUNTER",           "Gaunter O'Dimm",         Faction.NEUTRAL, CardType.UNIT, Ability.MUSTER,          null, RowType.SIEGE,  2, 1),
+            card("NEUTRAL_GAUNTER_DARKNESS",  "Gaunter O'Dimm: Darkness", Faction.NEUTRAL, CardType.UNIT, Ability.MUSTER,        null, RowType.RANGED, 4, 3)
         );
     }
 
