@@ -274,6 +274,7 @@ public class CardCatalogLoader implements ApplicationRunner {
             // Special
             card("NEUTRAL_DUMMY",            "Decoy",             Faction.NEUTRAL, CardType.SPECIAL, Ability.DUMMY,            null, null, null, 3),
             card("NEUTRAL_COMMANDERS_HORN",  "Commander's Horn",  Faction.NEUTRAL, CardType.SPECIAL, Ability.COMMANDERS_HORN,  null, null, null, 3),
+            card("NEUTRAL_SCORCH",           "Scorch",            Faction.NEUTRAL, CardType.SPECIAL, Ability.SCORCH,           null, null, null, 3),
             card("NEUTRAL_MARDROEME",        "Mardroeme",         Faction.SKELLIGE, CardType.SPECIAL, Ability.MARDROEME,        null, null, null, 3),
 
             // Neutral heroes
@@ -281,12 +282,17 @@ public class CardCatalogLoader implements ApplicationRunner {
             card("NEUTRAL_HERO_CIRI",         "Cirilla Fiona Elen Riannon", Faction.NEUTRAL, CardType.HERO, null,             null, RowType.MELEE,  15, 1),
             card("NEUTRAL_HERO_TRISS",        "Triss Merigold",         Faction.NEUTRAL, CardType.HERO, null,                 null, RowType.MELEE,   7, 1),
             card("NEUTRAL_HERO_YENNEFER",     "Yennefer of Vengerberg", Faction.NEUTRAL, CardType.HERO, Ability.MEDIC,        null, RowType.RANGED,  7, 1),
-            card("NEUTRAL_VILLENTRETENMERTH", "Villentretenmerth",      Faction.NEUTRAL, CardType.HERO, Ability.SCORCH,       null, RowType.MELEE,   7, 1),
+            card("NEUTRAL_HERO_AVALLACH",    "Avallac'h",              Faction.NEUTRAL, CardType.HERO, Ability.SPY,          null, RowType.MELEE,   0, 1),
 
-            // Neutral units (deckCopies=0 — for deck builder)
-            card("NEUTRAL_ZOLTAN",            "Zoltan Chivay",      Faction.NEUTRAL, CardType.UNIT, null,                 null, RowType.MELEE,  5, 1),
-            card("NEUTRAL_EMIEL_REGIS",       "Emiel Regis",        Faction.NEUTRAL, CardType.UNIT, Ability.MEDIC,        null, RowType.RANGED, 5, 1),
-            card("NEUTRAL_DANDELION",         "Dandelion",          Faction.NEUTRAL, CardType.UNIT, Ability.MORALE_BOOST, null, RowType.RANGED, 2, 1)
+            // Neutral units
+            card("NEUTRAL_VILLENTRETENMERTH", "Villentretenmerth",      Faction.NEUTRAL, CardType.UNIT, Ability.SCORCH,          null, RowType.MELEE,  7, 1),
+            card("NEUTRAL_ZOLTAN",            "Zoltan Chivay",          Faction.NEUTRAL, CardType.UNIT, null,                    null, RowType.MELEE,  5, 1),
+            card("NEUTRAL_VESEMIR",           "Vesemir",                Faction.NEUTRAL, CardType.UNIT, null,                    null, RowType.MELEE,  6, 1),
+            card("NEUTRAL_EMIEL_REGIS",       "Emiel Regis",            Faction.NEUTRAL, CardType.UNIT, null,                    null, RowType.MELEE,  5, 1),
+            card("NEUTRAL_DANDELION",         "Dandelion",              Faction.NEUTRAL, CardType.UNIT, Ability.COMMANDERS_HORN, null, RowType.MELEE,  2, 1),
+            card("NEUTRAL_OLGIERD",           "Olgierd von Everec",     Faction.NEUTRAL, CardType.UNIT, Ability.AGILE, Ability.MORALE_BOOST, null, RowType.MELEE, 6, 1),
+            card("NEUTRAL_GAUNTER",           "Gaunter O'Dimm",         Faction.NEUTRAL, CardType.UNIT, Ability.MUSTER,          null, RowType.MELEE,  2, 1),
+            card("NEUTRAL_GAUNTER_DARKNESS",  "Gaunter O'Dimm: Darkness", Faction.NEUTRAL, CardType.UNIT, Ability.MUSTER,        null, RowType.MELEE,  4, 1)
         );
     }
 

@@ -15,6 +15,7 @@ public final class MusterGroups {
     private static final Set<String> VAMPIRES = Set.of(
             "Vampire: Katakan", "Vampire: Bruxa", "Vampire: Ekimmara",
             "Vampire: Fleder", "Vampire: Garkain");
+    private static final Set<String> GAUNTER = Set.of("Gaunter O'Dimm", "Gaunter O'Dimm: Darkness");
 
     private static final Map<String, Set<String>> GROUPS = Map.ofEntries(
             entry("Arachas", ARACHAS),
@@ -28,7 +29,9 @@ public final class MusterGroups {
             entry("Vampire: Bruxa", VAMPIRES),
             entry("Vampire: Ekimmara", VAMPIRES),
             entry("Vampire: Fleder", VAMPIRES),
-            entry("Vampire: Garkain", VAMPIRES)
+            entry("Vampire: Garkain", VAMPIRES),
+            entry("Gaunter O'Dimm", GAUNTER),
+            entry("Gaunter O'Dimm: Darkness", GAUNTER)
     );
 
     public static Set<String> getMusterNames(String cardName) {
