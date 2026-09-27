@@ -18,6 +18,7 @@ public class GameState {
     private LeaderAbility pendingLeaderAbility;
     private int pendingAbilityCount;
     private List<Card> revealedCards;
+    private Turn revealedTo;
     private Turn winner;
     private EndReason endReason;
     private boolean treacherousActive;
@@ -89,8 +90,18 @@ public class GameState {
         return revealedCards;
     }
 
-    public void setRevealedCards(List<Card> revealedCards) {
+    public Turn getRevealedTo() {
+        return revealedTo;
+    }
+
+    public void setRevealedCards(Turn revealedTo, List<Card> revealedCards) {
+        this.revealedTo = revealedTo;
         this.revealedCards = revealedCards;
+    }
+
+    public void clearRevealedCards() {
+        this.revealedTo = null;
+        this.revealedCards = null;
     }
 
     public void setCurrentTurn (Turn currentTurn) {

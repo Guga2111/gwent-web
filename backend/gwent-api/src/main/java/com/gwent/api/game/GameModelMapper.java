@@ -206,8 +206,8 @@ public class GameModelMapper {
 
     private List<CardDto> resolveRevealedCards(GameState state, Turn perspective) {
         if (state.getRevealedCards() == null || state.getRevealedCards().isEmpty()) return null;
-        // Only show revealed cards to the current player (the one who used the leader)
-        if (state.getCurrentTurn() != perspective) return null;
+        // Only show revealed cards to the player who used the leader (turn has already switched by broadcast time)
+        if (state.getRevealedTo() != perspective) return null;
         return state.getRevealedCards().stream().map(this::toCardDto).toList();
     }
 }

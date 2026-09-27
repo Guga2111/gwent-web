@@ -439,6 +439,20 @@ class LeaderAbilityResolverTest {
     }
 
     @Test
+    void shouldRevealCardsToLeaderUserEvenAfterTurnSwitches() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.EMPEROR_OF_NILFGAARD);
+        PlayerState p2 = playerWithLeader(LeaderAbility.EMPEROR_OF_NILFGAARD);
+        p2.addToHand(makeUnit("u1", "Unit1", 3, RowType.MELEE));
+        GameState state = makePlayState(p1, p2);
+        Turn user = state.getCurrentTurn();
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertNotEquals(user, state.getCurrentTurn());
+        assertEquals(user, state.getRevealedTo());
+    }
+
+    @Test
     void shouldRevealAllCardsWhenOpponentHasLessThanThree() {
         PlayerState p1 = playerWithLeader(LeaderAbility.EMPEROR_OF_NILFGAARD);
         PlayerState p2 = playerWithLeader(LeaderAbility.EMPEROR_OF_NILFGAARD);

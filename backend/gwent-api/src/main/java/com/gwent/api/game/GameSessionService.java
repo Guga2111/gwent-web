@@ -144,7 +144,7 @@ public class GameSessionService {
         GameStateDto p2Dto = toDto(gameId, ctx, Turn.PLAYER_2);
         broadcastService.broadcastState(gameId, ctx, p1Dto, p2Dto);
         if (ctx.gameState().getRevealedCards() != null) {
-            ctx.gameState().setRevealedCards(null);
+            ctx.gameState().clearRevealedCards();
         }
         persistenceService.persist(gameId, ctx, p1Dto);
     }

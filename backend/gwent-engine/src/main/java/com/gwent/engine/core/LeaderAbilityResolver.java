@@ -99,7 +99,7 @@ class LeaderAbilityResolver {
         List<Card> hand = new ArrayList<>(opponent.getHand());
         Collections.shuffle(hand);
         int count = Math.min(3, hand.size());
-        state.setRevealedCards(hand.subList(0, count));
+        state.setRevealedCards(state.getCurrentTurn(), hand.subList(0, count));
     }
 
     // Nilfgaard: revive 1 random card from the graveyard from both players and add it to the players hands - TODO: REVIEW THIS
