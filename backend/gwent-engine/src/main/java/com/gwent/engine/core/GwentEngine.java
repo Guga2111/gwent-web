@@ -327,6 +327,8 @@ public class GwentEngine {
         PlayerState current = state.getCurrentPlayer();
         if (!current.getDeck().contains(card))
             throw new CardNotInDeckException();
+        if (!state.getLeaderDeckPickOptions().contains(card))
+            throw new InvalidLeaderPickException();
 
         current.removeFromDeck(card);
 

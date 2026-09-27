@@ -6,6 +6,7 @@ import com.gwent.engine.domain.*;
 import com.gwent.engine.exception.command.CardNotInGraveyardException;
 import com.gwent.engine.exception.command.CardNotInHandException;
 import com.gwent.engine.exception.command.DeckInsufficientCardsException;
+import com.gwent.engine.exception.command.InvalidLeaderPickException;
 import com.gwent.engine.exception.command.InvalidRowException;
 import com.gwent.engine.state.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -575,6 +576,32 @@ class LeaderAbilityResolverTest {
         assertFalse(p1.getDeck().contains(rain));
         assertTrue(p1.getDeck().contains(frost));
         assertNull(state.getPendingAbility());
+    }
+
+    @Test
+    void shouldOnlyOfferWeatherCardsAsDeckPickOptionsForKingOfTheWildHunt() {
+        Card frost = makeWeatherCard("frost", Ability.FROST);
+        Card unit = makeUnit("u1", "Unit", 5, RowType.MELEE);
+        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.KING_OF_THE_WILD_HUNT), List.of(unit, frost));
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.KING_OF_THE_WILD_HUNT));
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertEquals(List.of(frost), state.getLeaderDeckPickOptions());
+    }
+
+    @Test
+    void shouldRejectNonWeatherPickForKingOfTheWildHunt() {
+        Card frost = makeWeatherCard("frost", Ability.FROST);
+        Card unit = makeUnit("u1", "Unit", 5, RowType.MELEE);
+        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.KING_OF_THE_WILD_HUNT), List.of(unit, frost));
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.KING_OF_THE_WILD_HUNT));
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertThrows(InvalidLeaderPickException.class, () -> engine.execute(state, new ResolveLeaderCommand(unit)));
+        assertTrue(p1.getDeck().contains(unit));
+        assertEquals(PendingAbility.LEADER_DECK_PICK, state.getPendingAbility());
     }
 
     @Test

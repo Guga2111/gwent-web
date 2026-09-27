@@ -78,6 +78,14 @@ public class GameState {
         this.pendingLeaderAbility = pendingLeaderAbility;
     }
 
+    // Deck cards the current player may pick during LEADER_DECK_PICK
+    public List<Card> getLeaderDeckPickOptions() {
+        return getCurrentPlayer().getDeck().stream()
+                .filter(c -> pendingLeaderAbility != LeaderAbility.KING_OF_THE_WILD_HUNT
+                        || c.cardType() == CardType.WEATHER)
+                .toList();
+    }
+
     public int getPendingAbilityCount() {
         return pendingAbilityCount;
     }

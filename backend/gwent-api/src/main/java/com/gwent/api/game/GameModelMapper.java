@@ -42,7 +42,7 @@ public class GameModelMapper {
                         : null,
                 state.getEndReason() != null ? state.getEndReason().name() : null,
                 resolveRevealedCards(state, perspective),
-                resolveDeckCards(state, perspective, meState),
+                resolveDeckCards(state, perspective),
                 turnDeadlines,
                 abilityDeadlineUtc,
                 disconnectForfeit
@@ -198,10 +198,10 @@ public class GameModelMapper {
                 .orElseThrow(() -> new CardNotFoundException(cardId));
     }
 
-    private List<CardDto> resolveDeckCards(GameState state, Turn perspective, PlayerState meState) {
+    private List<CardDto> resolveDeckCards(GameState state, Turn perspective) {
         if (state.getPendingAbility() != PendingAbility.LEADER_DECK_PICK) return null;
         if (state.getCurrentTurn() != perspective) return null;
-        return meState.getDeck().stream().map(this::toCardDto).toList();
+        return state.getLeaderDeckPickOptions().stream().map(this::toCardDto).toList();
     }
 
     private List<CardDto> resolveRevealedCards(GameState state, Turn perspective) {

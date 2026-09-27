@@ -259,7 +259,7 @@ public class GameSessionService {
                     .filter(c -> c.cardType() == CardType.UNIT).findAny().orElse(null);
             case LEADER_OPPONENT_GRAVEYARD_PICK -> state.getOpponent().getGraveyard().stream()
                     .filter(c -> c.cardType() == CardType.UNIT).findAny().orElse(null);
-            case LEADER_DECK_PICK -> current.getDeck().stream().findAny().orElse(null);
+            case LEADER_DECK_PICK -> state.getLeaderDeckPickOptions().stream().findAny().orElse(null);
             case LEADER_HAND_DISCARD -> current.getHand().stream().findAny().orElse(null);
             default -> null;
         };
