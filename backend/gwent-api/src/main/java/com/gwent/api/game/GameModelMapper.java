@@ -147,7 +147,7 @@ public class GameModelMapper {
                     findCard(request.cardId(), state.getPlayer(player).getGraveyard()));
             case RESOLVE_LEADER   -> {
                 Card card = switch (state.getPendingAbility()) {
-                    case LEADER_GRAVEYARD_PICK -> findCard(request.cardId(), state.getPlayer(player).getGraveyard());
+                    case LEADER_GRAVEYARD_PICK, LEADER_GRAVEYARD_TO_HAND -> findCard(request.cardId(), state.getPlayer(player).getGraveyard());
                     case LEADER_OPPONENT_GRAVEYARD_PICK -> {
                         Turn opponentTurn = player == Turn.PLAYER_1 ? Turn.PLAYER_2 : Turn.PLAYER_1;
                         yield findCard(request.cardId(), state.getPlayer(opponentTurn).getGraveyard());

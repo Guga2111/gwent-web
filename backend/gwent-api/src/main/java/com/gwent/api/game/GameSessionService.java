@@ -255,7 +255,7 @@ public class GameSessionService {
     private Card resolveRandomLeaderCard (GameState state, PendingAbility pending) {
         PlayerState current = state.getCurrentPlayer();
         return switch (pending) {
-            case LEADER_GRAVEYARD_PICK -> current.getGraveyard().stream()
+            case LEADER_GRAVEYARD_PICK, LEADER_GRAVEYARD_TO_HAND -> current.getGraveyard().stream()
                     .filter(c -> c.cardType() == CardType.UNIT).findAny().orElse(null);
             case LEADER_OPPONENT_GRAVEYARD_PICK -> state.getOpponent().getGraveyard().stream()
                     .filter(c -> c.cardType() == CardType.UNIT).findAny().orElse(null);
