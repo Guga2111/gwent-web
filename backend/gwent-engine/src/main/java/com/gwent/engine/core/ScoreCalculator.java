@@ -14,25 +14,17 @@ public class ScoreCalculator {
     public ScoreCalculator () {}
 
     public int calculate (PlayerState player) {
-        return calculate(player, false);
-    }
-
-    public int calculate (PlayerState player, boolean treacherousActive) {
         boolean kingBran = player.isKingBranActive();
-        return calculate(player.getMeleeRow(), kingBran, treacherousActive)
-                + calculate(player.getRangedRow(), kingBran, treacherousActive)
-                + calculate(player.getSiegeRow(), kingBran, treacherousActive);
+        return calculate(player.getMeleeRow(), kingBran)
+                + calculate(player.getRangedRow(), kingBran)
+                + calculate(player.getSiegeRow(), kingBran);
     }
 
     int calculate (BoardRow row) {
-        return calculate(row, false, false);
+        return calculate(row, false);
     }
 
     int calculate (BoardRow row, boolean kingBranActive) {
-        return calculate(row, kingBranActive, false);
-    }
-
-    int calculate (BoardRow row, boolean kingBranActive, boolean treacherousActive) {
 
         int total = 0;
 
@@ -61,7 +53,6 @@ public class ScoreCalculator {
                 }
                 currentCardPower += (int) moraleBonus;
                 if (row.isHornActive()) currentCardPower *= 2;
-                if (treacherousActive && card.hasAbility(Ability.SPY)) currentCardPower *= 2;
             }
 
             total += currentCardPower;
