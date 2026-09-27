@@ -37,12 +37,6 @@ client.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
 
-    if (error.response?.status === 403) {
-      useAuthStore.getState().logout()
-      window.location.href = '/login'
-      return Promise.reject(error)
-    }
-
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
