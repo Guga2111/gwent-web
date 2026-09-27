@@ -635,6 +635,21 @@ class LeaderAbilityResolverTest {
     }
 
     @Test
+    void shouldActivateFogOnBothRangedRowsWhenKingOfTemeriaUsed() {
+        Card fog = makeWeatherCard("fog", Ability.FOG);
+        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.KING_OF_TEMERIA), List.of(fog));
+        PlayerState p2 = playerWithLeader(LeaderAbility.KING_OF_TEMERIA);
+        GameState state = makePlayState(p1, p2);
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertTrue(p1.getRangedRow().isWeatherActive());
+        assertTrue(p2.getRangedRow().isWeatherActive());
+        assertFalse(p1.getMeleeRow().isWeatherActive());
+        assertFalse(p1.getSiegeRow().isWeatherActive());
+    }
+
+    @Test
     void shouldDoNothingWhenNoFogInDeckForKingOfTemeria() {
         Card frost = makeWeatherCard("frost", Ability.FROST);
         PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.KING_OF_TEMERIA), List.of(frost));

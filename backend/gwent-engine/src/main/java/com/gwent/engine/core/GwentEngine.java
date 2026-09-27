@@ -342,7 +342,7 @@ public class GwentEngine {
             autoPassIfHandEmpty(current);
             resolveAfterAction(state);
         } else if (state.getPendingLeaderAbility() == LeaderAbility.KING_OF_THE_WILD_HUNT) {
-            state.getBoard().addWeatherCard(card);
+            placeWeatherCard(state, card, current);
             clearLeaderPending(state);
             resolveAfterAction(state);
         } else {

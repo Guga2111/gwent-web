@@ -79,7 +79,7 @@ class LeaderAbilityResolver {
                 .findFirst()
                 .ifPresent(c -> {
                     current.removeFromDeck(c);
-                    state.getBoard().addWeatherCard(c);
+                    playWeather(state, c, RowType.RANGED);
                 });
     }
 
@@ -144,7 +144,7 @@ class LeaderAbilityResolver {
                 .findFirst()
                 .ifPresent(c -> {
                     current.removeFromDeck(c);
-                    state.getBoard().addWeatherCard(c);
+                    playWeather(state, c, RowType.SIEGE);
                 });
     }
 
@@ -229,7 +229,7 @@ class LeaderAbilityResolver {
                 .findFirst()
                 .ifPresent(c -> {
                     current.removeFromDeck(c);
-                    state.getBoard().addWeatherCard(c);
+                    playWeather(state, c, RowType.MELEE);
                 });
     }
 
@@ -300,4 +300,10 @@ class LeaderAbilityResolver {
         }
     }
 
+
+    private void playWeather(GameState state, Card weather, RowType row) {
+        state.getBoard().addWeatherCard(weather);
+        state.getPlayer1().getRow(row).setWeatherActive(true);
+        state.getPlayer2().getRow(row).setWeatherActive(true);
+    }
 }
