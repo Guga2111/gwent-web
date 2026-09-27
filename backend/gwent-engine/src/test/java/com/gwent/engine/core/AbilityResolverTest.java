@@ -415,7 +415,7 @@ class AbilityResolverTest {
         assertEquals("VILDKAARL_1_TRANSFORMED", player1.getMeleeRow().getCards().get(0).id());
     }
 
-    // --- MUSTER (Cerys override) ---
+    // --- MUSTER (bidirectional groups) ---
 
     @Test
     void shouldMusterShieldMaidensWhenCerysIsPlayed() {
@@ -435,20 +435,90 @@ class AbilityResolverTest {
     }
 
     @Test
-    void shouldNotMusterCerysNamedCardsWhenCerysIsPlayed() {
-        Card anotherCerys = new Card("cerys2", "Cerys an Craite", Faction.SKELLIGE, CardType.HERO,
-                Ability.MUSTER, null, RowType.MELEE, 10);
-        PlayerState p1 = new PlayerState(makeLeader(), List.of());
-        p1.addToHand(anotherCerys);
-        GameState gs = makeState(p1, new PlayerState(makeLeader(), List.of()));
-
+    void shouldMusterCerysWhenShieldMaidenIsPlayed() {
         Card cerys = new Card("cerys", "Cerys an Craite", Faction.SKELLIGE, CardType.HERO,
                 Ability.MUSTER, null, RowType.MELEE, 10);
-        resolver.resolve(gs, cerys, RowType.MELEE);
+        Card maiden2 = makeUnit("sm_c", "Shield Maiden", 4, RowType.MELEE, Ability.TIGHT_BOND);
+        PlayerState p1 = new PlayerState(makeLeader(), List.of(cerys));
+        p1.addToHand(maiden2);
+        GameState gs = makeState(p1, new PlayerState(makeLeader(), List.of()));
 
-        // "Cerys an Craite" should not muster other "Cerys an Craite" cards — only "Shield Maiden"
-        assertEquals(1, p1.getHand().size());
-        assertTrue(p1.getMeleeRow().getCards().isEmpty());
+        Card maiden1 = makeUnit("sm_a", "Shield Maiden", 4, RowType.MELEE, Ability.MUSTER);
+        resolver.resolve(gs, maiden1, RowType.MELEE);
+
+        assertTrue(p1.getHand().isEmpty());
+        assertTrue(p1.getDeck().isEmpty());
+        assertEquals(2, p1.getMeleeRow().getCards().size());
+    }
+
+    @Test
+    void shouldMusterArachasBehemothWhenArachasIsPlayed() {
+        Card behemoth = makeUnit("behemoth", "Arachas Behemoth", 6, RowType.SIEGE, Ability.MUSTER);
+        Card arachas2 = makeUnit("ar_b", "Arachas", 4, RowType.MELEE, Ability.MUSTER);
+        PlayerState p1 = new PlayerState(makeLeader(), List.of(behemoth));
+        p1.addToHand(arachas2);
+        GameState gs = makeState(p1, new PlayerState(makeLeader(), List.of()));
+
+        Card arachas1 = makeUnit("ar_a", "Arachas", 4, RowType.MELEE, Ability.MUSTER);
+        resolver.resolve(gs, arachas1, RowType.MELEE);
+
+        assertTrue(p1.getHand().isEmpty());
+        assertTrue(p1.getDeck().isEmpty());
+        assertEquals(1, p1.getMeleeRow().getCards().size());
+        assertEquals("Arachas", p1.getMeleeRow().getCards().get(0).name());
+        assertEquals(1, p1.getSiegeRow().getCards().size());
+        assertEquals("Arachas Behemoth", p1.getSiegeRow().getCards().get(0).name());
+    }
+
+    @Test
+    void shouldMusterArachasWhenBehemothIsPlayed() {
+        Card arachas1 = makeUnit("ar_a", "Arachas", 4, RowType.MELEE, Ability.MUSTER);
+        Card arachas2 = makeUnit("ar_b", "Arachas", 4, RowType.MELEE, Ability.MUSTER);
+        PlayerState p1 = new PlayerState(makeLeader(), List.of(arachas2));
+        p1.addToHand(arachas1);
+        GameState gs = makeState(p1, new PlayerState(makeLeader(), List.of()));
+
+        Card behemoth = makeUnit("behemoth", "Arachas Behemoth", 6, RowType.SIEGE, Ability.MUSTER);
+        resolver.resolve(gs, behemoth, RowType.SIEGE);
+
+        assertTrue(p1.getHand().isEmpty());
+        assertTrue(p1.getDeck().isEmpty());
+        assertEquals(2, p1.getMeleeRow().getCards().size());
+        assertEquals(0, p1.getSiegeRow().getCards().size());
+    }
+
+    @Test
+    void shouldMusterAllCronesWhenOneCroneIsPlayed() {
+        Card brewess = makeUnit("brewess", "Crone: Brewess", 6, RowType.MELEE, Ability.MUSTER);
+        Card weavess = makeUnit("weavess", "Crone: Weavess", 6, RowType.MELEE, Ability.MUSTER);
+        PlayerState p1 = new PlayerState(makeLeader(), List.of(weavess));
+        p1.addToHand(brewess);
+        GameState gs = makeState(p1, new PlayerState(makeLeader(), List.of()));
+
+        Card whispess = makeUnit("whispess", "Crone: Whispess", 6, RowType.MELEE, Ability.MUSTER);
+        resolver.resolve(gs, whispess, RowType.MELEE);
+
+        assertTrue(p1.getHand().isEmpty());
+        assertTrue(p1.getDeck().isEmpty());
+        assertEquals(2, p1.getMeleeRow().getCards().size());
+    }
+
+    @Test
+    void shouldMusterAllVampiresWhenOneVampireIsPlayed() {
+        Card bruxa = makeUnit("bruxa", "Vampire: Bruxa", 4, RowType.MELEE, Ability.MUSTER);
+        Card fleder = makeUnit("fleder", "Vampire: Fleder", 4, RowType.MELEE, Ability.MUSTER);
+        Card garkain = makeUnit("garkain", "Vampire: Garkain", 4, RowType.MELEE, Ability.MUSTER);
+        PlayerState p1 = new PlayerState(makeLeader(), List.of(garkain));
+        p1.addToHand(bruxa);
+        p1.addToHand(fleder);
+        GameState gs = makeState(p1, new PlayerState(makeLeader(), List.of()));
+
+        Card katakan = makeUnit("katakan", "Vampire: Katakan", 5, RowType.MELEE, Ability.MUSTER);
+        resolver.resolve(gs, katakan, RowType.MELEE);
+
+        assertTrue(p1.getHand().isEmpty());
+        assertTrue(p1.getDeck().isEmpty());
+        assertEquals(3, p1.getMeleeRow().getCards().size());
     }
 
     // --- KAMBI (Hemdall on scorch) ---

@@ -39,7 +39,7 @@ class LeaderAbilityResolver {
             case DESTROYER_OF_WORLDS         -> handleDestroyerOfWorlds(state);
             case BRINGER_OF_DEATH            -> handleBringerOfDeath(state);
             case COMMANDER_OF_THE_RED_RIDERS -> handleCommanderOfTheRedRiders(state);
-            case KING_OF_THE_WILD_HUNT       -> handlePickWeatherFromDeck(state);
+            case KING_OF_THE_WILD_HUNT       -> handleKingOfTheWildHunt(state);
             // TODO - Implement the handle function logic
             case TREACHEROUS -> handleTreacherous(state);
 
@@ -71,7 +71,7 @@ class LeaderAbilityResolver {
         }
     }
 
-    // Northern Realms: Pick impenetrable fog card and play it - TODO REVIEW THIS (remains the instantly play card action... but i think it should be delegated to the engine)
+    // Northern Realms: Pick impenetrable fog card from deck and play it instantly
     private void handleKingOfTemeria(GameState state) {
         PlayerState current = state.getCurrentPlayer();
         current.getDeck().stream()
@@ -79,20 +79,18 @@ class LeaderAbilityResolver {
                 .findFirst()
                 .ifPresent(c -> {
                     current.removeFromDeck(c);
-                    current.addToHand(c);
+                    state.getBoard().addWeatherCard(c);
                 });
     }
 
-    // Nilfgaard / Scoia'tael / Monsters: move first weather card from deck to hand
-    private void handlePickWeatherFromDeck(GameState state) {
+    // Monsters: pick any weather card from deck and play it instantly (player chooses which)
+    private void handleKingOfTheWildHunt(GameState state) {
         PlayerState current = state.getCurrentPlayer();
-        current.getDeck().stream()
-                .filter(c -> c.cardType() == CardType.WEATHER)
-                .findFirst()
-                .ifPresent(c -> {
-                    current.removeFromDeck(c);
-                    current.addToHand(c);
-                });
+        boolean hasWeather = current.getDeck().stream()
+                .anyMatch(c -> c.cardType() == CardType.WEATHER);
+        if (!hasWeather) return;
+        state.setPendingAbility(PendingAbility.LEADER_DECK_PICK);
+        state.setPendingLeaderAbility(LeaderAbility.KING_OF_THE_WILD_HUNT);
     }
 
     // Nilfgaard: reveal up to 3 random cards from opponent's hand
@@ -176,9 +174,9 @@ class LeaderAbilityResolver {
         state.setPendingLeaderAbility(LeaderAbility.BRINGER_OF_DEATH);
     }
 
-    // Monsters: doubles all spy cards strength
+    // Monsters: doubles all spy cards strength (affects both players)
     private void handleTreacherous(GameState state) {
-        // TODO ... ... ...
+        state.setTreacherousActive(true);
     }
 
     // LORD_COMMANDER (siege) / QUEEN_OF_DOL_BLATHANNA (melee): destroy strongest non-HERO unit if row score >= 10

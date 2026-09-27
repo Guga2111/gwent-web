@@ -31,7 +31,11 @@ public class GwentEngine {
     }
 
     public int calculateScore(PlayerState player) {
-        return scoreCalculator.calculate(player);
+        return scoreCalculator.calculate(player, false);
+    }
+
+    public int calculateScore(PlayerState player, boolean treacherousActive) {
+        return scoreCalculator.calculate(player, treacherousActive);
     }
 
     // --- Engine-initiated transitions ---
@@ -330,8 +334,16 @@ public class GwentEngine {
             current.addToHand(card);
             state.setPendingAbility(PendingAbility.LEADER_HAND_DISCARD);
             // keep pendingLeaderAbility for context
+        } else if (state.getPendingLeaderAbility() == LeaderAbility.DESTROYER_OF_WORLDS) {
+            current.addToHand(card);
+            clearLeaderPending(state);
+            autoPassIfHandEmpty(current);
+            resolveAfterAction(state);
+        } else if (state.getPendingLeaderAbility() == LeaderAbility.KING_OF_THE_WILD_HUNT) {
+            state.getBoard().addWeatherCard(card);
+            clearLeaderPending(state);
+            resolveAfterAction(state);
         } else {
-            // KING_OF_TEMERIA: play the card immediately
             clearLeaderPending(state);
             playCardFromDeck(state, card);
         }
@@ -368,7 +380,8 @@ public class GwentEngine {
 
         if (state.getPendingLeaderAbility() == LeaderAbility.DESTROYER_OF_WORLDS
                 && !current.isDeckEmpty()) {
-            current.drawCard();
+            state.setPendingAbility(PendingAbility.LEADER_DECK_PICK);
+            return;
         }
         clearLeaderPending(state);
 
@@ -406,8 +419,9 @@ public class GwentEngine {
     private void resolveRound(GameState state) {
         state.setPhase(GamePhase.ROUND_END);
 
-        int p1Score = scoreCalculator.calculate(state.getPlayer1());
-        int p2Score = scoreCalculator.calculate(state.getPlayer2());
+        boolean treacherous = state.isTreacherousActive();
+        int p1Score = scoreCalculator.calculate(state.getPlayer1(), treacherous);
+        int p2Score = scoreCalculator.calculate(state.getPlayer2(), treacherous);
 
         Faction p1Faction = state.getPlayer1().getLeader().faction();
         Faction p2Faction = state.getPlayer2().getLeader().faction();
