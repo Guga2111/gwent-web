@@ -75,6 +75,10 @@ public class ScoreCalculator {
     }
 
     public int calculateCardPower (Card card, BoardRow row, boolean kingBranActive) {
+        return calculateCardPower(card, row, kingBranActive, false);
+    }
+
+    public int calculateCardPower (Card card, BoardRow row, boolean kingBranActive, boolean treacherousActive) {
         Map<String, Long> countByName = row.getCards().stream()
                 .collect(Collectors.groupingBy(Card::name, Collectors.counting()));
 
@@ -97,6 +101,7 @@ public class ScoreCalculator {
             }
             power += (int) moraleBonus;
             if (row.isHornActive()) power *= 2;
+            if (treacherousActive && card.hasAbility(Ability.SPY)) power *= 2;
         }
 
         return power;

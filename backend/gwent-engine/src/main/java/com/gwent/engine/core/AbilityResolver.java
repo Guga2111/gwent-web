@@ -83,7 +83,7 @@ class AbilityResolver {
                 BoardRow row = player.getRow(rowType);
                 for (Card c : row.getCards()) {
                     if (c.cardType() == CardType.HERO) continue;
-                    int power = scoreCalculator.calculateCardPower(c, row, kingBran);
+                    int power = scoreCalculator.calculateCardPower(c, row, kingBran, state.isTreacherousActive());
                     if (power > maxPower) maxPower = power;
                 }
             }
@@ -96,7 +96,7 @@ class AbilityResolver {
                 BoardRow row = player.getRow(rowType);
                 List<Card> toScorch = row.getCards().stream()
                         .filter(c -> c.cardType() != CardType.HERO)
-                        .filter(c -> scoreCalculator.calculateCardPower(c, row, kingBran) == finalMaxPower)
+                        .filter(c -> scoreCalculator.calculateCardPower(c, row, kingBran, state.isTreacherousActive()) == finalMaxPower)
                         .toList();
                 for (Card c : toScorch) {
                     row.removeCard(c);

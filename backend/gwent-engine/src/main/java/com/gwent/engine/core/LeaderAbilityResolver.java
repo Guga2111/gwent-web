@@ -185,7 +185,7 @@ class LeaderAbilityResolver {
         BoardRow row = opponent.getRow(rowType);
         boolean kingBran = opponent.isKingBranActive();
 
-        int rowScore = scoreCalculator.calculate(row, kingBran);
+        int rowScore = scoreCalculator.calculate(row, kingBran, state.isTreacherousActive());
         if (rowScore < 10) return;
 
         Card strongest = null;
@@ -193,7 +193,7 @@ class LeaderAbilityResolver {
         for (Card card : row.getCards()) {
             if (card.cardType() == CardType.HERO) continue;
             if (card.cardType() != CardType.UNIT) continue;
-            int power = scoreCalculator.calculateCardPower(card, row, kingBran);
+            int power = scoreCalculator.calculateCardPower(card, row, kingBran, state.isTreacherousActive());
             if (power > maxPower) {
                 maxPower = power;
                 strongest = card;
