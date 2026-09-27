@@ -206,6 +206,20 @@ class GameModelMapperTest {
     }
 
     @Test
+    void shouldMapResolveLeader_graveyardToHand() {
+        SessionContext ctx = makeSessionContext("p1@test.com", "p2@test.com");
+        ctx.gameState().setPendingAbility(PendingAbility.LEADER_GRAVEYARD_TO_HAND);
+        Card graveyardCard = makeCard("graveyard_pick", Faction.MONSTER);
+        ctx.gameState().getPlayer1().addToGraveyard(graveyardCard);
+
+        CommandRequestDto request = new CommandRequestDto(null, CommandType.RESOLVE_LEADER, "GRAVEYARD_PICK", null, null, null);
+        GameCommand cmd = mapper.toCommand(request, Turn.PLAYER_1, ctx.gameState(), ctx);
+
+        assertInstanceOf(ResolveLeaderCommand.class, cmd);
+        assertEquals(graveyardCard, ((ResolveLeaderCommand) cmd).card());
+    }
+
+    @Test
     void shouldMapResolveLeader_deckPick() {
         SessionContext ctx = makeSessionContext("p1@test.com", "p2@test.com");
         ctx.gameState().setPendingAbility(PendingAbility.LEADER_DECK_PICK);

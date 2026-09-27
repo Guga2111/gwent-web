@@ -9,6 +9,7 @@ export function makeCard(overrides: Partial<CardDto> = {}): CardDto {
     cardType: 'UNIT',
     rowType: 'MELEE',
     ability: 'NONE',
+    secondAbility: null,
     faction: 'NORTHERN_REALMS',
     leaderAbility: null,
     ...overrides,

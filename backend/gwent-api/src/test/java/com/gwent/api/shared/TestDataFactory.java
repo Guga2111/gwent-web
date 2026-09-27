@@ -110,7 +110,7 @@ public final class TestDataFactory {
     public static GameStateDto makeGameStateDto(UUID gameId) {
         List<CardDto> emptyCards = List.of();
         BoardRowDto emptyRow = new BoardRowDto(emptyCards, false, false);
-        CardDto leader = new CardDto("leader", "Leader", null, null, "LEADER", null, null, "NORTHERN_REALMS", "SIEGE_MASTER");
+        CardDto leader = new CardDto("leader", "Leader", null, null, "LEADER", null, null, null, "NORTHERN_REALMS", "SIEGE_MASTER");
 
         PlayerStateDto me = new PlayerStateDto("player1@test.com", 2, 0, false, false,
                 leader, 2, false, emptyCards, 15, emptyRow, emptyRow, emptyRow, emptyCards);

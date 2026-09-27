@@ -56,6 +56,6 @@ public class GameDeckBuilder {
 
     public Card toEngineCard(CardEntity e, String id) {
         return new Card(id, e.getName(), e.getFaction(), e.getCardType(),
-                e.getAbility(), e.getLeaderAbility(), e.getRowType(), e.getBasePower());
+                e.getAbility(), e.getSecondAbility(), e.getLeaderAbility(), e.getRowType(), e.getBasePower());
     }
 }

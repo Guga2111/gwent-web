@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import axios from 'axios'
 import type { AuthUser } from '@/types/auth'
 
 function parseJwt(token: string): AuthUser | null {
@@ -36,6 +37,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
     },
 
     logout: () => {
+      axios.post('/api/auth/logout', null, { withCredentials: true }).catch(() => {})
       localStorage.removeItem('jwt')
       set({ token: null, user: null })
     },

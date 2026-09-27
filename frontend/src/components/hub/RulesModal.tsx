@@ -11,8 +11,11 @@ import {
   Snowflake,
   CloudFog,
   CloudRain,
+  CloudLightning,
   Sun,
   RefreshCcw,
+  FlaskConical,
+  Bird,
   Sword,
   BowArrow,
 } from 'lucide-react'
@@ -66,10 +69,11 @@ const sections: Section[] = [
   {
     title: 'Clima',
     abilities: [
-      { icon: Snowflake, label: 'Gelo',         desc: 'Reduz todas as unidades Corpo-a-corpo (exceto heróis) para 1 de força.' },
-      { icon: CloudFog,  label: 'Nevoeiro',      desc: 'Reduz todas as unidades Distância (exceto heróis) para 1 de força.' },
-      { icon: CloudRain, label: 'Chuva',         desc: 'Reduz todas as unidades Cerco (exceto heróis) para 1 de força.' },
-      { icon: Sun,       label: 'Limpar Tempo',  desc: 'Cancela todos os efeitos climáticos ativos no campo.' },
+      { icon: Snowflake,      label: 'Gelo',             desc: 'Reduz todas as unidades Corpo-a-corpo (exceto heróis) para 1 de força.' },
+      { icon: CloudFog,       label: 'Nevoeiro',          desc: 'Reduz todas as unidades Distância (exceto heróis) para 1 de força.' },
+      { icon: CloudRain,      label: 'Chuva',             desc: 'Reduz todas as unidades Cerco (exceto heróis) para 1 de força.' },
+      { icon: CloudLightning, label: 'Tempestade Skellige', desc: 'Reduz todas as unidades Distância e Cerco (exceto heróis) para 1 de força.' },
+      { icon: Sun,            label: 'Limpar Tempo',      desc: 'Cancela todos os efeitos climáticos ativos no campo.' },
     ],
   },
   {
@@ -81,8 +85,10 @@ const sections: Section[] = [
       { icon: Flame,      label: 'Chamuscar',        desc: 'Elimina a unidade com maior força no campo. Em caso de empate, todas são destruídas.' },
       { icon: Link,       label: 'Laço Estreito',    desc: 'Dobra a força de todas as unidades com o mesmo nome na fileira.' },
       { icon: ChevronUp,  label: 'Moral',            desc: 'Concede +1 de força a todas as outras unidades da mesma fileira.' },
-      { icon: Axe,        label: 'Berserker',        desc: 'Quando enfraquecido por efeitos, se transforma numa versão mais poderosa.' },
-      { icon: RefreshCcw, label: 'Ágil',             desc: 'Pode ser colocada na fileira de Corpo-a-corpo ou Distância, à sua escolha.' },
+      { icon: Axe,          label: 'Berserker',        desc: 'Quando Mardroeme é jogado na mesma fileira, se transforma numa versão mais poderosa.' },
+      { icon: FlaskConical, label: 'Mardroeme',        desc: 'Carta especial de Skellige. Transforma todos os Berserkers da fileira alvo nas suas formas evoluídas.' },
+      { icon: Bird,         label: 'Kambi',            desc: 'Quando destruído por Chamuscar ou habilidade de líder, invoca Hemdall (herói com 11 de força) na fileira Corpo-a-corpo.' },
+      { icon: RefreshCcw,   label: 'Ágil',             desc: 'Pode ser colocada na fileira de Corpo-a-corpo ou Distância, à sua escolha.' },
     ],
   },
   {

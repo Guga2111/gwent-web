@@ -1,15 +1,13 @@
 package com.gwent.engine.core;
 
-import com.gwent.engine.domain.Card;
-import com.gwent.engine.domain.CardType;
-import com.gwent.engine.domain.PendingAbility;
-import com.gwent.engine.domain.RowType;
+import com.gwent.engine.domain.*;
 import com.gwent.engine.state.BoardRow;
 import com.gwent.engine.state.GameState;
 import com.gwent.engine.state.PlayerState;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 class AbilityResolver {
     
@@ -20,15 +18,21 @@ class AbilityResolver {
     }
 
     void resolve (GameState state, Card card, RowType targetRow) {
-        if (card.ability() == null) return;
+        resolveAbility(state, card, card.ability(), targetRow);
+        resolveAbility(state, card, card.secondAbility(), targetRow);
+    }
 
-        switch (card.ability()) {
+    private void resolveAbility(GameState state, Card card, Ability ability, RowType targetRow) {
+        if (ability == null) return;
+
+        switch (ability) {
             case SPY -> handleResolveSpy(state);
             case MEDIC          -> handleMedic(state);
             case MUSTER         -> handleMuster(state, card, targetRow);
             case SCORCH         -> handleScorch(state);
             case COMMANDERS_HORN -> handleCommandersHorn(state, targetRow);
             case DUMMY           -> handleDummy(state);
+            case MARDROEME      -> handleMardroeme(state, targetRow);
             default -> {}
         }
     }
@@ -49,22 +53,22 @@ class AbilityResolver {
 
     private void handleMuster(GameState state, Card card, RowType targetRow) {
         PlayerState current = state.getCurrentPlayer();
-        BoardRow row = current.getRow(targetRow);
+        Set<String> groupNames = MusterGroups.getMusterNames(card.name());
 
         List<Card> fromHand = new ArrayList<>(current.getHand()).stream()
-                .filter(c -> c.name().equals(card.name()))
+                .filter(c -> groupNames.contains(c.name()))
                 .toList();
         for (Card c : fromHand) {
             current.removeFromHand(c);
-            row.addCard(c);
+            current.getRow(c.rowType()).addCard(c);
         }
 
         List<Card> fromDeck = current.getDeck().stream()
-                .filter(c -> c.name().equals(card.name()))
+                .filter(c -> groupNames.contains(c.name()))
                 .toList();
         for (Card c : fromDeck) {
             current.removeFromDeck(c);
-            row.addCard(c);
+            current.getRow(c.rowType()).addCard(c);
         }
     }
 
@@ -74,11 +78,12 @@ class AbilityResolver {
 
         int maxPower = 0;
         for (PlayerState player : players) {
+            boolean kingBran = player.isKingBranActive();
             for (RowType rowType : rowTypes) {
                 BoardRow row = player.getRow(rowType);
                 for (Card c : row.getCards()) {
                     if (c.cardType() == CardType.HERO) continue;
-                    int power = scoreCalculator.calculateCardPower(c, row);
+                    int power = scoreCalculator.calculateCardPower(c, row, kingBran, state.isTreacherousActive());
                     if (power > maxPower) maxPower = power;
                 }
             }
@@ -86,18 +91,28 @@ class AbilityResolver {
 
         final int finalMaxPower = maxPower;
         for (PlayerState player : players) {
+            boolean kingBran = player.isKingBranActive();
             for (RowType rowType : rowTypes) {
                 BoardRow row = player.getRow(rowType);
                 List<Card> toScorch = row.getCards().stream()
                         .filter(c -> c.cardType() != CardType.HERO)
-                        .filter(c -> scoreCalculator.calculateCardPower(c, row) == finalMaxPower)
+                        .filter(c -> scoreCalculator.calculateCardPower(c, row, kingBran, state.isTreacherousActive()) == finalMaxPower)
                         .toList();
                 for (Card c : toScorch) {
                     row.removeCard(c);
                     player.addToGraveyard(c);
+                    if (c.hasAbility(Ability.KAMBI)) {
+                        summonHemdall(player);
+                    }
                 }
             }
         }
+    }
+
+    private void summonHemdall(PlayerState player) {
+        Card hemdall = new Card("SK_HERO_HEMDALL", "Hemdall",
+                Faction.SKELLIGE, CardType.HERO, null, null, RowType.MELEE, 11);
+        player.getMeleeRow().addCard(hemdall);
     }
 
     private void handleDummy(GameState state) {
@@ -116,5 +131,10 @@ class AbilityResolver {
         PlayerState current = state.getCurrentPlayer();
         BoardRow row = current.getRow(targetRow);
         row.setHornActive(true);
+    }
+
+    private void handleMardroeme(GameState state, RowType targetRow) {
+        PlayerState current = state.getCurrentPlayer();
+        BerserkerHelper.transformBerserkers(current.getRow(targetRow));
     }
 }

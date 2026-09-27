@@ -64,7 +64,10 @@ public class GameController {
 
     @MessageMapping("/games/{gameId}/command")
     public void handleCommand(@DestinationVariable UUID gameId, CommandRequestDto request, Principal principal) {
-        String userId = principal != null ? principal.getName() : request.playerId();
+        if (principal == null) {
+            return;
+        }
+        String userId = principal.getName();
         try {
             gameSessionService.execute(gameId, userId, request);
         } catch (GwentException e) {

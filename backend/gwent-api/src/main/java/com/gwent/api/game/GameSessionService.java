@@ -144,7 +144,7 @@ public class GameSessionService {
         GameStateDto p2Dto = toDto(gameId, ctx, Turn.PLAYER_2);
         broadcastService.broadcastState(gameId, ctx, p1Dto, p2Dto);
         if (ctx.gameState().getRevealedCards() != null) {
-            ctx.gameState().setRevealedCards(null);
+            ctx.gameState().clearRevealedCards();
         }
         persistenceService.persist(gameId, ctx, p1Dto);
     }
@@ -255,11 +255,11 @@ public class GameSessionService {
     private Card resolveRandomLeaderCard (GameState state, PendingAbility pending) {
         PlayerState current = state.getCurrentPlayer();
         return switch (pending) {
-            case LEADER_GRAVEYARD_PICK -> current.getGraveyard().stream()
+            case LEADER_GRAVEYARD_PICK, LEADER_GRAVEYARD_TO_HAND -> current.getGraveyard().stream()
                     .filter(c -> c.cardType() == CardType.UNIT).findAny().orElse(null);
             case LEADER_OPPONENT_GRAVEYARD_PICK -> state.getOpponent().getGraveyard().stream()
                     .filter(c -> c.cardType() == CardType.UNIT).findAny().orElse(null);
-            case LEADER_DECK_PICK -> current.getDeck().stream().findAny().orElse(null);
+            case LEADER_DECK_PICK -> state.getLeaderDeckPickOptions().stream().findAny().orElse(null);
             case LEADER_HAND_DISCARD -> current.getHand().stream().findAny().orElse(null);
             default -> null;
         };
@@ -316,8 +316,8 @@ public class GameSessionService {
 
         return mapper.toGameStateDto(
                 gameId, ctx, perspective,
-                engine.calculateScore(meState),
-                engine.calculateScore(opponentState),
+                engine.calculateScore(meState, state.isTreacherousActive()),
+                engine.calculateScore(opponentState, state.isTreacherousActive()),
                 timerService.getTurnDeadline(gameId),
                 timerService.getAbilityDeadline(gameId),
                 sessionRegistry.hasDisconnectForfeit(gameId)

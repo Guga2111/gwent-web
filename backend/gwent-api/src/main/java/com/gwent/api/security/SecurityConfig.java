@@ -4,6 +4,7 @@ import com.gwent.api.security.filters.AuthenticationFilter;
 import com.gwent.api.security.filters.ExceptionHandlerFilter;
 import com.gwent.api.security.filters.JWTAuthorizationFilter;
 import com.gwent.api.security.manager.CustomAuthManager;
+import com.gwent.api.security.ratelimit.RateLimitFilter;
 import com.gwent.api.user.UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -25,22 +26,36 @@ public class SecurityConfig {
     @Value("${jwt.secret}")
     private String jwtSecret;
 
-    @Value("${jwt.expiration-ms}")
-    private long jwtExpirationMs;
+    @Value("${jwt.access-token-expiration-ms}")
+    private long accessTokenExpirationMs;
+
+    @Value("${jwt.refresh-token-expiration-ms}")
+    private long refreshTokenExpirationMs;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomAuthManager customAuthManager,
-                                                   UserService userService) throws Exception {
+                                                   UserService userService,
+                                                   RefreshTokenService refreshTokenService,
+                                                   RateLimitFilter rateLimitFilter) throws Exception {
         AuthenticationFilter authenticationFilter =
-                new AuthenticationFilter(customAuthManager, userService, jwtSecret, jwtExpirationMs);
+                new AuthenticationFilter(customAuthManager, userService, refreshTokenService,
+                        jwtSecret, accessTokenExpirationMs, refreshTokenExpirationMs);
 
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
+                .headers(headers -> headers
+                        .frameOptions(frame -> frame.deny())
+                        .httpStrictTransportSecurity(hsts -> hsts
+                                .includeSubDomains(true)
+                                .maxAgeInSeconds(31536000))
+                )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, SecurityConstants.REGISTER_PATH).permitAll()
                         .requestMatchers(HttpMethod.POST, "/authenticate").permitAll()
+                        .requestMatchers(HttpMethod.POST, SecurityConstants.REFRESH_PATH).permitAll()
+                        .requestMatchers(HttpMethod.POST, SecurityConstants.LOGOUT_PATH).permitAll()
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/health").permitAll()
@@ -48,6 +63,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new ExceptionHandlerFilter(), AuthenticationFilter.class)
+                .addFilterBefore(rateLimitFilter, ExceptionHandlerFilter.class)
                 .addFilter(authenticationFilter)
                 .addFilterAfter(new JWTAuthorizationFilter(jwtSecret), AuthenticationFilter.class);
 

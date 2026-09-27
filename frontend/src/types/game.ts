@@ -1,7 +1,7 @@
 export type Faction = 'NORTHERN_REALMS' | 'NILFGAARD' | 'MONSTER' | 'SCOIATAEL' | 'SKELLIGE'
 export type CardType = 'UNIT' | 'HERO' | 'WEATHER' | 'SPECIAL' | 'LEADER'
 export type RowType = 'MELEE' | 'RANGED' | 'SIEGE'
-export type Ability = 'NONE' | 'SPY' | 'TIGHT_BOND' | 'MORALE_BOOST' | 'MEDIC' | 'MUSTER' | 'SCORCH' | 'DUMMY' | 'COMMANDERS_HORN' | 'BERSERKER' | 'AGILE' | 'FROST' | 'FOG' | 'RAIN' | 'CLEAR_WEATHER'
+export type Ability = 'NONE' | 'SPY' | 'TIGHT_BOND' | 'MORALE_BOOST' | 'MEDIC' | 'MUSTER' | 'SCORCH' | 'DUMMY' | 'COMMANDERS_HORN' | 'BERSERKER' | 'MARDROEME' | 'AGILE' | 'FROST' | 'FOG' | 'RAIN' | 'CLEAR_WEATHER' | 'SKELLIGE_STORM' | 'KAMBI'
 
 export type LeaderAbility =
   | 'SIEGE_MASTER' | 'SON_OF_MEDELL' | 'KING_OF_TEMERIA' | 'LORD_COMMANDER' | 'STEEL_FORGED'
@@ -20,6 +20,7 @@ export interface CardDto {
   cardType: CardType
   rowType: RowType | null
   ability: Ability | null
+  secondAbility: Ability | null
   faction: Faction
   leaderAbility: LeaderAbility | null
 }

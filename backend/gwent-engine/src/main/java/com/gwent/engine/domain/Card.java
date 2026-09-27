@@ -5,9 +5,20 @@ import java.util.Objects;
 public record Card(
         String id, String name,
         Faction faction, CardType cardType,
-        Ability ability, LeaderAbility leaderAbility,
+        Ability ability, Ability secondAbility,
+        LeaderAbility leaderAbility,
         RowType rowType, Integer basePower
 ) {
+    public Card(String id, String name, Faction faction, CardType cardType,
+                Ability ability, LeaderAbility leaderAbility,
+                RowType rowType, Integer basePower) {
+        this(id, name, faction, cardType, ability, null, leaderAbility, rowType, basePower);
+    }
+
+    public boolean hasAbility(Ability a) {
+        return a == ability || a == secondAbility;
+    }
+
     public Card {
         Objects.requireNonNull(id);
         Objects.requireNonNull(name);

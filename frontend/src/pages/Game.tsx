@@ -295,6 +295,16 @@ export default function Game() {
               }
             />
           )}
+          {gameState.pendingAbility === "LEADER_GRAVEYARD_TO_HAND" && isMyTurn && (
+            <LeaderOverlay
+              pendingType="LEADER_GRAVEYARD_TO_HAND"
+              cards={me.graveyard}
+              abilityDeadlineUtc={gameState.abilityDeadlineUtc}
+              onSelectCard={(cardId) =>
+                sendCommand({ commandType: "RESOLVE_LEADER", playerId, cardId })
+              }
+            />
+          )}
           {gameState.pendingAbility === "LEADER_OPPONENT_GRAVEYARD_PICK" &&
             isMyTurn && (
               <LeaderOverlay

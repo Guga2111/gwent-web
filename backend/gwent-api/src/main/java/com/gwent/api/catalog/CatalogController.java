@@ -35,7 +35,7 @@ public class CatalogController {
         List<CatalogCardDto> cards = cardCatalogCache.getByFactionIn(factions).stream()
                 .map(e -> new CatalogCardDto(
                         e.getId(), e.getName(), e.getFaction(), e.getCardType(),
-                        e.getAbility(), e.getLeaderAbility(), e.getRowType(),
+                        e.getAbility(), e.getSecondAbility(), e.getLeaderAbility(), e.getRowType(),
                         e.getBasePower(), e.getDeckCopies()))
                 .toList();
 

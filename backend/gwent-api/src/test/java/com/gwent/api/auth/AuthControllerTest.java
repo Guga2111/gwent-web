@@ -1,6 +1,7 @@
 package com.gwent.api.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gwent.api.security.RefreshTokenService;
 import com.gwent.api.shared.TestSecurityConfig;
 import com.gwent.api.shared.exception.GlobalExceptionHandler;
 import com.gwent.api.user.User;
@@ -33,13 +34,16 @@ class AuthControllerTest {
     @MockitoBean
     private UserService userService;
 
+    @MockitoBean
+    private RefreshTokenService refreshTokenService;
+
     @Test
     void shouldReturn201_withRegisteredUser() throws Exception {
         User user = makeUser("new@test.com", "newuser");
-        when(userService.registerUser("new@test.com", "newuser", "password123"))
+        when(userService.registerUser("new@test.com", "newuser", "Password1!"))
                 .thenReturn(user);
 
-        RegisterRequest request = new RegisterRequest("new@test.com", "newuser", "password123");
+        RegisterRequest request = new RegisterRequest("new@test.com", "newuser", "Password1!");
 
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -60,14 +64,24 @@ class AuthControllerTest {
     @Test
     void shouldBeAccessibleWithoutAuthentication() throws Exception {
         User user = makeUser("anon@test.com", "anon");
-        when(userService.registerUser("anon@test.com", "anon", "pass"))
+        when(userService.registerUser("anon@test.com", "anon", "Password1!"))
                 .thenReturn(user);
 
-        RegisterRequest request = new RegisterRequest("anon@test.com", "anon", "pass");
+        RegisterRequest request = new RegisterRequest("anon@test.com", "anon", "Password1!");
 
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated());
+    }
+
+    @Test
+    void shouldReturn400_whenPasswordTooWeak() throws Exception {
+        RegisterRequest request = new RegisterRequest("test@test.com", "testuser", "password123");
+
+        mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
     }
 }

@@ -16,6 +16,17 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    container_name: gwent-redis-dev
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   api:
     build: .
     container_name: gwent-api-dev
@@ -27,10 +38,13 @@ services:
       DB_USERNAME: gwent
       DB_PASSWORD: gwent
       JWT_SECRET: dev-secret-replace-in-prod-minimum-32-chars
-      JWT_EXPIRATION_MS: 604800000
+      JWT_ACCESS_EXPIRATION_MS: 900000
       ALLOWED_ORIGINS: http://localhost:3000
+      REDIS_HOST: redis
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
 volumes:

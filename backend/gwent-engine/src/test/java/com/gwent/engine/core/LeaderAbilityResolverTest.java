@@ -6,6 +6,7 @@ import com.gwent.engine.domain.*;
 import com.gwent.engine.exception.command.CardNotInGraveyardException;
 import com.gwent.engine.exception.command.CardNotInHandException;
 import com.gwent.engine.exception.command.DeckInsufficientCardsException;
+import com.gwent.engine.exception.command.InvalidLeaderPickException;
 import com.gwent.engine.exception.command.InvalidRowException;
 import com.gwent.engine.state.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,6 +48,21 @@ class LeaderAbilityResolverTest {
 
         assertFalse(p1.getMeleeRow().isHornActive());
         assertFalse(p1.getRangedRow().isHornActive());
+    }
+
+    @Test
+    void shouldNotDoubleHeroCardStrengthWhenSiegeMasterUsed() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.SIEGE_MASTER);
+        Card hero = makeHero("h1", "Hero", 10, RowType.SIEGE);
+        Card unit = makeUnit("u1", "Unit", 4, RowType.SIEGE);
+        p1.getSiegeRow().addCard(hero);
+        p1.getSiegeRow().addCard(unit);
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.SIEGE_MASTER));
+
+        engine.execute(state, new UseLeaderCommand());
+
+        // hero 10 (not doubled) + unit 4*2 = 18
+        assertEquals(18, engine.calculateScore(p1));
     }
 
     // =========================================================
@@ -210,11 +226,15 @@ class LeaderAbilityResolverTest {
         assertEquals(PendingAbility.LEADER_HAND_DISCARD, state.getPendingAbility());
         assertEquals(1, state.getPendingAbilityCount());
 
-        // second discard — draws 1 from deck after
+        // second discard — transitions to LEADER_DECK_PICK so player picks from deck
         engine.execute(state, new ResolveLeaderCommand(c2));
         assertTrue(p1.getGraveyard().contains(c2));
-        assertNull(state.getPendingAbility());
+        assertEquals(PendingAbility.LEADER_DECK_PICK, state.getPendingAbility());
         assertTrue(p1.getHand().contains(keep));
+
+        // pick card from deck
+        engine.execute(state, new ResolveLeaderCommand(deckCard));
+        assertNull(state.getPendingAbility());
         assertTrue(p1.getHand().contains(deckCard));
     }
 
@@ -420,6 +440,20 @@ class LeaderAbilityResolverTest {
     }
 
     @Test
+    void shouldRevealCardsToLeaderUserEvenAfterTurnSwitches() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.EMPEROR_OF_NILFGAARD);
+        PlayerState p2 = playerWithLeader(LeaderAbility.EMPEROR_OF_NILFGAARD);
+        p2.addToHand(makeUnit("u1", "Unit1", 3, RowType.MELEE));
+        GameState state = makePlayState(p1, p2);
+        Turn user = state.getCurrentTurn();
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertNotEquals(user, state.getCurrentTurn());
+        assertEquals(user, state.getRevealedTo());
+    }
+
+    @Test
     void shouldRevealAllCardsWhenOpponentHasLessThanThree() {
         PlayerState p1 = playerWithLeader(LeaderAbility.EMPEROR_OF_NILFGAARD);
         PlayerState p2 = playerWithLeader(LeaderAbility.EMPEROR_OF_NILFGAARD);
@@ -520,9 +554,54 @@ class LeaderAbilityResolverTest {
 
         engine.execute(state, new UseLeaderCommand());
 
-        assertTrue(p1.getHand().contains(weather));
-        assertFalse(p1.getDeck().contains(weather));
+        assertEquals(PendingAbility.LEADER_DECK_PICK, state.getPendingAbility());
+        assertEquals(LeaderAbility.KING_OF_THE_WILD_HUNT, state.getPendingLeaderAbility());
+        assertFalse(p1.getHand().contains(weather));
+        assertTrue(p1.getDeck().contains(weather));
         assertTrue(p1.getDeck().contains(unit));
+    }
+
+    @Test
+    void shouldPlayWeatherOnBoardWhenKingOfTheWildHuntResolved() {
+        Card frost = makeWeatherCard("frost", Ability.FROST);
+        Card rain = makeWeatherCard("rain", Ability.RAIN);
+        Card unit = makeUnit("u1", "Unit", 5, RowType.MELEE);
+        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.KING_OF_THE_WILD_HUNT), List.of(unit, frost, rain));
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.KING_OF_THE_WILD_HUNT));
+
+        engine.execute(state, new UseLeaderCommand());
+        engine.execute(state, new ResolveLeaderCommand(rain));
+
+        assertTrue(state.getBoard().getActiveWeatherCards().contains(rain));
+        assertFalse(p1.getDeck().contains(rain));
+        assertTrue(p1.getDeck().contains(frost));
+        assertNull(state.getPendingAbility());
+    }
+
+    @Test
+    void shouldOnlyOfferWeatherCardsAsDeckPickOptionsForKingOfTheWildHunt() {
+        Card frost = makeWeatherCard("frost", Ability.FROST);
+        Card unit = makeUnit("u1", "Unit", 5, RowType.MELEE);
+        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.KING_OF_THE_WILD_HUNT), List.of(unit, frost));
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.KING_OF_THE_WILD_HUNT));
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertEquals(List.of(frost), state.getLeaderDeckPickOptions());
+    }
+
+    @Test
+    void shouldRejectNonWeatherPickForKingOfTheWildHunt() {
+        Card frost = makeWeatherCard("frost", Ability.FROST);
+        Card unit = makeUnit("u1", "Unit", 5, RowType.MELEE);
+        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.KING_OF_THE_WILD_HUNT), List.of(unit, frost));
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.KING_OF_THE_WILD_HUNT));
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertThrows(InvalidLeaderPickException.class, () -> engine.execute(state, new ResolveLeaderCommand(unit)));
+        assertTrue(p1.getDeck().contains(unit));
+        assertEquals(PendingAbility.LEADER_DECK_PICK, state.getPendingAbility());
     }
 
     @Test
@@ -550,9 +629,24 @@ class LeaderAbilityResolverTest {
 
         engine.execute(state, new UseLeaderCommand());
 
-        assertTrue(p1.getHand().contains(fog));
-        assertFalse(p1.getHand().contains(frost));
+        assertTrue(state.getBoard().getActiveWeatherCards().contains(fog));
         assertFalse(p1.getDeck().contains(fog));
+        assertFalse(p1.getHand().contains(fog));
+    }
+
+    @Test
+    void shouldActivateFogOnBothRangedRowsWhenKingOfTemeriaUsed() {
+        Card fog = makeWeatherCard("fog", Ability.FOG);
+        PlayerState p1 = new PlayerState(makeLeader(LeaderAbility.KING_OF_TEMERIA), List.of(fog));
+        PlayerState p2 = playerWithLeader(LeaderAbility.KING_OF_TEMERIA);
+        GameState state = makePlayState(p1, p2);
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertTrue(p1.getRangedRow().isWeatherActive());
+        assertTrue(p2.getRangedRow().isWeatherActive());
+        assertFalse(p1.getMeleeRow().isWeatherActive());
+        assertFalse(p1.getSiegeRow().isWeatherActive());
     }
 
     @Test
@@ -593,6 +687,71 @@ class LeaderAbilityResolverTest {
     }
 
     // =========================================================
+    // TREACHEROUS (Monsters) — doubles spy card strength
+    // =========================================================
+
+    @Test
+    void shouldSetTreacherousActiveFlagWhenUsed() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.TREACHEROUS);
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.TREACHEROUS));
+
+        assertFalse(state.isTreacherousActive());
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertTrue(state.isTreacherousActive());
+    }
+
+    @Test
+    void shouldDoubleSpyCardStrengthWhenTreacherousActive() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.TREACHEROUS);
+        PlayerState p2 = playerWithLeader(LeaderAbility.TREACHEROUS);
+        Card spy = new Card("spy1", "Spy", Faction.NEUTRAL, CardType.UNIT, Ability.SPY, null, RowType.MELEE, 4);
+        p2.getMeleeRow().addCard(spy);
+        GameState state = makePlayState(p1, p2);
+
+        // before treacherous: spy has power 4
+        assertEquals(4, engine.calculateScore(p2, false));
+
+        engine.execute(state, new UseLeaderCommand());
+
+        // after treacherous: spy has power 4 * 2 = 8
+        assertEquals(8, engine.calculateScore(p2, true));
+    }
+
+    @Test
+    void shouldDoubleSpyStrengthForBothPlayersWhenTreacherousActive() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.TREACHEROUS);
+        PlayerState p2 = playerWithLeader(LeaderAbility.TREACHEROUS);
+        Card spy1 = new Card("spy1", "Spy1", Faction.NEUTRAL, CardType.UNIT, Ability.SPY, null, RowType.MELEE, 4);
+        Card spy2 = new Card("spy2", "Spy2", Faction.NEUTRAL, CardType.UNIT, Ability.SPY, null, RowType.RANGED, 5);
+        p1.getMeleeRow().addCard(spy1);
+        p2.getRangedRow().addCard(spy2);
+        GameState state = makePlayState(p1, p2);
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertEquals(8, engine.calculateScore(p1, true));
+        assertEquals(10, engine.calculateScore(p2, true));
+    }
+
+    @Test
+    void shouldNotAffectNonSpyCardsWhenTreacherousActive() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.TREACHEROUS);
+        PlayerState p2 = playerWithLeader(LeaderAbility.TREACHEROUS);
+        Card unit = makeUnit("u1", "Unit", 6, RowType.MELEE);
+        Card spy = new Card("spy1", "Spy", Faction.NEUTRAL, CardType.UNIT, Ability.SPY, null, RowType.MELEE, 4);
+        p2.getMeleeRow().addCard(unit);
+        p2.getMeleeRow().addCard(spy);
+        GameState state = makePlayState(p1, p2);
+
+        engine.execute(state, new UseLeaderCommand());
+
+        // unit stays 6, spy doubles to 8 = 14
+        assertEquals(14, engine.calculateScore(p2, true));
+    }
+
+    // =========================================================
     // CLAN_AN_CRAITE (Skellige) — all graveyard to deck for both + shuffle
     // =========================================================
 
@@ -615,6 +774,23 @@ class LeaderAbilityResolverTest {
         assertTrue(p1.getDeck().contains(g1));
         assertTrue(p1.getDeck().contains(g2));
         assertTrue(p2.getDeck().contains(g3));
+    }
+
+    @Test
+    void shouldWorkWhenOnlyOnePlayerHasGraveyardCardsForClanAnCraite() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.CLAN_AN_CRAITE);
+        PlayerState p2 = playerWithLeader(LeaderAbility.CLAN_AN_CRAITE);
+        Card g1 = makeUnit("g1", "Ghost1", 5, RowType.MELEE);
+        p1.addToGraveyard(g1);
+        // p2 graveyard is empty
+        GameState state = makePlayState(p1, p2);
+
+        assertDoesNotThrow(() -> engine.execute(state, new UseLeaderCommand()));
+
+        assertTrue(p1.getGraveyard().isEmpty());
+        assertTrue(p2.getGraveyard().isEmpty());
+        assertTrue(p1.getDeck().contains(g1));
+        assertTrue(p2.getDeck().isEmpty());
     }
 
     @Test
@@ -659,33 +835,45 @@ class LeaderAbilityResolverTest {
     }
 
     // =========================================================
-    // KING_BRAN (Skellige) — graveyard to deck
+    // KING_BRAN (Skellige) — units lose half strength in weather
     // =========================================================
 
     @Test
-    void shouldMoveAllGraveyardCardsBackToDeckWhenKingBranUsed() {
-        Card g1 = makeUnit("g1", "Ghost1", 3, RowType.MELEE);
-        Card g2 = makeUnit("g2", "Ghost2", 4, RowType.RANGED);
+    void shouldActivateKingBranPassiveWhenUsed() {
         PlayerState p1 = playerWithLeader(LeaderAbility.KING_BRAN);
-        p1.addToGraveyard(g1);
-        p1.addToGraveyard(g2);
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.KING_BRAN));
+
+        assertFalse(p1.isKingBranActive());
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertTrue(p1.isKingBranActive());
+    }
+
+    @Test
+    void shouldHalveWeatherPenaltyWhenKingBranActive() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.KING_BRAN);
+        Card unit = makeUnit("u1", "Warrior", 8, RowType.MELEE);
+        p1.getMeleeRow().addCard(unit);
+        p1.getMeleeRow().setWeatherActive(true);
         GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.KING_BRAN));
 
         engine.execute(state, new UseLeaderCommand());
 
-        assertTrue(p1.getGraveyard().isEmpty());
-        assertTrue(p1.getDeck().contains(g1));
-        assertTrue(p1.getDeck().contains(g2));
+        // 8 / 2 = 4 (halved, not reduced to 1)
+        assertEquals(4, engine.calculateScore(p1));
     }
 
     @Test
-    void shouldDoNothingWhenGraveyardIsEmptyForKingBran() {
+    void shouldNotAffectNonWeatherRowsWhenKingBranActive() {
         PlayerState p1 = playerWithLeader(LeaderAbility.KING_BRAN);
+        Card unit = makeUnit("u1", "Warrior", 8, RowType.MELEE);
+        p1.getMeleeRow().addCard(unit);
         GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.KING_BRAN));
 
-        assertDoesNotThrow(() -> engine.execute(state, new UseLeaderCommand()));
-        assertTrue(p1.getGraveyard().isEmpty());
-        assertTrue(p1.getDeck().isEmpty());
+        engine.execute(state, new UseLeaderCommand());
+
+        assertEquals(8, engine.calculateScore(p1));
     }
 
     // =========================================================
@@ -845,14 +1033,11 @@ class LeaderAbilityResolverTest {
     // =========================================================
 
     @Test
-    void shouldMoveAgileCardsToMeleeWhenMeleeHasHigherNonAgileScore() {
+    void shouldMoveAgileCardsOutOfWeatheredRow() {
         PlayerState p1 = playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE);
-        Card meleeUnit = makeUnit("m1", "MeleeUnit", 8, RowType.MELEE);
-        Card rangedUnit = makeUnit("r1", "RangedUnit", 3, RowType.RANGED);
         Card agile = makeAgileUnit("a1", "Agile", 5);
-        p1.getMeleeRow().addCard(meleeUnit);
-        p1.getRangedRow().addCard(rangedUnit);
         p1.getRangedRow().addCard(agile);
+        p1.getRangedRow().setWeatherActive(true);
         GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE));
 
         engine.execute(state, new UseLeaderCommand());
@@ -862,14 +1047,11 @@ class LeaderAbilityResolverTest {
     }
 
     @Test
-    void shouldMoveAgileCardsToRangedWhenRangedHasHigherNonAgileScore() {
+    void shouldMoveAgileCardsIntoHornedRow() {
         PlayerState p1 = playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE);
-        Card meleeUnit = makeUnit("m1", "MeleeUnit", 3, RowType.MELEE);
-        Card rangedUnit = makeUnit("r1", "RangedUnit", 8, RowType.RANGED);
         Card agile = makeAgileUnit("a1", "Agile", 5);
-        p1.getMeleeRow().addCard(meleeUnit);
         p1.getMeleeRow().addCard(agile);
-        p1.getRangedRow().addCard(rangedUnit);
+        p1.getRangedRow().setHornActive(true);
         GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE));
 
         engine.execute(state, new UseLeaderCommand());
@@ -879,20 +1061,52 @@ class LeaderAbilityResolverTest {
     }
 
     @Test
-    void shouldNotMoveAgileCardsWhenNonAgileScoresAreTied() {
+    void shouldMoveAllAgileCardsWhenEveryUnitIsAgile() {
         PlayerState p1 = playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE);
-        Card meleeUnit = makeUnit("m1", "MeleeUnit", 5, RowType.MELEE);
-        Card rangedUnit = makeUnit("r1", "RangedUnit", 5, RowType.RANGED);
-        Card agileInMelee = makeAgileUnit("a1", "Agile", 3);
-        p1.getMeleeRow().addCard(meleeUnit);
-        p1.getMeleeRow().addCard(agileInMelee);
-        p1.getRangedRow().addCard(rangedUnit);
+        Card inMelee = makeAgileUnit("a0", "Agile0", 3);
+        p1.getMeleeRow().addCard(inMelee);
+        List<Card> inRanged = List.of(
+                makeAgileUnit("a1", "Agile1", 6), makeAgileUnit("a2", "Agile2", 6),
+                makeAgileUnit("a3", "Agile3", 6), makeAgileUnit("a4", "Agile4", 6));
+        inRanged.forEach(p1.getRangedRow()::addCard);
+        p1.getRangedRow().setWeatherActive(true);
         GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE));
 
         engine.execute(state, new UseLeaderCommand());
 
-        assertTrue(p1.getMeleeRow().getCards().contains(agileInMelee));
-        assertFalse(p1.getRangedRow().getCards().contains(agileInMelee));
+        assertEquals(5, p1.getMeleeRow().getCards().size());
+        assertTrue(p1.getRangedRow().getCards().isEmpty());
+    }
+
+    @Test
+    void shouldNotMoveAgileCardsWhenStrengthIsEqualInBothRows() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE);
+        Card meleeUnit = makeUnit("m1", "MeleeUnit", 8, RowType.MELEE);
+        Card agileInRanged = makeAgileUnit("a1", "Agile", 3);
+        p1.getMeleeRow().addCard(meleeUnit);
+        p1.getRangedRow().addCard(agileInRanged);
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE));
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertTrue(p1.getRangedRow().getCards().contains(agileInRanged));
+        assertFalse(p1.getMeleeRow().getCards().contains(agileInRanged));
+    }
+
+    @Test
+    void shouldNotMoveNonAgileCards() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE);
+        Card rangedUnit = makeUnit("r1", "RangedUnit", 8, RowType.RANGED);
+        Card agile = makeAgileUnit("a1", "Agile", 5);
+        p1.getRangedRow().addCard(rangedUnit);
+        p1.getRangedRow().addCard(agile);
+        p1.getRangedRow().setWeatherActive(true);
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE));
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertEquals(List.of(rangedUnit), p1.getRangedRow().getCards());
+        assertEquals(List.of(agile), p1.getMeleeRow().getCards());
     }
 
     // =========================================================

@@ -74,14 +74,14 @@ jobs:
           DB_USERNAME: ${{ secrets.DB_USERNAME }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          JWT_EXPIRATION_MS: ${{ secrets.JWT_EXPIRATION_MS }}
+          JWT_ACCESS_EXPIRATION_MS: ${{ secrets.JWT_ACCESS_EXPIRATION_MS }}
           ALLOWED_ORIGINS: ${{ vars.ALLOWED_ORIGINS || 'https://gwent.luisgosampaio.com' }}
           API_PORT: ${{ vars.API_PORT || '8084' }}
         run: |
           set -euo pipefail
           umask 077
 
-          for var in DB_URL DB_USERNAME DB_PASSWORD JWT_SECRET JWT_EXPIRATION_MS; do
+          for var in DB_URL DB_USERNAME DB_PASSWORD JWT_SECRET JWT_ACCESS_EXPIRATION_MS; do
             if [[ -z "${!var}" ]]; then
               echo "Missing required secret: ${var}"
               echo "   Configure in Settings > Secrets and variables > Actions."
@@ -94,7 +94,7 @@ jobs:
             printf 'DB_USERNAME=%s\n' "$DB_USERNAME"
             printf 'DB_PASSWORD=%s\n' "$DB_PASSWORD"
             printf 'JWT_SECRET=%s\n' "$JWT_SECRET"
-            printf 'JWT_EXPIRATION_MS=%s\n' "$JWT_EXPIRATION_MS"
+            printf 'JWT_ACCESS_EXPIRATION_MS=%s\n' "$JWT_ACCESS_EXPIRATION_MS"
             printf 'ALLOWED_ORIGINS=%s\n' "$ALLOWED_ORIGINS"
             printf 'API_PORT=%s\n' "$API_PORT"
           } > .env

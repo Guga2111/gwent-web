@@ -8,6 +8,7 @@ export const FACTIONS: { value: Faction; label: string }[] = [
   { value: 'NILFGAARD', label: 'Nilfgaard' },
   { value: 'MONSTER', label: 'Monstros' },
   { value: 'SCOIATAEL', label: 'Scoia\'tael' },
+  { value: 'SKELLIGE', label: 'Skellige' },
 ]
 
 interface DeckEditorHeaderProps {

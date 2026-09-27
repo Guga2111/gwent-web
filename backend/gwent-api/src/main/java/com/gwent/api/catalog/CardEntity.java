@@ -31,6 +31,9 @@ public class CardEntity {
     private Ability ability;
 
     @Enumerated(EnumType.STRING)
+    private Ability secondAbility;
+
+    @Enumerated(EnumType.STRING)
     private LeaderAbility leaderAbility;
 
     @Enumerated(EnumType.STRING)

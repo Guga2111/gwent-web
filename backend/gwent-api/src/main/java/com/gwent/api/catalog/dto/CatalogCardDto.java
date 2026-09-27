@@ -8,6 +8,7 @@ public record CatalogCardDto(
         Faction faction,
         CardType cardType,
         Ability ability,
+        Ability secondAbility,
         LeaderAbility leaderAbility,
         RowType rowType,
         Integer basePower,
