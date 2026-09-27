@@ -18,8 +18,10 @@ public class GameState {
     private LeaderAbility pendingLeaderAbility;
     private int pendingAbilityCount;
     private List<Card> revealedCards;
+    private Turn revealedTo;
     private Turn winner;
     private EndReason endReason;
+    private boolean treacherousActive;
 
     public GameState (PlayerState player1, PlayerState player2) {
         this.player1 = player1;
@@ -76,6 +78,14 @@ public class GameState {
         this.pendingLeaderAbility = pendingLeaderAbility;
     }
 
+    // Deck cards the current player may pick during LEADER_DECK_PICK
+    public List<Card> getLeaderDeckPickOptions() {
+        return getCurrentPlayer().getDeck().stream()
+                .filter(c -> pendingLeaderAbility != LeaderAbility.KING_OF_THE_WILD_HUNT
+                        || c.cardType() == CardType.WEATHER)
+                .toList();
+    }
+
     public int getPendingAbilityCount() {
         return pendingAbilityCount;
     }
@@ -88,8 +98,18 @@ public class GameState {
         return revealedCards;
     }
 
-    public void setRevealedCards(List<Card> revealedCards) {
+    public Turn getRevealedTo() {
+        return revealedTo;
+    }
+
+    public void setRevealedCards(Turn revealedTo, List<Card> revealedCards) {
+        this.revealedTo = revealedTo;
         this.revealedCards = revealedCards;
+    }
+
+    public void clearRevealedCards() {
+        this.revealedTo = null;
+        this.revealedCards = null;
     }
 
     public void setCurrentTurn (Turn currentTurn) {
@@ -144,5 +164,13 @@ public class GameState {
 
     public boolean isGameOver() {
         return phase == GamePhase.GAME_OVER;
+    }
+
+    public boolean isTreacherousActive() {
+        return treacherousActive;
+    }
+
+    public void setTreacherousActive(boolean treacherousActive) {
+        this.treacherousActive = treacherousActive;
     }
 }

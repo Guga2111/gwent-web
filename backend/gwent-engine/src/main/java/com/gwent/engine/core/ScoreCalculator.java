@@ -14,17 +14,25 @@ public class ScoreCalculator {
     public ScoreCalculator () {}
 
     public int calculate (PlayerState player) {
+        return calculate(player, false);
+    }
+
+    public int calculate (PlayerState player, boolean treacherousActive) {
         boolean kingBran = player.isKingBranActive();
-        return calculate(player.getMeleeRow(), kingBran)
-                + calculate(player.getRangedRow(), kingBran)
-                + calculate(player.getSiegeRow(), kingBran);
+        return calculate(player.getMeleeRow(), kingBran, treacherousActive)
+                + calculate(player.getRangedRow(), kingBran, treacherousActive)
+                + calculate(player.getSiegeRow(), kingBran, treacherousActive);
     }
 
     int calculate (BoardRow row) {
-        return calculate(row, false);
+        return calculate(row, false, false);
     }
 
     int calculate (BoardRow row, boolean kingBranActive) {
+        return calculate(row, kingBranActive, false);
+    }
+
+    int calculate (BoardRow row, boolean kingBranActive, boolean treacherousActive) {
 
         int total = 0;
 
@@ -53,6 +61,7 @@ public class ScoreCalculator {
                 }
                 currentCardPower += (int) moraleBonus;
                 if (row.isHornActive()) currentCardPower *= 2;
+                if (treacherousActive && card.hasAbility(Ability.SPY)) currentCardPower *= 2;
             }
 
             total += currentCardPower;
@@ -66,6 +75,10 @@ public class ScoreCalculator {
     }
 
     public int calculateCardPower (Card card, BoardRow row, boolean kingBranActive) {
+        return calculateCardPower(card, row, kingBranActive, false);
+    }
+
+    public int calculateCardPower (Card card, BoardRow row, boolean kingBranActive, boolean treacherousActive) {
         Map<String, Long> countByName = row.getCards().stream()
                 .collect(Collectors.groupingBy(Card::name, Collectors.counting()));
 
@@ -88,6 +101,7 @@ public class ScoreCalculator {
             }
             power += (int) moraleBonus;
             if (row.isHornActive()) power *= 2;
+            if (treacherousActive && card.hasAbility(Ability.SPY)) power *= 2;
         }
 
         return power;

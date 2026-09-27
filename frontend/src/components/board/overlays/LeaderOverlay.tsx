@@ -4,6 +4,7 @@ import type { CardDto } from '@/types/game'
 
 type LeaderPendingType =
   | 'LEADER_GRAVEYARD_PICK'
+  | 'LEADER_GRAVEYARD_TO_HAND'
   | 'LEADER_OPPONENT_GRAVEYARD_PICK'
   | 'LEADER_DECK_PICK'
   | 'LEADER_HAND_DISCARD'
@@ -19,6 +20,10 @@ const CONFIG: Record<LeaderPendingType, { title: string; description: string }> 
   LEADER_GRAVEYARD_PICK: {
     title: 'Escolha uma carta do cemitério',
     description: 'Restaure uma unidade do seu cemitério para o campo de batalha.',
+  },
+  LEADER_GRAVEYARD_TO_HAND: {
+    title: 'Escolha uma carta do cemitério',
+    description: 'Devolva uma unidade do seu cemitério para a sua mão.',
   },
   LEADER_OPPONENT_GRAVEYARD_PICK: {
     title: 'Escolha uma carta do cemitério inimigo',
@@ -37,9 +42,11 @@ const CONFIG: Record<LeaderPendingType, { title: string; description: string }> 
 export default function LeaderOverlay({ pendingType, cards, onSelectCard, abilityDeadlineUtc }: LeaderOverlayProps) {
   const { title, description } = CONFIG[pendingType]
   const selectableCards =
-    pendingType === 'LEADER_GRAVEYARD_PICK' || pendingType === 'LEADER_OPPONENT_GRAVEYARD_PICK'
-      ? cards.filter((c) => c.cardType === 'UNIT' || c.cardType === 'HERO')
-      : cards
+    pendingType === 'LEADER_GRAVEYARD_TO_HAND'
+      ? cards.filter((c) => c.cardType === 'UNIT')
+      : pendingType === 'LEADER_GRAVEYARD_PICK' || pendingType === 'LEADER_OPPONENT_GRAVEYARD_PICK'
+        ? cards.filter((c) => c.cardType === 'UNIT' || c.cardType === 'HERO')
+        : cards
 
   return (
     <div className="board-overlay">

@@ -44,6 +44,21 @@ class ScoreCalculatorTest {
                 Ability.MORALE_BOOST, null, RowType.MELEE, 3);
     }
 
+    // --- Treacherous ---
+
+    @Test
+    void shouldDoubleSpyCardPowerWhenTreacherousActive() {
+        Card spy = new Card("spy", "Spy", Faction.NEUTRAL, CardType.UNIT,
+                Ability.SPY, null, RowType.MELEE, 4);
+        meleeRow.addCard(spy);
+        meleeRow.addCard(unit5);
+
+        assertEquals(8, calculator.calculateCardPower(spy, meleeRow, false, true));
+        assertEquals(5, calculator.calculateCardPower(unit5, meleeRow, false, true));
+        assertEquals(4, calculator.calculateCardPower(spy, meleeRow, false, false));
+        assertEquals(13, calculator.calculate(meleeRow, false, true));
+    }
+
     // --- Empty / base cases ---
 
     @Test

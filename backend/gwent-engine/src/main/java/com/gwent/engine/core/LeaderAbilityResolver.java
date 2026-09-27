@@ -39,7 +39,7 @@ class LeaderAbilityResolver {
             case DESTROYER_OF_WORLDS         -> handleDestroyerOfWorlds(state);
             case BRINGER_OF_DEATH            -> handleBringerOfDeath(state);
             case COMMANDER_OF_THE_RED_RIDERS -> handleCommanderOfTheRedRiders(state);
-            case KING_OF_THE_WILD_HUNT       -> handlePickWeatherFromDeck(state);
+            case KING_OF_THE_WILD_HUNT       -> handleKingOfTheWildHunt(state);
             // TODO - Implement the handle function logic
             case TREACHEROUS -> handleTreacherous(state);
 
@@ -71,7 +71,7 @@ class LeaderAbilityResolver {
         }
     }
 
-    // Northern Realms: Pick impenetrable fog card and play it - TODO REVIEW THIS (remains the instantly play card action... but i think it should be delegated to the engine)
+    // Northern Realms: Pick impenetrable fog card from deck and play it instantly
     private void handleKingOfTemeria(GameState state) {
         PlayerState current = state.getCurrentPlayer();
         current.getDeck().stream()
@@ -79,20 +79,18 @@ class LeaderAbilityResolver {
                 .findFirst()
                 .ifPresent(c -> {
                     current.removeFromDeck(c);
-                    current.addToHand(c);
+                    playWeather(state, c, RowType.RANGED);
                 });
     }
 
-    // Nilfgaard / Scoia'tael / Monsters: move first weather card from deck to hand
-    private void handlePickWeatherFromDeck(GameState state) {
+    // Monsters: pick any weather card from deck and play it instantly (player chooses which)
+    private void handleKingOfTheWildHunt(GameState state) {
         PlayerState current = state.getCurrentPlayer();
-        current.getDeck().stream()
-                .filter(c -> c.cardType() == CardType.WEATHER)
-                .findFirst()
-                .ifPresent(c -> {
-                    current.removeFromDeck(c);
-                    current.addToHand(c);
-                });
+        boolean hasWeather = current.getDeck().stream()
+                .anyMatch(c -> c.cardType() == CardType.WEATHER);
+        if (!hasWeather) return;
+        state.setPendingAbility(PendingAbility.LEADER_DECK_PICK);
+        state.setPendingLeaderAbility(LeaderAbility.KING_OF_THE_WILD_HUNT);
     }
 
     // Nilfgaard: reveal up to 3 random cards from opponent's hand
@@ -101,7 +99,7 @@ class LeaderAbilityResolver {
         List<Card> hand = new ArrayList<>(opponent.getHand());
         Collections.shuffle(hand);
         int count = Math.min(3, hand.size());
-        state.setRevealedCards(hand.subList(0, count));
+        state.setRevealedCards(state.getCurrentTurn(), hand.subList(0, count));
     }
 
     // Nilfgaard: revive 1 random card from the graveyard from both players and add it to the players hands - TODO: REVIEW THIS
@@ -146,7 +144,7 @@ class LeaderAbilityResolver {
                 .findFirst()
                 .ifPresent(c -> {
                     current.removeFromDeck(c);
-                    state.getBoard().addWeatherCard(c);
+                    playWeather(state, c, RowType.SIEGE);
                 });
     }
 
@@ -176,9 +174,9 @@ class LeaderAbilityResolver {
         state.setPendingLeaderAbility(LeaderAbility.BRINGER_OF_DEATH);
     }
 
-    // Monsters: doubles all spy cards strength
+    // Monsters: doubles all spy cards strength (affects both players)
     private void handleTreacherous(GameState state) {
-        // TODO ... ... ...
+        state.setTreacherousActive(true);
     }
 
     // LORD_COMMANDER (siege) / QUEEN_OF_DOL_BLATHANNA (melee): destroy strongest non-HERO unit if row score >= 10
@@ -187,7 +185,7 @@ class LeaderAbilityResolver {
         BoardRow row = opponent.getRow(rowType);
         boolean kingBran = opponent.isKingBranActive();
 
-        int rowScore = scoreCalculator.calculate(row, kingBran);
+        int rowScore = scoreCalculator.calculate(row, kingBran, state.isTreacherousActive());
         if (rowScore < 10) return;
 
         Card strongest = null;
@@ -195,7 +193,7 @@ class LeaderAbilityResolver {
         for (Card card : row.getCards()) {
             if (card.cardType() == CardType.HERO) continue;
             if (card.cardType() != CardType.UNIT) continue;
-            int power = scoreCalculator.calculateCardPower(card, row, kingBran);
+            int power = scoreCalculator.calculateCardPower(card, row, kingBran, state.isTreacherousActive());
             if (power > maxPower) {
                 maxPower = power;
                 strongest = card;
@@ -231,49 +229,57 @@ class LeaderAbilityResolver {
                 .findFirst()
                 .ifPresent(c -> {
                     current.removeFromDeck(c);
-                    state.getBoard().addWeatherCard(c);
+                    playWeather(state, c, RowType.MELEE);
                 });
     }
 
-    // Scoia'tael: move agile units to the most maximezed points row
+    // Scoia'tael: move agile units to the row that maximizes their strength.
+    // Compares the melee + ranged score with agile units kept as-is, all in melee, or all in ranged; ties keep them in place.
     private void handleHopeOfTheAenSeidhe(GameState state) {
         PlayerState current = state.getCurrentPlayer();
-        boolean kingBran = current.isKingBranActive();
-        List<Card> meleeNotAgileCards = current.getMeleeRow().getCards().stream()
-                .filter(c -> !c.hasAbility(Ability.AGILE))
+
+        int keepScore   = scoreWithAgileIn(state, current, null);
+        int meleeScore  = scoreWithAgileIn(state, current, RowType.MELEE);
+        int rangedScore = scoreWithAgileIn(state, current, RowType.RANGED);
+
+        if (meleeScore > keepScore && meleeScore >= rangedScore) {
+            moveAgileCards(current.getRangedRow(), current.getMeleeRow());
+        } else if (rangedScore > keepScore) {
+            moveAgileCards(current.getMeleeRow(), current.getRangedRow());
+        }
+    }
+
+    // Simulated melee + ranged score with every agile unit placed in target (null = current placement)
+    private int scoreWithAgileIn(GameState state, PlayerState player, RowType target) {
+        BoardRow melee = copyFlags(player.getMeleeRow());
+        BoardRow ranged = copyFlags(player.getRangedRow());
+
+        for (Card c : player.getMeleeRow().getCards()) {
+            (target == RowType.RANGED && c.hasAbility(Ability.AGILE) ? ranged : melee).addCard(c);
+        }
+        for (Card c : player.getRangedRow().getCards()) {
+            (target == RowType.MELEE && c.hasAbility(Ability.AGILE) ? melee : ranged).addCard(c);
+        }
+
+        boolean kingBran = player.isKingBranActive();
+        return scoreCalculator.calculate(melee, kingBran, state.isTreacherousActive())
+                + scoreCalculator.calculate(ranged, kingBran, state.isTreacherousActive());
+    }
+
+    private BoardRow copyFlags(BoardRow row) {
+        BoardRow copy = new BoardRow(row.getRowType());
+        copy.setHornActive(row.isHornActive());
+        copy.setWeatherActive(row.isWeatherActive());
+        return copy;
+    }
+
+    private void moveAgileCards(BoardRow from, BoardRow to) {
+        List<Card> agileCards = from.getCards().stream()
+                .filter(c -> c.hasAbility(Ability.AGILE))
                 .toList();
-
-        List<Card> rangedNotAgileCards = current.getRangedRow().getCards().stream()
-                .filter(c -> !c.hasAbility(Ability.AGILE))
-                .toList();
-
-        int meleeNotAgilePoints = meleeNotAgileCards.stream()
-                .mapToInt(c -> scoreCalculator.calculateCardPower(c, current.getMeleeRow(), kingBran))
-                .sum();
-
-        int rangedNotAgilePoints = rangedNotAgileCards.stream()
-                .mapToInt(c -> scoreCalculator.calculateCardPower(c, current.getRangedRow(), kingBran))
-                .sum();
-
-        // 3. Mover as cartas do tipo AGILE para a qual tiver a maior pontuacao
-        if (meleeNotAgilePoints > rangedNotAgilePoints) {
-            List<Card> agileCardsToAdd = current.getRangedRow().getCards().stream()
-                    .filter(c -> c.hasAbility(Ability.AGILE))
-                    .toList();
-
-            for (Card card : agileCardsToAdd) {
-                current.getMeleeRow().addCard(card);
-                current.getRangedRow().removeCard(card);
-            }
-        } else if (rangedNotAgilePoints > meleeNotAgilePoints) {
-            List<Card> agileCardsToAdd = current.getMeleeRow().getCards().stream()
-                    .filter(c -> c.hasAbility(Ability.AGILE))
-                    .toList();
-
-            for (Card card : agileCardsToAdd) {
-                current.getRangedRow().addCard(card);
-                current.getMeleeRow().removeCard(card);
-            }
+        for (Card card : agileCards) {
+            from.removeCard(card);
+            to.addCard(card);
         }
     }
 
@@ -302,4 +308,10 @@ class LeaderAbilityResolver {
         }
     }
 
+
+    private void playWeather(GameState state, Card weather, RowType row) {
+        state.getBoard().addWeatherCard(weather);
+        state.getPlayer1().getRow(row).setWeatherActive(true);
+        state.getPlayer2().getRow(row).setWeatherActive(true);
+    }
 }
