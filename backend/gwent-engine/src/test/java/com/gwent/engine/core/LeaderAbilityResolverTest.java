@@ -1033,14 +1033,11 @@ class LeaderAbilityResolverTest {
     // =========================================================
 
     @Test
-    void shouldMoveAgileCardsToMeleeWhenMeleeHasHigherNonAgileScore() {
+    void shouldMoveAgileCardsOutOfWeatheredRow() {
         PlayerState p1 = playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE);
-        Card meleeUnit = makeUnit("m1", "MeleeUnit", 8, RowType.MELEE);
-        Card rangedUnit = makeUnit("r1", "RangedUnit", 3, RowType.RANGED);
         Card agile = makeAgileUnit("a1", "Agile", 5);
-        p1.getMeleeRow().addCard(meleeUnit);
-        p1.getRangedRow().addCard(rangedUnit);
         p1.getRangedRow().addCard(agile);
+        p1.getRangedRow().setWeatherActive(true);
         GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE));
 
         engine.execute(state, new UseLeaderCommand());
@@ -1050,14 +1047,11 @@ class LeaderAbilityResolverTest {
     }
 
     @Test
-    void shouldMoveAgileCardsToRangedWhenRangedHasHigherNonAgileScore() {
+    void shouldMoveAgileCardsIntoHornedRow() {
         PlayerState p1 = playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE);
-        Card meleeUnit = makeUnit("m1", "MeleeUnit", 3, RowType.MELEE);
-        Card rangedUnit = makeUnit("r1", "RangedUnit", 8, RowType.RANGED);
         Card agile = makeAgileUnit("a1", "Agile", 5);
-        p1.getMeleeRow().addCard(meleeUnit);
         p1.getMeleeRow().addCard(agile);
-        p1.getRangedRow().addCard(rangedUnit);
+        p1.getRangedRow().setHornActive(true);
         GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE));
 
         engine.execute(state, new UseLeaderCommand());
@@ -1067,36 +1061,52 @@ class LeaderAbilityResolverTest {
     }
 
     @Test
-    void shouldNotMoveAgileCardsWhenNonAgileScoresAreTied() {
+    void shouldMoveAllAgileCardsWhenEveryUnitIsAgile() {
         PlayerState p1 = playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE);
-        Card meleeUnit = makeUnit("m1", "MeleeUnit", 5, RowType.MELEE);
-        Card rangedUnit = makeUnit("r1", "RangedUnit", 5, RowType.RANGED);
-        Card agileInMelee = makeAgileUnit("a1", "Agile", 3);
-        p1.getMeleeRow().addCard(meleeUnit);
-        p1.getMeleeRow().addCard(agileInMelee);
-        p1.getRangedRow().addCard(rangedUnit);
+        Card inMelee = makeAgileUnit("a0", "Agile0", 3);
+        p1.getMeleeRow().addCard(inMelee);
+        List<Card> inRanged = List.of(
+                makeAgileUnit("a1", "Agile1", 6), makeAgileUnit("a2", "Agile2", 6),
+                makeAgileUnit("a3", "Agile3", 6), makeAgileUnit("a4", "Agile4", 6));
+        inRanged.forEach(p1.getRangedRow()::addCard);
+        p1.getRangedRow().setWeatherActive(true);
         GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE));
 
         engine.execute(state, new UseLeaderCommand());
 
-        assertTrue(p1.getMeleeRow().getCards().contains(agileInMelee));
-        assertFalse(p1.getRangedRow().getCards().contains(agileInMelee));
+        assertEquals(5, p1.getMeleeRow().getCards().size());
+        assertTrue(p1.getRangedRow().getCards().isEmpty());
     }
 
     @Test
-    void shouldMoveAgileToNonEmptyRowWhenOneRowIsEmpty() {
+    void shouldNotMoveAgileCardsWhenStrengthIsEqualInBothRows() {
         PlayerState p1 = playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE);
-        Card meleeUnit = makeUnit("m1", "MeleeUnit", 6, RowType.MELEE);
-        Card agile = makeAgileUnit("a1", "Agile", 5);
+        Card meleeUnit = makeUnit("m1", "MeleeUnit", 8, RowType.MELEE);
+        Card agileInRanged = makeAgileUnit("a1", "Agile", 3);
         p1.getMeleeRow().addCard(meleeUnit);
-        p1.getRangedRow().addCard(agile);
-        // ranged has 0 non-agile score, melee has 6
+        p1.getRangedRow().addCard(agileInRanged);
         GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE));
 
         engine.execute(state, new UseLeaderCommand());
 
-        assertTrue(p1.getMeleeRow().getCards().contains(agile));
-        assertFalse(p1.getRangedRow().getCards().contains(agile));
+        assertTrue(p1.getRangedRow().getCards().contains(agileInRanged));
+        assertFalse(p1.getMeleeRow().getCards().contains(agileInRanged));
+    }
+
+    @Test
+    void shouldNotMoveNonAgileCards() {
+        PlayerState p1 = playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE);
+        Card rangedUnit = makeUnit("r1", "RangedUnit", 8, RowType.RANGED);
+        Card agile = makeAgileUnit("a1", "Agile", 5);
+        p1.getRangedRow().addCard(rangedUnit);
+        p1.getRangedRow().addCard(agile);
+        p1.getRangedRow().setWeatherActive(true);
+        GameState state = makePlayState(p1, playerWithLeader(LeaderAbility.HOPE_OF_THE_AEN_SEIDHE));
+
+        engine.execute(state, new UseLeaderCommand());
+
+        assertEquals(List.of(rangedUnit), p1.getRangedRow().getCards());
+        assertEquals(List.of(agile), p1.getMeleeRow().getCards());
     }
 
     // =========================================================

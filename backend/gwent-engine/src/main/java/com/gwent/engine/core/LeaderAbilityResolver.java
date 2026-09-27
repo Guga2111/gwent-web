@@ -233,45 +233,53 @@ class LeaderAbilityResolver {
                 });
     }
 
-    // Scoia'tael: move agile units to the most maximezed points row
+    // Scoia'tael: move agile units to the row that maximizes their strength.
+    // Compares the melee + ranged score with agile units kept as-is, all in melee, or all in ranged; ties keep them in place.
     private void handleHopeOfTheAenSeidhe(GameState state) {
         PlayerState current = state.getCurrentPlayer();
-        boolean kingBran = current.isKingBranActive();
-        List<Card> meleeNotAgileCards = current.getMeleeRow().getCards().stream()
-                .filter(c -> !c.hasAbility(Ability.AGILE))
+
+        int keepScore   = scoreWithAgileIn(state, current, null);
+        int meleeScore  = scoreWithAgileIn(state, current, RowType.MELEE);
+        int rangedScore = scoreWithAgileIn(state, current, RowType.RANGED);
+
+        if (meleeScore > keepScore && meleeScore >= rangedScore) {
+            moveAgileCards(current.getRangedRow(), current.getMeleeRow());
+        } else if (rangedScore > keepScore) {
+            moveAgileCards(current.getMeleeRow(), current.getRangedRow());
+        }
+    }
+
+    // Simulated melee + ranged score with every agile unit placed in target (null = current placement)
+    private int scoreWithAgileIn(GameState state, PlayerState player, RowType target) {
+        BoardRow melee = copyFlags(player.getMeleeRow());
+        BoardRow ranged = copyFlags(player.getRangedRow());
+
+        for (Card c : player.getMeleeRow().getCards()) {
+            (target == RowType.RANGED && c.hasAbility(Ability.AGILE) ? ranged : melee).addCard(c);
+        }
+        for (Card c : player.getRangedRow().getCards()) {
+            (target == RowType.MELEE && c.hasAbility(Ability.AGILE) ? melee : ranged).addCard(c);
+        }
+
+        boolean kingBran = player.isKingBranActive();
+        return scoreCalculator.calculate(melee, kingBran, state.isTreacherousActive())
+                + scoreCalculator.calculate(ranged, kingBran, state.isTreacherousActive());
+    }
+
+    private BoardRow copyFlags(BoardRow row) {
+        BoardRow copy = new BoardRow(row.getRowType());
+        copy.setHornActive(row.isHornActive());
+        copy.setWeatherActive(row.isWeatherActive());
+        return copy;
+    }
+
+    private void moveAgileCards(BoardRow from, BoardRow to) {
+        List<Card> agileCards = from.getCards().stream()
+                .filter(c -> c.hasAbility(Ability.AGILE))
                 .toList();
-
-        List<Card> rangedNotAgileCards = current.getRangedRow().getCards().stream()
-                .filter(c -> !c.hasAbility(Ability.AGILE))
-                .toList();
-
-        int meleeNotAgilePoints = meleeNotAgileCards.stream()
-                .mapToInt(c -> scoreCalculator.calculateCardPower(c, current.getMeleeRow(), kingBran))
-                .sum();
-
-        int rangedNotAgilePoints = rangedNotAgileCards.stream()
-                .mapToInt(c -> scoreCalculator.calculateCardPower(c, current.getRangedRow(), kingBran))
-                .sum();
-
-        // 3. Mover as cartas do tipo AGILE para a qual tiver a maior pontuacao
-        if (meleeNotAgilePoints > rangedNotAgilePoints) {
-            List<Card> agileCardsToAdd = current.getRangedRow().getCards().stream()
-                    .filter(c -> c.hasAbility(Ability.AGILE))
-                    .toList();
-
-            for (Card card : agileCardsToAdd) {
-                current.getMeleeRow().addCard(card);
-                current.getRangedRow().removeCard(card);
-            }
-        } else if (rangedNotAgilePoints > meleeNotAgilePoints) {
-            List<Card> agileCardsToAdd = current.getMeleeRow().getCards().stream()
-                    .filter(c -> c.hasAbility(Ability.AGILE))
-                    .toList();
-
-            for (Card card : agileCardsToAdd) {
-                current.getRangedRow().addCard(card);
-                current.getMeleeRow().removeCard(card);
-            }
+        for (Card card : agileCards) {
+            from.removeCard(card);
+            to.addCard(card);
         }
     }
 
