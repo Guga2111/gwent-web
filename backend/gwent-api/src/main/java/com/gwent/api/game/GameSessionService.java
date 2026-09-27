@@ -316,8 +316,8 @@ public class GameSessionService {
 
         return mapper.toGameStateDto(
                 gameId, ctx, perspective,
-                engine.calculateScore(meState, state.isTreacherousActive()),
-                engine.calculateScore(opponentState, state.isTreacherousActive()),
+                engine.calculateScore(meState),
+                engine.calculateScore(opponentState),
                 timerService.getTurnDeadline(gameId),
                 timerService.getAbilityDeadline(gameId),
                 sessionRegistry.hasDisconnectForfeit(gameId)

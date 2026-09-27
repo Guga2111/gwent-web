@@ -7,9 +7,13 @@ import com.gwent.engine.state.PlayerState;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 class AbilityResolver {
+
+    private static final Map<String, String> MUSTER_TARGET_OVERRIDE = Map.of(
+            "Cerys an Craite", "Shield Maiden"
+    );
     
     private final ScoreCalculator scoreCalculator;
     
@@ -53,22 +57,23 @@ class AbilityResolver {
 
     private void handleMuster(GameState state, Card card, RowType targetRow) {
         PlayerState current = state.getCurrentPlayer();
-        Set<String> groupNames = MusterGroups.getMusterNames(card.name());
+        BoardRow row = current.getRow(targetRow);
+        String targetName = MUSTER_TARGET_OVERRIDE.getOrDefault(card.name(), card.name());
 
         List<Card> fromHand = new ArrayList<>(current.getHand()).stream()
-                .filter(c -> groupNames.contains(c.name()))
+                .filter(c -> c.name().equals(targetName))
                 .toList();
         for (Card c : fromHand) {
             current.removeFromHand(c);
-            current.getRow(c.rowType()).addCard(c);
+            row.addCard(c);
         }
 
         List<Card> fromDeck = current.getDeck().stream()
-                .filter(c -> groupNames.contains(c.name()))
+                .filter(c -> c.name().equals(targetName))
                 .toList();
         for (Card c : fromDeck) {
             current.removeFromDeck(c);
-            current.getRow(c.rowType()).addCard(c);
+            row.addCard(c);
         }
     }
 
